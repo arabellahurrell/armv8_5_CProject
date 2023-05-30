@@ -49,12 +49,12 @@ cmake_ninja_workdir = /Users/arabellahurrell/Desktop/Code/C/armv8_5/cmake-build-
 
 build cmake_object_order_depends_target_armv8_5: phony || CMakeFiles/armv8_5.dir
 
-build CMakeFiles/armv8_5.dir/src/assemble/assemble.c.o: C_COMPILER__armv8_5_Debug /Users/arabellahurrell/Desktop/Code/C/armv8_5/src/assemble/assemble.c || cmake_object_order_depends_target_armv8_5
-  DEP_FILE = CMakeFiles/armv8_5.dir/src/assemble/assemble.c.o.d
+build CMakeFiles/armv8_5.dir/src/assemble.c.o: C_COMPILER__armv8_5_Debug /Users/arabellahurrell/Desktop/Code/C/armv8_5/src/assemble.c || cmake_object_order_depends_target_armv8_5
+  DEP_FILE = CMakeFiles/armv8_5.dir/src/assemble.c.o.d
   FLAGS = -g -arch x86_64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -std=gnu11
   INCLUDES = -I/Users/arabellahurrell/Desktop/Code/C/armv8_5/src
   OBJECT_DIR = CMakeFiles/armv8_5.dir
-  OBJECT_FILE_DIR = CMakeFiles/armv8_5.dir/src/assemble
+  OBJECT_FILE_DIR = CMakeFiles/armv8_5.dir/src
 
 build CMakeFiles/armv8_5.dir/src/emulate.c.o: C_COMPILER__armv8_5_Debug /Users/arabellahurrell/Desktop/Code/C/armv8_5/src/emulate.c || cmake_object_order_depends_target_armv8_5
   DEP_FILE = CMakeFiles/armv8_5.dir/src/emulate.c.o.d
@@ -63,12 +63,12 @@ build CMakeFiles/armv8_5.dir/src/emulate.c.o: C_COMPILER__armv8_5_Debug /Users/a
   OBJECT_DIR = CMakeFiles/armv8_5.dir
   OBJECT_FILE_DIR = CMakeFiles/armv8_5.dir/src
 
-build CMakeFiles/armv8_5.dir/src/assemble/symbol_table.c.o: C_COMPILER__armv8_5_Debug /Users/arabellahurrell/Desktop/Code/C/armv8_5/src/assemble/symbol_table.c || cmake_object_order_depends_target_armv8_5
-  DEP_FILE = CMakeFiles/armv8_5.dir/src/assemble/symbol_table.c.o.d
+build CMakeFiles/armv8_5.dir/src/symbol_table.c.o: C_COMPILER__armv8_5_Debug /Users/arabellahurrell/Desktop/Code/C/armv8_5/src/symbol_table.c || cmake_object_order_depends_target_armv8_5
+  DEP_FILE = CMakeFiles/armv8_5.dir/src/symbol_table.c.o.d
   FLAGS = -g -arch x86_64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -std=gnu11
   INCLUDES = -I/Users/arabellahurrell/Desktop/Code/C/armv8_5/src
   OBJECT_DIR = CMakeFiles/armv8_5.dir
-  OBJECT_FILE_DIR = CMakeFiles/armv8_5.dir/src/assemble
+  OBJECT_FILE_DIR = CMakeFiles/armv8_5.dir/src
 
 build CMakeFiles/armv8_5.dir/src/reading_source_file.c.o: C_COMPILER__armv8_5_Debug /Users/arabellahurrell/Desktop/Code/C/armv8_5/src/reading_source_file.c || cmake_object_order_depends_target_armv8_5
   DEP_FILE = CMakeFiles/armv8_5.dir/src/reading_source_file.c.o.d
@@ -77,12 +77,12 @@ build CMakeFiles/armv8_5.dir/src/reading_source_file.c.o: C_COMPILER__armv8_5_De
   OBJECT_DIR = CMakeFiles/armv8_5.dir
   OBJECT_FILE_DIR = CMakeFiles/armv8_5.dir/src
 
-build CMakeFiles/armv8_5.dir/src/assemble/function_decoder.c.o: C_COMPILER__armv8_5_Debug /Users/arabellahurrell/Desktop/Code/C/armv8_5/src/assemble/function_decoder.c || cmake_object_order_depends_target_armv8_5
-  DEP_FILE = CMakeFiles/armv8_5.dir/src/assemble/function_decoder.c.o.d
+build CMakeFiles/armv8_5.dir/src/function_decoder.c.o: C_COMPILER__armv8_5_Debug /Users/arabellahurrell/Desktop/Code/C/armv8_5/src/function_decoder.c || cmake_object_order_depends_target_armv8_5
+  DEP_FILE = CMakeFiles/armv8_5.dir/src/function_decoder.c.o.d
   FLAGS = -g -arch x86_64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -std=gnu11
   INCLUDES = -I/Users/arabellahurrell/Desktop/Code/C/armv8_5/src
   OBJECT_DIR = CMakeFiles/armv8_5.dir
-  OBJECT_FILE_DIR = CMakeFiles/armv8_5.dir/src/assemble
+  OBJECT_FILE_DIR = CMakeFiles/armv8_5.dir/src
 
 build CMakeFiles/armv8_5.dir/src/assemble/enums.c.o: C_COMPILER__armv8_5_Debug /Users/arabellahurrell/Desktop/Code/C/armv8_5/src/assemble/enums.c || cmake_object_order_depends_target_armv8_5
   DEP_FILE = CMakeFiles/armv8_5.dir/src/assemble/enums.c.o.d
@@ -99,7 +99,7 @@ build CMakeFiles/armv8_5.dir/src/assemble/enums.c.o: C_COMPILER__armv8_5_Debug /
 #############################################
 # Link the executable armv8_5
 
-build armv8_5: C_EXECUTABLE_LINKER__armv8_5_Debug CMakeFiles/armv8_5.dir/src/assemble/assemble.c.o CMakeFiles/armv8_5.dir/src/emulate.c.o CMakeFiles/armv8_5.dir/src/assemble/symbol_table.c.o CMakeFiles/armv8_5.dir/src/reading_source_file.c.o CMakeFiles/armv8_5.dir/src/assemble/function_decoder.c.o CMakeFiles/armv8_5.dir/src/assemble/enums.c.o
+build armv8_5: C_EXECUTABLE_LINKER__armv8_5_Debug CMakeFiles/armv8_5.dir/src/assemble.c.o CMakeFiles/armv8_5.dir/src/emulate.c.o CMakeFiles/armv8_5.dir/src/symbol_table.c.o CMakeFiles/armv8_5.dir/src/reading_source_file.c.o CMakeFiles/armv8_5.dir/src/function_decoder.c.o CMakeFiles/armv8_5.dir/src/assemble/enums.c.o
   FLAGS = -g -arch x86_64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk
   OBJECT_DIR = CMakeFiles/armv8_5.dir
   POST_BUILD = :
