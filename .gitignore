@@ -33,3 +33,6 @@ assemble
 *.nav
 *.toc
 
+**/cmake-build-debug
+**/CMakeLists.txt
+**/.idea
