@@ -1,0 +1,24 @@
+//
+// Created by Arabella Hurrell on 01/06/2023.
+//
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "denary_to_binary.h"
+
+char* denaryToBinary(const char* denary) {
+    const char* numberStr = denary + 1;
+    int decimal = atoi(numberStr);
+    char* binary = (char*)malloc(sizeof(char) * 6);
+    if (binary == NULL) {
+        printf("Memory allocation failed.\n");
+        return NULL;
+    }
+    for (int i = 4; i >= 0; i--) {
+        binary[i] = (decimal & 1) ? '1' : '0';
+        decimal >>= 1;
+    }
+    binary[5] = '\0';
+    return binary;
+}

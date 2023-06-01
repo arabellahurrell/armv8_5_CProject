@@ -35,6 +35,7 @@ char* logicalBitwise (char* opcode, char* rd, char* rn, char* op2) {
         x = "0";
     }
     char* result = strcat(strcat(x, strcat(opcode, "01010")), strcat(op2, strcat(rn, rd)));
+    return result;
 }
 
 
