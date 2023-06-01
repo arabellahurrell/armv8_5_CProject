@@ -5,20 +5,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "denary_to_binary.h"
 
-char* denaryToBinary(const char* denary) {
+char* convert(const char* denary, int numBits) {
     const char* numberStr = denary + 1;
     int decimal = atoi(numberStr);
-    char* binary = (char*)malloc(sizeof(char) * 6);
+    char* binary = (char*)malloc(sizeof(char) * (numBits + 1));
     if (binary == NULL) {
         printf("Memory allocation failed.\n");
         return NULL;
     }
-    for (int i = 4; i >= 0; i--) {
+    for (int i = numBits - 1; i >= 0; i--) {
         binary[i] = (decimal & 1) ? '1' : '0';
         decimal >>= 1;
     }
-    binary[5] = '\0';
+    binary[numBits] = '\0';
+
     return binary;
 }
+

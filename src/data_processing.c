@@ -4,15 +4,16 @@
 
 #include "data_processing.h"
 #include <string.h>
+#include "denary_to_binary.c"
 
-char* arithmetics(char* opcode, char* rd, char* rn, char* op2) {
+char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shift) {
     char* x;
-    if (strcmp(rn, "xn") == 0) {
+    if (strcmp((const char *) rn[0], "x") == 0) {
         x = "1";
     } else {
         x = "0";
     }
-    char* result = strcat(strcat(x, strcat(opcode, "100010")), strcat(op2, rd));
+    char* result = strcat(strcat(x, strcat(opcode, "100010")), strcat(convert(op2, 16), convert(rd, 4)));
     return result;
 }
 
