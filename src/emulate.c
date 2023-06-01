@@ -105,7 +105,7 @@ int64_t getInstructionPartSigned(struct Machine machine, uint64_t littleEnd, uin
 }
 
 void executeArithmeticInstruction(struct Machine machine, uint64_t rd, uint64_t rn, uint64_t sf,
-        uint64_t op, uint64_t opc) {
+                                  uint64_t op, uint64_t opc) {
     // Unsigned values
     uint64_t result, a, b;
     a = machine.registers[rn];
