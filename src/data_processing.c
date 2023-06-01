@@ -5,7 +5,7 @@
 #include "data_processing.h"
 #include <string.h>
 #include "denary_to_binary.c"
-
+#include "shifts.c"
 char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, char* shiftAmount) {
     char* x;
     if (strcmp((const char *) rn[0], "x") == 0) {
@@ -14,29 +14,48 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
         x = "0";
     }
 
-    char* result = strcat(strcat(x, strcat(opcode, "100010")), strcat(convert(op2, 16), convert(rd, 4)));
+    char* result = strcat(strcat(x, strcat(opcode, "100010")), strcat(master(convert(op2,18), shiftType, shiftAmount) + 10, convert(rd, 5)));
     return result;
 }
 
-char* moveWides(char* opcode, char* rd, char* imm, char* sh) {
+char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, char* shiftAmount) {
     char* x;
-    if (strcmp(rd, "xd")) {
+    if (strcmp((const char *) rd[0], "x") == 0) {
         x = "1";
     } else {
         x = "0";
     }
-    char* result = strcat(strcat(x, strcat(opcode, "101")), strcat(strcat(imm, sh), rd));
+    char* result = strcat(strcat(x, strcat(opcode, "101")), strcat(strcat(master(convert(imm, 16), shiftType, shiftAmount), sh), convert(rd, 16)));
     return result;
 }
 
-char* logicalBitwise (char* opcode, char* rd, char* rn, char* op2) {
+char* logicalBitwise (char* opcode, char* rd, char* rn, char* rm, char* op2, char* shiftType) {
     char* x;
-    if (strcmp(rd, "xd")) {
+    if (strcmp((const char *) rd[0], "x") == 0) {
         x = "1";
     } else {
         x = "0";
     }
-    char* result = strcat(strcat(x, strcat(opcode, "01010")), strcat(op2, strcat(rn, rd)));
+    char* shifts[3];
+    if (strcmp(shiftType, "lsl") == 0) {
+        shifts[0] = "0";
+        shifts[1] = "0";
+    } else if (strcmp(shiftType, "lsr") == 0) {
+        shifts[0] = "0";
+        shifts[1] = "1";
+    } else if (strcmp(shiftType, "asr") == 0) {
+        shifts[0] = "1";
+        shifts[1] = "0";
+    } else {
+        shifts[0] = "1";
+        shifts[1] = "1";
+    }
+    if (strcmp(opcode, "and") ==0 || strcmp(opcode, "orr") ==0 || strcmp(opcode, "eon") ==0 || strcmp(opcode, "ands") ==0) {
+        shifts[2] = "0";
+    } else {
+        shifts[2] = "1";
+    }
+    char* result = strcat(strcat(x, strcat(opcode, strcat(strcat("01010", shifts), convert(rm, 5)))), strcat(convert(op2, 6), strcat(convert(rn, 5), convert(rd, 5))));
     return result;
 }
 
