@@ -68,19 +68,19 @@ void function_decoder(char** arguments) {
 
     } else if (strcmp(mnemonic, "br") == 0) {
 
-    } else if (strcmp(mnemonic, "beq") == 0) {
+    } else if (strcmp(mnemonic, "b.eq") == 0) {
 
-    } else if (strcmp(mnemonic, "bne") == 0) {
+    } else if (strcmp(mnemonic, "b.ne") == 0) {
 
-    } else if (strcmp(mnemonic, "bge") == 0) {
+    } else if (strcmp(mnemonic, "b.ge") == 0) {
 
-    } else if (strcmp(mnemonic, "blt") == 0) {
+    } else if (strcmp(mnemonic, "b.lt") == 0) {
 
-    } else if (strcmp(mnemonic, "bgt") == 0) {
+    } else if (strcmp(mnemonic, "b.gt") == 0) {
 
-    } else if (strcmp(mnemonic, "ble") == 0) {
+    } else if (strcmp(mnemonic, "b.le") == 0) {
 
-    } else if (strcmp(mnemonic, "bal") == 0) {
+    } else if (strcmp(mnemonic, "b.al") == 0) {
 
     } else {
         printf("Error no such instruction");
