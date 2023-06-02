@@ -1,7 +1,14 @@
+// Potential bugs
+//  - signed/unsigned int32
+//  - little endian
+//  - int/int64/int32
+//  - Spec has changed
+//  - When working on zero register
+//  - Add more errors
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdint.h>
 
 #define WORD_BYTES 4
 #define NO_REGISTERS 31
@@ -18,43 +25,40 @@
 #define MIN_SIGNED_INT_32 (-0x80000000)
 #define MIN_SIGNED_INT_64 (-0x8000000000000000)
 
-// Potential bugs
-// signed/unsigned int32
-// little endian
-// int/int64/int32
-// Spec has changed
-// When working on zero register
+/*
+ * Structures
+ */
 
-// Todo
-// Add more errors
-
+// Represents the PSTATE unit
 struct PState {
-    int N, Z, C, V;
+    bool N, Z, C, V;
 };
 
 // Errors that can occur during emulation
 enum Error {
-    NONE,
-    OUT_OF_RANGE,
-    LOAD_LITERAL,
-    UnKNOWN_OPCODE
+    OUT_OF_RANGE = 1,
+    UNKNOWN_OPCODE
 };
 
-// Represents the hardware of the ARMv8 machine
+// Represents the state of the ARMv8 machine
 struct Machine {
     char memory[NO_BYTES_MEMORY]; // 2MB memory
-    uint64_t registers[NO_REGISTERS + 1], PC; // 64-bit registers and ZR
-    struct PState state; // PSTATE register
-    uint32_t instruction; // The current instruction being executed
+    uint64_t registers[NO_REGISTERS + 1], PC, instruction; // 64-bit registers, ZR and PC, and current instruction
+    struct PState state; // PState register
     enum Error error; // If an error occurred during execution
 };
 
+/*
+ * Helper Functions
+ */
+
+// Reads the given file into the given machine's memory
 void readFileIntoMemory(char filename[], struct Machine machine) {
     FILE *file = fopen(filename, "rb"); // rb = read binary
 
     // Determine size of file
     fseek(file, 0, SEEK_END);
-    int size = ftell(file);
+    long size = ftell(file);
     rewind(file);
 
     // Read file into memory
@@ -62,32 +66,32 @@ void readFileIntoMemory(char filename[], struct Machine machine) {
     fclose(file);
 }
 
-// Returns mask of length bits all set to 1
+// Returns mask of length `bits` set to 1
 uint64_t getMask(uint64_t bits) {
     return (1 << bits) - 1;
 }
 
-// Returns mask of length bits all set to 1
+// Returns mask set to 1 between `left` and `right` bits
 uint64_t getMaskBetween(uint64_t left, uint64_t right) {
     return getMask(left) ^ getMask(right);
 }
 
-// Returns mask of length bits all set to 1
+// Returns mask to be applied to the result of an operation
 uint64_t getResultMask(bool sf) {
     return getMask(sf ? 64 : 32);
 }
 
-// Returns the given bit of the given value
+// Returns the given `bit` of the given `value`
 bool getBit(uint64_t value, uint64_t bit) {
     return (value >> bit) & 1;
 }
 
-// Returns the given bit of the given value
-bool getMSB(uint64_t value, uint64_t sf) {
+// Returns the most significant bit of the given value
+bool getMSB(uint64_t value, bool sf) {
     return getBit(value, sf ? 63 : 31);
 }
 
-// Returns the given portion of the instruction
+// Returns whether the masked value is equal to the target value
 bool isMaskEquals(uint64_t value, uint64_t mask, uint64_t equalTo) {
     return (value & mask) == equalTo;
 }
@@ -96,18 +100,66 @@ bool isMaskEquals(uint64_t value, uint64_t mask, uint64_t equalTo) {
 uint64_t getInstructionPart(struct Machine machine, uint64_t littleEnd, uint64_t length) {
     return (machine.instruction >> littleEnd) & getMask(length);
 }
-
 // Returns the given signed portion of the current instruction
 int64_t getInstructionPartSigned(struct Machine machine, uint64_t littleEnd, uint64_t length) {
-    int32_t instruction = (int32_t) machine.instruction;
+    int64_t instruction = (int64_t) machine.instruction;
     uint64_t shift = 32 - littleEnd - length + 1;
     return (instruction << shift) >> shift;
 }
 
+// Fetches a word or double word from memory starting at `startIndex`
+uint64_t loadFromMemory(struct Machine machine, uint64_t startIndex, bool sf) {
+    uint64_t value = 0, byte;
+    for (int i = 0; i < (sf ? 8 : 4); ++i) {
+        byte = (uint64_t) *(machine.memory + startIndex + i);
+        value |= byte << i * 8;
+    }
+    return value;
+}
+
+// Stores the given value in memory
+void storeInMemory(struct Machine machine, uint64_t startIndex, bool sf, uint64_t value) {
+    for (int i = 0; i < (sf ? 8 : 4); ++i) {
+        machine.memory[startIndex + i] = (char) value;
+        value >>= 8;
+    }
+}
+
+// Outputs the current state of the ARMv8 machine
+void output(struct Machine machine) {
+    // Registers
+    printf("Registers:\n");
+    for (int i = 0; i < NO_REGISTERS; i++) {
+        printf("X%2d = %116llx\n", i, machine.registers[i]);
+    }
+    // PC
+    printf("PC = %16llx\n", machine.PC);
+    // PState
+    struct PState state = machine.state;
+    printf("PSTATE : %s%s%s%s\n", state.N ? "N" : "-", state.Z ? "Z" : "-", state.C ? "C" : "-", state.V ? "V" : "-");
+    // Non-zero memory
+    printf("Non-zero memory:\n");
+    for (int i = 0; i < NO_BYTES_MEMORY / WORD_BYTES; i++) {
+        uint64_t value = loadFromMemory(machine, i, 0);
+        if (value != 0) {
+            printf("0x%8x: 0x%8llx\n", i, value);
+        }
+    }
+    // Any errors
+    if (machine.error) {
+        printf("Error occurred: %i\n", machine.error);
+    }
+}
+
+/*
+ * Execute functions
+ */
+
+// Helper function to execute an arithmetic instruction
 void executeArithmeticInstruction(struct Machine machine, uint64_t rd, uint64_t rn, uint64_t sf,
                                   uint64_t op, uint64_t opc) {
     // Unsigned values
-    uint64_t result, a, b;
+    uint64_t result = 0, a, b;
     a = machine.registers[rn];
     b = op;
     // Signed values
@@ -119,6 +171,7 @@ void executeArithmeticInstruction(struct Machine machine, uint64_t rd, uint64_t 
     switch (opc) {
         case 0b00: // Add
             result = machine.registers[rn] + op;
+            break;
         case 0b01: // Add and set flags
             result = machine.registers[rn] + op;
 
@@ -133,6 +186,7 @@ void executeArithmeticInstruction(struct Machine machine, uint64_t rd, uint64_t 
             }
         case 0b10: // Subtract
             result = machine.registers[rn] - op;
+            break;
         case 0b11: // Subtract and set flags
             result = machine.registers[rn] - op;
 
@@ -144,14 +198,16 @@ void executeArithmeticInstruction(struct Machine machine, uint64_t rd, uint64_t 
             } else { // 32 bit
                 machine.state.V = (sa > MAX_SIGNED_INT_32 + sb) || (sa < MIN_SIGNED_INT_32 + sb);
             }
+        default: break;
     }
 
     // Store calculated value
     machine.registers[rd] = result;
 }
 
+// Executes DP-Immediate instruction
 void executeDPImmediate(struct Machine machine) {
-    uint64_t sf, opc, opi, rd, sh, imm12, rn, hw, imm16, op, shift, lower_part, upper_part;
+    uint64_t sf, opc, opi, rd, sh, imm12, rn, hw, imm16, op, shift, lower_rd, upper_rd;
     sf = getInstructionPart(machine, 31, 1);
     opc = getInstructionPart(machine, 29, 2);
     opi = getInstructionPart(machine, 23, 3);
@@ -171,7 +227,7 @@ void executeDPImmediate(struct Machine machine) {
         case 0b010: // Arithmetic instruction
             // Handle shift flag
             if (sh) {
-                imm12 = imm12 << 12;
+                imm12 <<= 12;
             }
             executeArithmeticInstruction(machine, rd, rn, sf, imm12, opc);
         case 0b101: // Wide move
@@ -183,10 +239,12 @@ void executeDPImmediate(struct Machine machine) {
                 case 0b10: // Move wide with zero
                     machine.registers[rd] = op;
                 case 0b11: // Move wide with keep
-                    lower_part = machine.registers[rd] & getMask(shift);
-                    upper_part = ((hw == 0b11) ? 0 : (machine.registers[rd] & getMaskBetween(64, (hw + 1) * 16)));
-                    machine.registers[rd] = (lower_part | imm16 | upper_part) & getResultMask(sf);
+                    lower_rd = machine.registers[rd] & getMask(shift);
+                    upper_rd = ((hw == 0b11) ? 0 : (machine.registers[rd] & getMaskBetween(64, shift + 16)));
+                    machine.registers[rd] = (lower_rd | imm16 | upper_rd) & getResultMask(sf);
+                default: break;
             }
+        default: break;
     }
 }
 
@@ -195,7 +253,7 @@ uint64_t rotateRight(uint64_t value, uint64_t shift, uint64_t sf) {
     uint64_t shifted, rotated;
     shifted = value >> shift;
     rotated = value << ((sf ? 64 : 32) - shift);
-    return (shifted | rotated) & getResultMask(sf);
+    return shifted | rotated;
 }
 
 // Applies the given shift to the given value
@@ -206,12 +264,14 @@ uint64_t applyShift(uint64_t value, uint64_t shift, uint64_t sf) {
         case 0b01: // lsr
             return value >> shift;
         case 0b10: // asr
-            return value >> shift;
+            return ((int64_t) value) >> shift;
         case 0b11: // ror
             return rotateRight(value, shift, sf);
+        default: return 0;
     }
 }
 
+// Executes DP-Register instruction
 void executeDPRegister(struct Machine machine) {
     uint32_t sf, opc, M, rm, rn, rd, shift, imm6, isArithmetic, N, x, ra, op2, mul;
     sf = getInstructionPart(machine, 31, 1);
@@ -239,7 +299,7 @@ void executeDPRegister(struct Machine machine) {
         }
     } else { // Arithmetic and Logical
         if (!(shift == 0b11 && isArithmetic)) {
-            op2 = applyShift(machine.registers[rm], shift, sf);
+            op2 = applyShift(machine.registers[rm], shift, sf) & getResultMask(sf);
         }
         if (isArithmetic) { // Arithmetic
             executeArithmeticInstruction(machine, rd, rn, sf, imm6, opc);
@@ -248,26 +308,28 @@ void executeDPRegister(struct Machine machine) {
                 op2 = ~op2;
             }
             switch (opc) {
-                case 0b00:// AND
+                case 0b00: // AND
                     machine.registers[rd] = machine.registers[rn] & op2;
                 case 0b01: // OR
                     machine.registers[rd] = machine.registers[rn] | op2;
-                case 0b10: // OR NOT
-                    machine.registers[rd] = machine.registers[rn] ^ ~op2;
-                case 0b11: // AND and set flags
+                case 0b10: // XOR
+                    machine.registers[rd] = machine.registers[rn] ^ op2;
+                case 0b11: // AND, and set flags
                     machine.registers[rd] = machine.registers[rn] & op2;
 
                     machine.state.N = getBit(machine.registers[rd], sf ? 63 : 31);
                     machine.state.Z = getBit(machine.registers[rd] == 0, sf ? 63 : 31);
                     machine.state.C = 0;
                     machine.state.V = 0;
+                default: break;
             }
         }
     }
 }
 
-void executeSingleDataTransfer(struct Machine machine) {
-    uint64_t sf, U, L, xn, rt, xm, imm12, I, bit21, msb;
+// Executes Load or Store Instruction
+void executeLoadOrStore(struct Machine machine) {
+    uint64_t sf, U, L, xn, rt, xm, imm12, I, isRegOffset, isSDT;
     int64_t simm9, simm19;
     sf = getInstructionPart(machine, 30, 1);
     U = getInstructionPart(machine, 24, 1);
@@ -277,10 +339,10 @@ void executeSingleDataTransfer(struct Machine machine) {
     xm = getInstructionPart(machine, 16, 5);
     imm12 = getInstructionPart(machine, 10, 12);
     I = getInstructionPart(machine, 11, 1);
-    bit21 = getInstructionPart(machine, 21, 1);
+    isRegOffset = getInstructionPart(machine, 21, 1);
     simm9 = getInstructionPartSigned(machine, 12, 9);
     simm19 = getInstructionPartSigned(machine, 5, 19);
-    msb = getInstructionPart(machine, 31, 1);
+    isSDT = getInstructionPart(machine, 31, 1);
 
     if (xn == STACK_POINTER) {
         // Stack pointer not implemented
@@ -289,10 +351,10 @@ void executeSingleDataTransfer(struct Machine machine) {
 
     // Determine address to load/store
     uint64_t address;
-    if (msb) { // Single data transfer
+    if (isSDT) { // Single data transfer
         if (U) { // Unsigned immediate offset
             address = machine.registers[xn] + imm12;
-        } else if (bit21) { // Register offset
+        } else if (isRegOffset) { // Register offset
             address = machine.registers[xn] + machine.registers[xm];
         } else if (I) { // Pre-indexed
             address = machine.registers[xn] + simm9;
@@ -306,15 +368,17 @@ void executeSingleDataTransfer(struct Machine machine) {
     }
 
     // Execute
-    if (!msb || L) { // Load
-        machine.registers[rt] = machine.memory[address];
+    if (!isSDT || L) { // Load
+        machine.registers[rt] = loadFromMemory(machine, address, sf);
     } else { // Store
-        machine.memory[address] = machine.registers[rt];
+        storeInMemory(machine, address, sf, machine.registers[rt]);
     }
 }
 
+// Executes Branch instruction
 void executeBranch(struct Machine machine) {
-    uint64_t xn, cond, opc, jump;
+    uint64_t xn, cond, opc;
+    bool jump = false;
     int64_t simm26, simm19;
     xn = getInstructionPart(machine, 5, 5);
     cond = getInstructionPart(machine, 0, 4);
@@ -332,70 +396,43 @@ void executeBranch(struct Machine machine) {
             switch (cond) {
                 case 0b0000: // Equal
                     jump = machine.state.Z;
+                    break;
                 case 0b0001: // Not equal
                     jump = !machine.state.Z;
+                    break;
                 case 0b1010: // Signed greater or equal
-                    jump = machine.state.N;
+                    jump = machine.state.N == machine.state.Z;
+                    break;
                 case 0b1011: // Signed less than
-                    jump = !machine.state.Z;
+                    jump = machine.state.N != machine.state.Z;
+                    break;
                 case 0b1100: // Signed greater than
                     jump = !machine.state.N && machine.state.N == machine.state.V;
+                    break;
                 case 0b1101: // Signed less than or equal
                     jump = !(!machine.state.N && machine.state.N == machine.state.V);
+                    break;
                 case 0b1110: // Always
                     jump = true;
+                default: break;
             }
             // Execute jump if condition satisfied
             if (jump) {
                 machine.PC += simm19 * WORD_BYTES;
             }
+        default: break;
     }
 }
 
-// Outputs the state of the given ARMv8 machine
-void output(struct Machine machine) {
-    // Registers
-    printf("Registers:\n");
-    for (int i = 0; i < NO_REGISTERS; i++) {
-        printf("X");
-        printf("%02d", i); // Pad with zeros to length 2
-        printf(" = ");
-        printf("%016llx", machine.registers[i]); // Pad with zeros to length 16
-        printf("\n");
-    }
-
-    // PC
-    printf("PC = ");
-    printf("%016llx", machine.PC);
-    printf("\n");
-
-    // PState
-    printf("PSTATE : ");
-    printf(machine.state.N ? "N" : "-");
-    printf(machine.state.Z ? "Z" : "-");
-    printf(machine.state.C ? "C" : "-");
-    printf(machine.state.V ? "V" : "-");
-    printf("\n");
-
-    // Non-zero memory
-    printf("Non-zero memory:\n");
-    for (int i = 0; i < NO_BYTES_MEMORY; i++) {
-        int64_t value = machine.memory[i];
-        if (value != 0) {
-            printf("0x");
-            printf("%08x", i); // Pad with zeros to length 8
-            printf(": ");
-            printf("0x");
-            printf("%08llx", value); // Pad with zeros to length 8
-            printf("\n");
-        }
-    }
-}
+/*
+ * Main Emulator functions
+ */
 
 // Emulates running given file
 void emulate(char filename[]) {
     // Initialise ARMv8 machine with memory and registers
-    struct Machine machine;
+    struct Machine machine = {0};
+    machine.state.Z = true;
 
     // Read binary file into memory
     readFileIntoMemory(filename, machine);
@@ -403,31 +440,31 @@ void emulate(char filename[]) {
     // Main emulate loop
     while (true) {
         // Fetch
-        if (machine.PC > NO_BYTES_MEMORY) {
-            // Instruction out of range of memory
+        if (machine.PC > NO_BYTES_MEMORY) { // Instruction out of range of memory
+            machine.error = OUT_OF_RANGE;
+            break;
         }
-        machine.instruction = *(machine.memory + machine.PC);
+        machine.instruction = loadFromMemory(machine, machine.PC, 0);
         machine.PC += 4;
 
         // Decode
-        uint32_t op0 = getInstructionPart(machine, 25, 4);
+        uint64_t op0 = getInstructionPart(machine, 25, 4);
 
         // Execute
-        if (machine.instruction == HALT_INSTRUCTION) {
-            // Stop emulation
+        if (machine.instruction == HALT_INSTRUCTION) { // Stop emulation
             break;
-        } else if (machine.instruction == NOP_INSTRUCTION) {
-            // Pass to next
+        } else if (machine.instruction == NOP_INSTRUCTION) { // Pass to next instruction
         } else if (isMaskEquals(op0, 0b1110, 0b1000)) { // DP Immediate
             executeDPImmediate(machine);
         } else if (isMaskEquals(op0, 0b0111, 0b0101)) { // DP Register
             executeDPRegister(machine);
         } else if (isMaskEquals(op0, 0b0101, 0b0100)) { // Loads and Stores
-            executeSingleDataTransfer(machine);
+            executeLoadOrStore(machine);
         } else if (isMaskEquals(op0, 0b1110, 0b1010)) { // Branch
             executeBranch(machine);
         } else {
-            // Unknown opcode
+            machine.error = UNKNOWN_OPCODE;
+            break;
         }
     }
 
@@ -435,13 +472,15 @@ void emulate(char filename[]) {
     output(machine);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
     if (argc == 1) {
         printf("No binary file was inputted.\n");
+        return EXIT_FAILURE;
     } else if (argc > 2) {
         printf("Too many arguments were inputted.\n");
+        return EXIT_FAILURE;
     } else {
         emulate(argv[1]);
+        return EXIT_SUCCESS;
     }
-    return EXIT_SUCCESS;
 }
