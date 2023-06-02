@@ -4,12 +4,17 @@
 
 #include "single_data_transfer.h"
 #include <string.h>
-char* singleData (char* rt, char* address) {
+char* singleData (char* rt, char* xn, char* val, char* shiftAmount) {
     char* x;
-    if (strcmp(rt, "xt") == 0) {
+    if (strcmp((const char *) rt[0], "x") == 0) {
         x = "1";
     } else {
         x = "0";
     }
+    int sizeOfValue = sizeof(val)/(sizeof(val[0]));
+    if (val[sizeOfValue -1] == "!") {
 
+    }
 }
+
+char* registerOffset ()
