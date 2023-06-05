@@ -79,3 +79,45 @@ char * sf (char* reg) {
     return x;
 }
 
+#include <stdbool.h>
+
+bool isSecondCharacterX(char* str) {
+    if (str[1] == 'x') {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+char* replaceSubstring(const char* str, const char* oldSubstr, const char* newSubstr) {
+    size_t strLength = strlen(str);
+    size_t oldSubstrLength = strlen(oldSubstr);
+    size_t newSubstrLength = strlen(newSubstr);
+    size_t count = 0;
+    const char* ptr = str;
+    while ((ptr = strstr(ptr, oldSubstr)) != NULL) {
+        count++;
+        ptr += oldSubstrLength;
+    }
+    size_t newLength = strLength + count * (newSubstrLength - oldSubstrLength);
+    char* result = (char*) malloc((newLength + 1) * sizeof(char));
+    size_t resultIndex = 0;
+    ptr = str;
+    while (count > 0 && (ptr = strstr(ptr, oldSubstr)) != NULL) {
+        size_t partLength = ptr - str;
+        strncpy(result + resultIndex, str, partLength);
+        resultIndex += partLength;
+        strncpy(result + resultIndex, newSubstr, newSubstrLength);
+        resultIndex += newSubstrLength;
+        ptr += oldSubstrLength;
+        count--;
+    }
+    strncpy(result + resultIndex, ptr, strLength - (ptr - str));
+    result[newLength] = '\0';
+
+    return result;
+}
+
+bool isSubstringInString(const char* str, const char* substr) {
+    return strstr(str, substr) != NULL;
+}
