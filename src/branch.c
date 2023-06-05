@@ -4,15 +4,17 @@
 
 #include "branch.h"
 #include <string.h>
-#include "denary_to_binary.c"
+#include "utility.c"
 
-char* branching (char* mnemonic, char* value) {
+char* branching (char* mnemonic, char* value, int offset) {
     char* encoding = "";
     if (strcmp(mnemonic, "b") == 0) {
-        return strcat("000101", value);
+        char* res = convert((char*) (binaryToDecimal(value) + offset) , 26);
+        return strcat("000101", res);
     } else if (strcmp(mnemonic, "br") == 0) {
         return strcat("1101011000011111000000", convert(value, 26));
     } else {
+        char* res = convert((char*) (binaryToDecimal(value) + offset) , 19);
         if (strcmp(mnemonic, "b.eq") == 0) {
             encoding = "0000";
         } else if (strcmp(mnemonic, "b.ne") == 0) {
@@ -28,6 +30,6 @@ char* branching (char* mnemonic, char* value) {
         } else {
             encoding = "1110";
         }
-        return strcat(strcat("01010100", value), strcat("0", encoding));
+        return strcat(strcat("01010100", res), strcat("0", encoding));
     }
 }
