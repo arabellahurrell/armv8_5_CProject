@@ -48,7 +48,8 @@ struct Machine {
  * Global variables
  */
 
-struct Machine machine = {0};
+struct Machine machine;
+struct Machine empty_machine = {0};
 
 /*
  * Helper Functions
@@ -56,7 +57,7 @@ struct Machine machine = {0};
 
 // Returns mask of length `bits` set to 1
 uint64_t getMask(uint64_t bits) {
-    if (bits == 64) {
+    if (bits >= 64) {
         return -1;
     } else {
         return (1LL << bits) - 1;
@@ -93,24 +94,29 @@ bool isMaskEquals(uint64_t value, uint64_t mask, uint64_t equalTo) {
     return (value & mask) == equalTo;
 }
 
-// Returns the trailing `length` bits of the given `value` as a 64-bit signed value
-uint64_t getSignedPart(uint64_t value, uint64_t length) {
-    if (getBit(value, length - 1)) { // Signed
-        return value | getMaskBetween(64, length);
+// Returns the given portion of the given value
+uint64_t getPart(uint64_t value, uint64_t littleEnd, uint64_t length) {
+    return (value >> littleEnd) & getMask(length);
+}
+
+// Returns the given portion of the given `value` as a 64-bit signed value
+uint64_t getSignedPart(uint64_t value, uint64_t littleEnd, uint64_t length) {
+    uint64_t part = getPart(value, littleEnd, length);
+    if (getBit(part, length - 1)) { // Signed
+        return part | getMaskBetween(64, length);
     } else { // Not signed
-        return value;
+        return part;
     }
 }
 
 // Returns the given portion of the current instruction
 uint64_t getInstructionPart(uint64_t littleEnd, uint64_t length) {
-    return (machine.instruction >> littleEnd) & getMask(length);
+    return getPart(machine.instruction, littleEnd, length);
 }
 
 // Returns the given signed portion of the current instruction
 uint64_t getInstructionPartSigned(uint64_t littleEnd, uint64_t length) {
-    uint64_t part = getInstructionPart(littleEnd, length);
-    return getSignedPart(part, length);
+    return getSignedPart(machine.instruction, littleEnd, length);
 }
 
 // Fetches a word or double word from memory starting at `startIndex`
@@ -173,11 +179,13 @@ void outputStateToFile(char filename[]) {
 
 // Performs arithmetic shift right
 uint64_t arithmeticShiftRight(uint64_t value, uint64_t shiftAmount, uint64_t sf) {
+    uint64_t result;
     if (getSignBit(value, sf)) { // Signed
-        return (value >> shiftAmount) | getMaskBetween(64, (sf ? 64 : 32) - shiftAmount);
+        result = (value >> shiftAmount) | getMaskBetween(64, (sf ? 64 : 32) - shiftAmount);
     } else { // Unsigned
-        return value >> shiftAmount;
+        result = value >> shiftAmount;
     }
+    return result & getResultMask(sf);
 }
 
 // Performs rotate right shift to the given value
@@ -185,16 +193,16 @@ uint64_t rotateRight(uint64_t value, uint64_t shiftAmount, uint64_t sf) {
     uint64_t shifted, rotated;
     shifted = value >> shiftAmount;
     rotated = value << ((sf ? 64 : 32) - shiftAmount);
-    return shifted | rotated;
+    return (shifted | rotated) & getResultMask(sf);
 }
 
 // Applies the given shift to the given value
 uint64_t applyShift(uint64_t value, uint64_t shiftType, uint64_t shiftAmount, uint64_t sf) {
     switch (shiftType) {
         case 0b00: // lsl
-            return value << shiftAmount;
+            return (value << shiftAmount) & getResultMask(sf);
         case 0b01: // lsr
-            return value >> shiftAmount;
+            return (value >> shiftAmount) & getResultMask(sf);
         case 0b10: // asr
             return arithmeticShiftRight(value, shiftAmount, sf);
         case 0b11: // ror
@@ -233,7 +241,7 @@ void executeArithmeticInstruction(uint64_t rd, uint64_t a, uint64_t b, uint64_t 
 
             machine.state.N = getSignBit(result, sf);
             machine.state.Z = result == 0;
-            machine.state.C = a < b;
+            machine.state.C = a >= b;
             // Overflow iff sign bits of a and b are different and the sign bit of result same as subtrahend
             machine.state.V = (getSignBit(a, sf) != getSignBit(b, sf))
                            && (getSignBit(b, sf) == getSignBit(result, sf));
@@ -317,7 +325,7 @@ void executeDPRegister() {
         machine.registers[rd] = machine.registers[ra] + mul;
     } else { // Arithmetic or Logical
         // ror shift (0b11) not valid for arithmetic instructions todo: what to do if given 0b11 with arithmetic?
-        op2 = applyShift(machine.registers[rm], shiftType, imm6, sf) & getResultMask(sf);
+        op2 = applyShift(machine.registers[rm], shiftType, imm6, sf);
 
         if (isArithmetic) { // Arithmetic
             executeArithmeticInstruction(rd, machine.registers[rn], op2, opc, sf);
@@ -392,7 +400,7 @@ void executeLoadOrStore() {
             }
         }
     } else { // Load literal
-        address = machine.PC + simm19 * WORD_BYTES; // todo: the spec has conflicting definitions for this case (one doesn't multiply by 4)
+        address = machine.PC + simm19 * WORD_BYTES;
     }
 
     // Execute
@@ -512,44 +520,97 @@ void emulate(char readFile[], char writeFile[]) {
 
 // Test helper functions
 void testHelperFunctions() {
+    printf("getMask\n");
     printf("%llx\n", getMask(3)); // 7
     printf("%llx\n", getMask(8)); // ff
     printf("%llx\n", getMask(32)); // 32/4 = 8fs
     printf("%llx\n", getMask(64)); // 16fs
-    printf("%llx\n", getMask(65)); // 16fs
 
+    printf("negate\n");
+    printf("%llx\n", negate(1)); // 16fs
+    printf("%llx\n", negate(-1)); // 1
+    printf("%llx\n", negate(16)); // 15 fs, 0
+    printf("%llx\n", negate(-16)); // 10
+
+    printf("getMaskBetween\n");
     printf("%llx\n", getMaskBetween(64, 0)); // 16fs
     printf("%llx\n", getMaskBetween(5, 1)); // 2+4+8+16 = 16+14 = 1e
     printf("%llx\n", getMaskBetween(16, 8)); // ff00
-    printf("%llx\n", getMaskBetween(65, 32)); // 8 fs, 8 0s
+    printf("%llx\n", getMaskBetween(64, 32)); // 8 fs, 8 0s
     printf("%llx\n", getMaskBetween(0, 0)); // 0
-    printf("%llx\n", getMaskBetween(0, -1)); // undefined (= 16 fs)
 
+    printf("getResultMask\n");
     printf("%llx\n", getResultMask(0)); // 8 fs
     printf("%llx\n", getResultMask(1)); // 16 fs
 
+    printf("getBit\n");
     printf("%i\n", getBit(0b0010, 0)); // 0
     printf("%i\n", getBit(0b0010, 1)); // 1
     printf("%i\n", getBit(0b0010, 2)); // 0
     printf("%i\n", getBit(0b0010, 3)); // 0
     printf("%i\n", getBit(0b0010, 63)); // 0
-    printf("%i\n", getBit(0b0010, 64)); // undefined (= 0)
+    printf("%i\n", getBit(-1, 63)); // 1
 
+    printf("getSignBit\n");
     printf("%i\n", getSignBit(1, 0)); // 0
     printf("%i\n", getSignBit(1, 1)); // 0
     printf("%i\n", getSignBit(-1, 0)); // 1
     printf("%i\n", getSignBit(-1, 1)); // 1
 
+    printf("isMaskEquals\n");
     printf("%i\n", isMaskEquals(0b0011, 0b0001, 0b0001)); // 1
     printf("%i\n", isMaskEquals(0b0011, 0b1111, 0b0011)); // 1
     printf("%i\n", isMaskEquals(0b1001, 0b0101, 0b0101)); // 0
+    printf("%i\n", isMaskEquals(0b0110, 0b0101, 0b0100)); // 1
+    printf("%i\n", isMaskEquals(0b0110, 0b0101, 0b0101)); // 0
+    printf("%i\n", isMaskEquals(0b0110, 0b0101, 0b0101)); // 0
+    printf("%i\n", isMaskEquals(0b0110, 0b0001, 0b0101)); // 0
+
+    printf("getSignedPart\n");
+    printf("%llx\n", getSignedPart(0b0101, 0, 0)); // 0
+    printf("%llx\n", getSignedPart(0b0100, 0, 1)); // 0
+    printf("%llx\n", getSignedPart(0b0100, 0, 2)); // 0
+    printf("%llx\n", getSignedPart(0b0100, 0, 3)); // -4
+    printf("%llx\n", getSignedPart(0b0100, 0, 4)); // 4
+    printf("%llx\n", getSignedPart(0xffff0000, 0, 16)); // 0
+    printf("%llx\n", getSignedPart(0xffff0000, 0, 17)); // 12 fs, 0000
+
+    printf("arithmeticShiftRight\n");
+    printf("%llx\n", arithmeticShiftRight(0xf0000000, 4, 0)); // ff000000
+    printf("%llx\n", arithmeticShiftRight(0xf0000000, 8, 0)); // fff00000
+    printf("%llx\n", arithmeticShiftRight(0xf000000000000000, 4, 1)); // ff, 14 0s
+    printf("%llx\n", arithmeticShiftRight(0xf000000000000000, 4, 0)); // 0
+    printf("%llx\n", arithmeticShiftRight(0xf000000000000000, 8, 1)); // fff, 13 0s
+    printf("%llx\n", arithmeticShiftRight(0xf000000000000000, 8, 0)); // 0
+    printf("%llx\n", arithmeticShiftRight(0x0f000000, 4, 0)); // f00000
+    printf("%llx\n", arithmeticShiftRight(0x0f000000, 8, 0)); // f0000
+    printf("%llx\n", arithmeticShiftRight(0x0f00000000000000, 4, 1)); // f, 13 0s
+    printf("%llx\n", arithmeticShiftRight(0x0f00000000000000, 4, 0)); // 0
+    printf("%llx\n", arithmeticShiftRight(0x0f00000000000000, 8, 1)); // f, 12 0s
+    printf("%llx\n", arithmeticShiftRight(0x0f00000000000000, 8, 0)); // 0
+
+    printf("rotateRight\n");
+    printf("%llx\n", rotateRight(0xf0000000, 4, 0)); // f000000
+    printf("%llx\n", rotateRight(0xf0000000, 8, 0)); // f00000
+    printf("%llx\n", rotateRight(0xf000000000000000, 4, 1)); // f, 14 0s
+    printf("%llx\n", rotateRight(0xf000000000000000, 4, 0)); // 0
+    printf("%llx\n", rotateRight(0xf000000000000000, 8, 1)); // f, 13 0s
+    printf("%llx\n", rotateRight(0xf000000000000000, 8, 0)); // 0
+    printf("%llx\n", rotateRight(0x0f00000f, 4, 0)); // f0f00000
+    printf("%llx\n", rotateRight(0x0f00000f, 8, 0)); // f0f0000
+    printf("%llx\n", rotateRight(0x0f0000000000000f, 4, 1)); // f0f, 13 0s
+    printf("%llx\n", rotateRight(0x0f0000000000000f, 4, 0)); // f0000000
+    printf("%llx\n", rotateRight(0x0f0000000000000f, 8, 1)); // f0f, 12 0s
+    printf("%llx\n", rotateRight(0x0f0000000000000f, 8, 0)); // f000000
 
     machine.instruction = 0xffff00f0;
 
+    printf("getInstructionPart\n");
     printf("%llx\n", getInstructionPart(0, 8)); // f0
     printf("%llx\n", getInstructionPart(0, 16)); // f0
     printf("%llx\n", getInstructionPart(8, 8)); // 0
 
+    printf("getInstructionPartSigned\n");
     printf("%llx\n", getInstructionPartSigned(0, 8)); // 15fs 0
     printf("%llx\n", getInstructionPartSigned(0, 16)); // f0
     printf("%llx\n", getInstructionPartSigned(8, 8)); // 0
@@ -563,10 +624,12 @@ void testHelperFunctions() {
     machine.memory[6] = 0xff;
     machine.memory[7] = 0x00;
 
-    printf("%llx\n", loadFromMemory(0, 0)); // 00ff00ff
+    printf("loadFromMemory\n");
+    printf("%llx\n", loadFromMemory(0, 0)); // ff00ff
     printf("%llx\n", loadFromMemory(1, 0)); // ff00ff00
-    printf("%llx\n", loadFromMemory(0, 1)); // 00ff00ff00ff00ff
+    printf("%llx\n", loadFromMemory(0, 1)); // ff00ff00ff00ff
 
+    printf("storeInMemory\n");
     storeInMemory(0x00ff00ff, 0, 0);
     printf("%02x%02x%02x%02x\n", machine.memory[3], machine.memory[2], machine.memory[1], machine.memory[0]);
     storeInMemory(0x00ff00ffffff0000, 0, 0);
@@ -574,12 +637,18 @@ void testHelperFunctions() {
     printf("%02x%02x%02x%02x\n", machine.memory[3], machine.memory[2], machine.memory[1], machine.memory[0]);
 }
 
+void testExecuteFunctions() {
+
+}
+
 int main(int argc, char *argv[]) {
-    if (argc == 3) {
-        emulate(argv[1], argv[2]);
-        return EXIT_SUCCESS;
-    } else {
-        printf("Invalid number of arguments\n");
-        return EXIT_FAILURE;
-    }
+//    testHelperFunctions();
+    testExecuteFunctions();
+//    if (argc == 3) {
+//        emulate(argv[1], argv[2]);
+//        return EXIT_SUCCESS;
+//    } else {
+//        printf("Invalid number of arguments\n");
+//        return EXIT_FAILURE;
+//    }
 }
