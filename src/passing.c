@@ -13,7 +13,11 @@ char** one_pass(char** instruction) {
     // first pass
     for (int i = 0; i < sizeof(instruction)/sizeof(instruction[0]); i++) {
         if (instruction[i][strlen(instruction[i]) - 1] == ":") {
-            //insert(symbol_table, strncpy(), i + 1)
+            char** x = strtok(instruction[i],":");
+            insert(&symbol_table, x[0] , i + 1);
         }
     }
+    return instruction;
 }
+
+char** two_pass()
