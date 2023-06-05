@@ -49,7 +49,13 @@ struct Machine {
  */
 
 struct Machine machine;
-struct Machine empty_machine = {0};
+struct Machine machineEmpty = {0};
+
+// Resets the machine to the initial state
+void resetMachine() {
+    machine = machineEmpty;
+    machine.state.Z = true;
+}
 
 /*
  * Helper Functions
@@ -232,7 +238,8 @@ void executeArithmeticInstruction(uint64_t rd, uint64_t a, uint64_t b, uint64_t 
             machine.state.C = a > getResultMask(sf) - b;
             // Overflow iff sign bits of a and b the same and result has opposite sign
             machine.state.V = (getSignBit(a, sf) == getSignBit(b, sf))
-                           && (getSignBit(a, sf) != getSignBit(result, sf));
+                              && (getSignBit(a, sf) != getSignBit(result, sf));
+            break;
         case 0b10: // Subtract
             result = a - b;
             break;
@@ -244,7 +251,8 @@ void executeArithmeticInstruction(uint64_t rd, uint64_t a, uint64_t b, uint64_t 
             machine.state.C = a >= b;
             // Overflow iff sign bits of a and b are different and the sign bit of result same as subtrahend
             machine.state.V = (getSignBit(a, sf) != getSignBit(b, sf))
-                           && (getSignBit(b, sf) == getSignBit(result, sf));
+                              && (getSignBit(b, sf) == getSignBit(result, sf));
+            break;
         default: break;
     }
 
@@ -276,6 +284,7 @@ void executeDPImmediate() {
 
             // Execute instruction
             executeArithmeticInstruction(rd, machine.registers[rn], imm12, opc, sf);
+            break;
         case 0b101: // Wide move
             if (rd == ZERO_REGISTER) { // Cannot assign to the zero register
                 return;
@@ -286,17 +295,21 @@ void executeDPImmediate() {
             switch (opc) {
                 case 0b00: // Move wide with NOT
                     machine.registers[rd] = ~op;
+                    break;
                 case 0b10: // Move wide with zero
                     machine.registers[rd] = op;
+                    break;
                 case 0b11: // Move wide with keep
                     lower_rd = machine.registers[rd] & getMask(shift);
                     upper_rd = machine.registers[rd] & getMaskBetween(64, shift + 16);
                     machine.registers[rd] = lower_rd | op | upper_rd;
+                    break;
                 default: break;
             }
 
             // Ensure value within bit-width
             machine.registers[rd] &= getResultMask(sf);
+            break;
         default: break;
     }
 }
@@ -350,6 +363,7 @@ void executeDPRegister() {
                     machine.state.Z = result == 0;
                     machine.state.C = 0;
                     machine.state.V = 0;
+                    break;
                 default: break;
             }
 
@@ -426,8 +440,10 @@ void executeBranch() {
     switch (opc) {
         case 0b00: // Unconditional
             machine.PC += simm26 * WORD_BYTES;
+            break;
         case 0b11: // Register
             machine.PC = machine.registers[xn];
+            break;
         case 0b01: // Conditional
             // Determine whether to jump
             switch (cond) {
@@ -451,6 +467,7 @@ void executeBranch() {
                     break;
                 case 0b1110: // Always
                     jump = true;
+                    break;
                 default: break;
             }
             // Execute jump if condition satisfied
@@ -459,6 +476,7 @@ void executeBranch() {
             } else {
                 machine.PC += WORD_BYTES;
             }
+            break;
         default: break;
     }
 }
@@ -470,7 +488,7 @@ void executeBranch() {
 // Emulator running given file
 void emulate(char readFile[], char writeFile[]) {
     // Setup ARMv8 machine
-    machine.state.Z = true;
+    resetMachine();
 
     // Read binary file into machine memory
     readFileIntoMemory(readFile);
@@ -488,19 +506,20 @@ void emulate(char readFile[], char writeFile[]) {
         uint64_t op0 = getInstructionPart(25, 4);
 
         // Execute
-        if (isMaskEquals(op0, 0b1110, 0b1010)) { // Branch
+        if (machine.instruction == NOP_INSTRUCTION) { // Move to next instruction
+            machine.PC += WORD_BYTES;
+        } else if (machine.instruction == HALT_INSTRUCTION) { // Stop emulation
+            break;
+        } else if (isMaskEquals(op0, 0b1110, 0b1010)) { // Branch
             executeBranch();
         } else {
-            if (machine.instruction == HALT_INSTRUCTION) { // Stop emulation
-                break;
-            } else if (machine.instruction == NOP_INSTRUCTION) { // Pass to next instruction
-            } else if (isMaskEquals(op0, 0b1110, 0b1000)) { // DP Immediate
+            if (isMaskEquals(op0, 0b1110, 0b1000)) { // DP Immediate
                 executeDPImmediate();
             } else if (isMaskEquals(op0, 0b0111, 0b0101)) { // DP Register
                 executeDPRegister();
             } else if (isMaskEquals(op0, 0b0101, 0b0100)) { // Loads and Stores
                 executeLoadOrStore();
-            } else {
+            } else { // Unknown instruction
                 machine.error = UNKNOWN_OPCODE;
                 break;
             }
@@ -637,18 +656,75 @@ void testHelperFunctions() {
     printf("%02x%02x%02x%02x\n", machine.memory[3], machine.memory[2], machine.memory[1], machine.memory[0]);
 }
 
-void testExecuteFunctions() {
+void testExecuteArithmetic() {
+    resetMachine();
+    executeArithmeticInstruction(0, -2, -1, 1, 0);
+    printf("%llx\n", machine.registers[0]); // 3
+    printf("N %i\n", machine.state.N); // 3
+    printf("Z %i\n", machine.state.Z); // 3
+    printf("C %i\n", machine.state.C); // 3
+    printf("V %i\n", machine.state.V); // 3
+}
+
+void testExecuteDPImmediateArithmetic() {
+    resetMachine();
+    uint64_t sf, opc, opi, rd, sh, imm12, rn, op0;
+    sf = 0;
+    opc = 0;
+    op0 = 0b100;
+    opi = 0b010;
+    sh = 0;
+    imm12 = 2;
+    rd = 0;
+    rn = 1;
+    machine.registers[rn] = 1;
+    machine.registers[rd] = 0;
+    machine.instruction = (sf << 31) | (opc << 29) | (op0 << 26) | (opi << 23) | (sh << 22) | (imm12 << 10) | (rn << 5) | (rd);
+    printf("instruction %lld\n", machine.instruction);
+    executeDPImmediate();
+    printf("rd %lld\n", machine.registers[rd]); // 3
+}
+
+//void testExecuteDPImmediateWideMove() {
+//    resetMachine();
+//    uint64_t sf, opc, opi, rd, hw, imm16;
+//    machine.instruction = 0;
+//}
+
+void testExecuteDPRegister() {
+
+}
+
+//void testExecuteLoadOrStore() {
+//    resetMachine();
+//    uint64_t sf, U, L , xn, rt, xm, imm12, I, isRegOffset, isSDT, simm9, simm19;
+//    sf = 0;
+//    U = 0;
+//    L = 0;
+//    xn = 0;
+//    rt = 0;
+//    xm = 0;
+//    imm12 = 0;
+//    I = 0;
+//    isRegOffset = 0;
+//    isSDT = 0;
+//    simm9 = 0;
+//    simm19 = 0;
+//    machine.instruction = 0;
+//}
+
+void testExecuteBranch() {
 
 }
 
 int main(int argc, char *argv[]) {
 //    testHelperFunctions();
-    testExecuteFunctions();
-//    if (argc == 3) {
-//        emulate(argv[1], argv[2]);
-//        return EXIT_SUCCESS;
-//    } else {
-//        printf("Invalid number of arguments\n");
-//        return EXIT_FAILURE;
-//    }
+//    testExecuteDPImmediateArithmetic();
+     if (argc == 3) {
+         emulate(argv[1], argv[2]);
+         return EXIT_SUCCESS;
+     } else {
+         printf("Invalid number of arguments\n");
+         return EXIT_FAILURE;
+     }
 }
