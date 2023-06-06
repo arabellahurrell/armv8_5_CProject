@@ -28,7 +28,7 @@ char** one_pass(char** instruction) {
             char **x = strtok(instruction[i], ":");
             struct passOne pass;
             pass.label = x[0];
-            pass.address = strcat("#", (char *) ((char *) (i + 1))));
+            pass.address = strcat("#", decimalToHexadecimal(i + 1));
             passone[num] = pass;
             num++;
             if (num == capacity) {
