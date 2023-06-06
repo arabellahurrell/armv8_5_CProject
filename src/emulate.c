@@ -130,7 +130,7 @@ uint64_t loadFromMemory(uint64_t startIndex, bool sf) {
     uint64_t value = 0, byte;
     for (int i = 0; i < (sf ? 8 : 4); i++) {
         byte = machine.memory[startIndex + i];
-        value |= byte << i * 8;
+        value |= byte << (i * 8);
     }
     return value;
 }
@@ -397,11 +397,11 @@ void executeLoadOrStore() {
     // Determine address to load/store
     if (isSDT) { // Single data transfer
         if (U) { // Unsigned immediate offset
-            address = machine.registers[xn] + imm12;
+            address = machine.registers[xn] + imm12 * (sf ? 8 : 4); // todo
         } else if (isRegOffset) { // Register offset
             address = machine.registers[xn] + machine.registers[xm];
         } else if (I) { // Pre-indexed
-            address = machine.registers[xn] + simm9;
+            address = machine.registers[xn] + simm9; // todo
 
             // Implement write-back
             if (xn != ZERO_REGISTER) {
@@ -416,7 +416,7 @@ void executeLoadOrStore() {
             }
         }
     } else { // Load literal
-        address = machine.PC + simm19 * WORD_BYTES;
+        address = machine.PC + simm19 * WORD_BYTES; // todo
     }
 
     // Execute
