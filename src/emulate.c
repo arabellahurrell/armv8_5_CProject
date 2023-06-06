@@ -397,11 +397,11 @@ void executeLoadOrStore() {
     // Determine address to load/store
     if (isSDT) { // Single data transfer
         if (U) { // Unsigned immediate offset
-            address = machine.registers[xn] + imm12 * (sf ? 8 : 4); // todo
+            address = machine.registers[xn] + imm12 * (sf ? 8 : 4);
         } else if (isRegOffset) { // Register offset
             address = machine.registers[xn] + machine.registers[xm];
         } else if (I) { // Pre-indexed
-            address = machine.registers[xn] + simm9; // todo
+            address = machine.registers[xn] + simm9;
 
             // Implement write-back
             if (xn != ZERO_REGISTER) {
@@ -416,7 +416,7 @@ void executeLoadOrStore() {
             }
         }
     } else { // Load literal
-        address = machine.PC + simm19 * WORD_BYTES; // todo
+        address = machine.PC + simm19 * WORD_BYTES;
     }
 
     // Execute
