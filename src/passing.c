@@ -6,6 +6,22 @@
 #include "symbol_table.c"
 #include <string.h>
 #include "utility.c"
+#include "data_processing.c"
+#include "branch.c"
+#include "single_data_transfer.c"
+
+void writeStringToFile(const char* fileName, const char* str) {
+    FILE* file = fopen(fileName, "ab");
+    if (file == NULL) {
+        printf("Unable to open the file.\n");
+        return;
+    }
+    size_t length = strlen(str);
+    fwrite(str, sizeof(char), length, file);
+    fclose(file);
+
+    printf("String written to the file successfully.\n");
+}
 
 struct passOne {
     char* label;
@@ -17,18 +33,62 @@ struct mnemonic {
     char* arguments;
 };
 
+bool isLabel (char* instruction) {
+    return instruction[strlen(instruction) - 1] == ":";
+}
 
-char** one_pass(char** instruction) {
+bool isDirective (char* instruction) {
+    return instruction[0] == ".";
+}
+
+
+char* functionSelector(char* mnemonic, char* arguments, char* address)
+{
+    char** mnemonics = {"add", "adds", "sub", "subs", "cmp", "cmn", "neg", "negs", "and", "ands", "bic", "bics", "eor",
+                        "eon", "orr", "orn", "tst", "mvn", "mov", "movn", "movk", "movz", "madd", "msub", "mul", "mneg",
+                        "b", "br", "b.eq", "b.ne", "b.ge", "b.lt", "b.gt", "b.le", "b.al", "ldr", "str", "nop"};
+    // fun_ptr_arr is an array of function pointers
+    char* (*fun_ptr_arr[])(char*, char*) = {add, adds, sub, subs, cmp, cmn, neg,
+                                            negs, and, ands, bic , bics, eor, eon,
+                                            orr, orn, tst, mvn, mov, movn, movk,
+                                            movz, madd, msub, mul, mneg, b ,br,
+                                            beq, bne, bge, blt, bgt, ble, bal,
+                                            ldr, str, nop};
+
+    for (int i = 0; i < getStringArrayLength(mnemonics); i++) {
+        if (strcmp(mnemonics[i], mnemonic) == 0) {
+             return (*fun_ptr_arr[i])(arguments, address);
+        }
+    }
+
+
+//    unsigned int ch, a = 15, b = 10;
+//
+//    printf("Enter Choice: 0 for add, 1 for subtract and 2 "
+//           "for multiply\n");
+//    scanf("%d", &ch);
+//
+//    if (ch > 2) return 0;
+//
+//    (*fun_ptr_arr[ch])(a, b);
+//
+//    return 0;
+}
+
+
+char** one_pass(char** instruction, char* name) {
+
+    FILE* file = fopen(name, "wb");
 
     int capacity = 2;
     int num = 0;
     struct passOne *passone = (struct passOne *) malloc(capacity * sizeof(struct passOne));
     for (int i = 0; i < sizeof(instruction) / sizeof(instruction[0]); i++) {
-        if (instruction[i][strlen(instruction[i]) - 1] == ":") {
+        if (isLabel(instruction[i])) {
             char **x = strtok(instruction[i], ":");
             struct passOne pass;
             pass.label = x[0];
-            pass.address = strcat("#", (char *) ((char *) (i + 1))));
+            pass.address = strcat("#", decimalToHexadecimal(i + 1));
             passone[num] = pass;
             num++;
             if (num == capacity) {
@@ -38,48 +98,26 @@ char** one_pass(char** instruction) {
             }
         }
     }
-    int capacity2 = 2;
-    int num2 = 0;
-    for (int i = 0; i < sizeof(instruction) / sizeof(instruction[0]); i++) {
-        for (int j = 0; j < num; j++) {
-            if (isSubstringInString(instruction[i], passone[j].label)) {
-                replaceSubstring(instruction[i], passone[j].label, passone[j].address);
+//    int capacity2 = 2;
+//    int num2 = 0;
+
+    for (int i = 0; i < getStringArrayLength(instruction); i++) {
+        if (isLabel(instruction[i])) {
+        }
+        else if (isDirective(instruction[i])) {
+            char** splitted = splitStringOnWhitespace(instruction[i]);
+            writeStringToFile(hexToBinary(splitted[1]));
+        }
+        else {
+            for (int j = 0; j < num; j++) {
+                if (isSubstringInString(instruction[i], passone[j].label)) {
+                    replaceSubstring(instruction[i], passone[j].label, passone[j].address);
+                }
             }
+            char** split = splitStringOnFirstSpace(instruction[i]);
+            char* result = functionSelector(split[0], split[1], (char*) i);
+            writeStringToFile(name, result);
         }
-        char *firstPart[100];
-        char *secondPart[100];
-        char *whitespace = strchr(instruction[i], ' ');
-        if (whitespace != NULL) {
-            strncpy(firstPart, instruction[i], whitespace - instruction[i]);
-            firstPart[whitespace - instruction[i]] = '\0';
-            strcpy(secondPart, whitespace + 1);
-        } else {
-            strcpy(firstPart, instruction[i]);
-            strcpy(secondPart, "");
-        }
-        struct mnemonic *mnemonics = (struct passOne *) malloc(capacity2 * sizeof(struct mnemonic));
-        struct mnemonic m;
-        m.mnemonic = firstPart;
-        m.arguments = secondPart;
-        mnemonics[num2] = m;
-        num2++;
-        if (capacity2 == num2) {
-            capacity2 *=2;
-            struct mnemonic *newmnemonic = (struct mnemonic *) realloc(mnemonics, capacity2 * sizeof(struct mnemonic));
-            passone = newmnemonic;
-        }
-
     }
-}
-//char** two_pass()
 
-//    HashMap symbol_table;
-//    initializeHashMap(&symbol_table);
-//    char* label;
-//    // first pass
-//    for (int i = 0; i < sizeof(instruction)/sizeof(instruction[0]); i++) {
-//        if (instruction[i][strlen(instruction[i]) - 1] == ":") {
-//            char** x = strtok(instruction[i],":");
-//            insert(&symbol_table, x[0] , i + 1);
-//        }
-//    }
+}

@@ -81,6 +81,7 @@ char * sf (char* reg) {
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <ctype.h>
 
 bool isSecondCharacterX(char* str) {
     if (str[1] == 'x') {
@@ -129,3 +130,92 @@ char* decimalToHexadecimal(int decimal) {
     return hexadecimal;
 }
 
+bool removeNonAlphaNumeric(char c) {
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+            (c >= '0' && c <= '9') || (c == '-') || (c == '!') || (c == '.')) {
+            return true;
+        }
+        return false;
+    }
+
+
+char** splitStringOnWhitespace(const char* str) {
+    int count = 0;
+    const char* delimiter = " ";
+    char* strCopy = strdup(str);
+    char* word = strtok(strCopy, delimiter);
+
+    while (word != NULL) {
+        count++;
+        word = strtok(NULL, delimiter);
+    }
+    char** words = (char**)malloc((count + 1) * sizeof(char*));
+    strCopy = strdup(str);
+    word = strtok(strCopy, delimiter);
+    int index = 0;
+
+    while (word != NULL) {
+        int len = strlen(word);
+        char* cleanWord = (char*)malloc((len + 1) * sizeof(char));
+        int cleanIndex = 0;
+
+        for (int i = 0; i < len; i++) {
+            if (removeNonAlphaNumeric(word[i])) {
+                cleanWord[cleanIndex++] = word[i];
+            }
+        }
+
+        cleanWord[cleanIndex] = '\0';
+
+        words[index] = cleanWord;
+        index++;
+        word = strtok(NULL, delimiter);
+    }
+
+    words[index] = NULL;
+
+    free(strCopy);
+    return words;
+}
+
+size_t getStringArrayLength(char** array) {
+    size_t length = 0;
+
+    if (array != NULL) {
+        while (array[length] != NULL) {
+            length++;
+        }
+    }
+
+    return length;
+}
+
+char** splitStringOnFirstSpace(const char* input) {
+    char** output = malloc(2 * sizeof(char*));
+    output[0] = NULL;
+    output[1] = NULL;
+
+    int length = strlen(input);
+    int splitIndex = -1;
+
+    for (int i = 0; i < length; i++) {
+        if (input[i] == ' ') {
+            splitIndex = i;
+            break;
+        }
+    }
+    if (splitIndex != -1) {
+        output[0] = malloc((splitIndex + 1) * sizeof(char));
+        strncpy(output[0], input, splitIndex);
+        output[0][splitIndex] = '\0';
+
+        int remainingLength = length - splitIndex - 1;
+        output[1] = malloc((remainingLength + 1) * sizeof(char));
+        strcpy(output[1], input + splitIndex + 1);
+    } else {
+        output[0] = malloc((length + 1) * sizeof(char));
+        strcpy(output[0], input);
+    }
+
+    return output;
+}
