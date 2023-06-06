@@ -87,22 +87,3 @@ void freeLinesArray(char** lines, int lineCount) {
     }
     free(lines);
 }
-
-int main() {
-    const char* filename = "example.s";
-    int lineCount = 0;
-    char** lines = readLinesFromFile(filename, &lineCount);
-
-    if (lines != NULL) {
-        printf("Lines read from file:\n");
-        for (int i = 0; i < lineCount; i++) {
-            printf("%s\n", lines[i]);
-        }
-        // Free the memory allocated for lines
-        freeLinesArray(lines, lineCount);
-    }
-
-
-
-    return 0;
-}
