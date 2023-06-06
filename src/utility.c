@@ -80,6 +80,7 @@ char * sf (char* reg) {
 }
 
 #include <stdbool.h>
+#include <stdio.h>
 
 bool isSecondCharacterX(char* str) {
     if (str[1] == 'x') {
@@ -121,3 +122,10 @@ char* replaceSubstring(const char* str, const char* oldSubstr, const char* newSu
 bool isSubstringInString(const char* str, const char* substr) {
     return strstr(str, substr) != NULL;
 }
+
+char* decimalToHexadecimal(int decimal) {
+    char* hexadecimal = (char*)malloc(9 * sizeof(char));
+    sprintf(hexadecimal, "%X", decimal);
+    return hexadecimal;
+}
+
