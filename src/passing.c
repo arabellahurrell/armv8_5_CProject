@@ -9,7 +9,7 @@ void writeStringToFile(char* fileName, const char* str) {
         return;
     }
     size_t length = strlen(str);
-    fwrite(str, sizeof(char), length, file);
+    fwrite(str - '0', sizeof(char), length, file);
     fclose(file);
 
     printf("String written to the file successfully.\n");
