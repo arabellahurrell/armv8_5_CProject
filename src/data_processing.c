@@ -2,7 +2,7 @@
 // Created by Arabella Hurrell on 30/05/2023.
 //
 
-#include "data_processing.h"
+
 #include <string.h>
 #include "utility.c"
 #include "shifts.c"
@@ -10,19 +10,19 @@
 
 
 char* shiftBits (char* shiftType) {
-    char* shifts[2];
+    static char shifts[2];
     if (strcmp(shiftType, "lsl") == 0) {
-        shifts[0] = "0";
-        shifts[1] = "0";
+        shifts[0] = '0';
+        shifts[1] = '0';
     } else if (strcmp(shiftType, "lsr") == 0) {
-        shifts[0] = "0";
-        shifts[1] = "1";
+        shifts[0] = '0';
+        shifts[1] = '1';
     } else if (strcmp(shiftType, "asr") == 0) {
-        shifts[0] = "1";
-        shifts[1] = "0";
+        shifts[0] = '1';
+        shifts[1] = '0';
     } else {
-        shifts[0] = "1";
-        shifts[1] = "1";
+        shifts[0] = '1';
+        shifts[1] = '1';
     }
     return shifts;
 }
@@ -43,7 +43,7 @@ char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, ch
 }
 
 char* arithmeticParser (char* opcode, char** splitted) {
-    if ((splitted[2])[0] != "x" || (splitted[2])[0] != "w" ) {
+    if ((splitted[2])[0] != 'x' && (splitted[2])[0] != 'w' ) {
         if (getStringArrayLength(splitted) == 3) {
             return arithmetics(opcode, splitted[0], splitted[1], splitted[2], "lsl", "0");
         } else {
@@ -60,15 +60,15 @@ char* arithmeticParser (char* opcode, char** splitted) {
 
 char* moveWideParser (char* opcode, char** splitted) {
     if (getStringArrayLength(splitted) == 2) {
-        if (binaryToDecimal(hexToBinary(splitted[1])) > 2^12 -1 ) {
-            splitted[1] = convert((char *) (binaryToDecimal(hexToBinary(splitted[1])) << 12), 16);
+        if (binaryToDecimal(hexToBinary(splitted[1])) > (2^12 -1)) {
+            splitted[1] = convert(intToString(binaryToDecimal(hexToBinary(splitted[1])) << 12), 16);
             return moveWides(opcode, splitted[0], splitted[1], "1" , "lsl", "0");
         } else {
             return moveWides(opcode, splitted[0], splitted[1], "0" , "lsl", "0");
         }
     } else {
-        if (binaryToDecimal(hexToBinary(splitted[1])) > 2^12 -1 ) {
-            splitted[1] = convert((char *) (binaryToDecimal(hexToBinary(splitted[1])) << 12), 16);
+        if (binaryToDecimal(hexToBinary(splitted[1])) > (2^12 -1) ) {
+            splitted[1] = convert(intToString(binaryToDecimal(hexToBinary(splitted[1])) << 12), 16);
             return moveWides(opcode, splitted[0], splitted[1], "1" , splitted[2], splitted[3]);
         } else {
             return moveWides(opcode, splitted[0], splitted[1], "0" , splitted[2], splitted[3]);

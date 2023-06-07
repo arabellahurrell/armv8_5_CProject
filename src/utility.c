@@ -2,10 +2,25 @@
 // Created by Arabella Hurrell on 05/06/2023.
 //
 
-#include "utility.h"
 #include <string.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
+
+char* charToString (char c) {
+    char* str = malloc(2 * sizeof(char));
+    str[0] = c;
+    str[1] = '\0';
+    return str;
+}
+
+char* intToString(int num) {
+    int size = snprintf(NULL, 0, "%d", num) + 1;
+    char* str = malloc(size * sizeof(char));
+    snprintf(str, size, "%d", num);
+    return str;
+}
+
 int binaryToDecimal(const char* binary) {
     int binaryLength = strlen(binary);
     int decimal = 0;
@@ -39,9 +54,9 @@ char* hexToBinary(const char* hex) {
         } else if (c >= 'a' && c <= 'f') {
             value = c - 'a' + 10;
         }
-        for (int j = 0; j < 4; j++) {
-            int bit = (value >> (3 - j)) & 1;
-            binary[(i - 2) * 4 + j] = bit + '0';
+        for (int k = 0; k < 4; k++) {
+            int bit = (value >> (3 - k)) & 1;
+            binary[(i - 2) * 4 + k] = bit + '0';
         }
     }
 
@@ -61,17 +76,18 @@ char* convert(char* denary, int numBits) {
     return binary;
 }
 
-const char * truncateString(char* str, int length) {
+const char* truncateString(char* str, int length) {
     int strLength = strlen(str);
 
     if (strLength > length) {
         str[length] = '\0';
     }
+    return str;
 }
 
 char * sf (char* reg) {
     char* x;
-    if (strcmp((const char *) reg[0], "x") == 0) {
+    if (reg[0] == 'x') {
         x = "1";
     } else {
         x = "0";
@@ -139,7 +155,7 @@ bool removeNonAlphaNumeric(char c) {
     }
 
 
-char** splitStringOnWhitespace(const char* str) {
+char** splitStringOnWhitespace(char* str) {
     int count = 0;
     const char* delimiter = " ";
     char* strCopy = strdup(str);
