@@ -2,9 +2,11 @@
  * Helper functions to execute shifts
  */
 
-// Performs arithmetic shift right by `shiftAmount` on the `value` using the bit-width `sf`
-uint64_t arithmeticShiftRight(uint64_t value, uint64_t shiftAmount, uint64_t sf) {
-    uint64_t result, mask;
+// Performs arithmetic shift right by 'shiftAmount'
+// on the 'value' using the bit-width 'sf'
+uint64_t arithmeticShiftRight(uint64_t value, uint64_t shiftAmount,
+                              uint64_t sf) {
+    uint64_t mask, result;
     if (isSigned(value, sf)) { // Signed
         mask = getMaskBetween(64, getLength(sf) - shiftAmount);
         result = (value >> shiftAmount) | mask;
@@ -14,7 +16,8 @@ uint64_t arithmeticShiftRight(uint64_t value, uint64_t shiftAmount, uint64_t sf)
     return result & getResultMask(sf);
 }
 
-// Performs rotate right by `shiftAmount` on the `value` using the bit-width `sf`
+// Performs rotate right by 'shiftAmount' on the 'value'
+// using the bit-width 'sf'
 uint64_t rotateRight(uint64_t value, uint64_t shiftAmount, uint64_t sf) {
     uint64_t shifted, rotated;
     shifted = value >> shiftAmount;
@@ -22,8 +25,10 @@ uint64_t rotateRight(uint64_t value, uint64_t shiftAmount, uint64_t sf) {
     return (shifted | rotated) & getResultMask(sf);
 }
 
-// Applies the shift given by `shiftType` to `value` by `shiftAmount` using the bit-width `sf`
-uint64_t applyShift(uint64_t value, uint64_t shiftType, uint64_t shiftAmount, uint64_t sf) {
+// Applies the shift given by 'shiftType' to 'value' by 'shiftAmount'
+// using the bit-width 'sf'
+uint64_t applyShift(uint64_t value, uint64_t shiftType, uint64_t shiftAmount,
+                    uint64_t sf) {
     switch (shiftType) {
         case 0b00: // lsl
             return (value << shiftAmount) & getResultMask(sf);
@@ -33,6 +38,7 @@ uint64_t applyShift(uint64_t value, uint64_t shiftType, uint64_t shiftAmount, ui
             return arithmeticShiftRight(value, shiftAmount, sf);
         case 0b11: // ror
             return rotateRight(value, shiftAmount, sf);
-        default: return 0;
+        default:
+            return 0;
     }
 }

@@ -56,15 +56,19 @@ void testHelperFunctions() {
     printf("arithmeticShiftRight\n");
     printf("%llx\n", arithmeticShiftRight(0xf0000000, 4, 0)); // ff000000
     printf("%llx\n", arithmeticShiftRight(0xf0000000, 8, 0)); // fff00000
-    printf("%llx\n", arithmeticShiftRight(0xf000000000000000, 4, 1)); // ff, 14 0s
+    printf("%llx\n", arithmeticShiftRight(0xf000000000000000, 4, 1));
+    // ff, 14 0s
     printf("%llx\n", arithmeticShiftRight(0xf000000000000000, 4, 0)); // 0
-    printf("%llx\n", arithmeticShiftRight(0xf000000000000000, 8, 1)); // fff, 13 0s
+    printf("%llx\n", arithmeticShiftRight(0xf000000000000000, 8, 1));
+    // fff, 13 0s
     printf("%llx\n", arithmeticShiftRight(0xf000000000000000, 8, 0)); // 0
     printf("%llx\n", arithmeticShiftRight(0x0f000000, 4, 0)); // f00000
     printf("%llx\n", arithmeticShiftRight(0x0f000000, 8, 0)); // f0000
-    printf("%llx\n", arithmeticShiftRight(0x0f00000000000000, 4, 1)); // f, 13 0s
+    printf("%llx\n", arithmeticShiftRight(0x0f00000000000000, 4, 1));
+    // f, 13 0s
     printf("%llx\n", arithmeticShiftRight(0x0f00000000000000, 4, 0)); // 0
-    printf("%llx\n", arithmeticShiftRight(0x0f00000000000000, 8, 1)); // f, 12 0s
+    printf("%llx\n", arithmeticShiftRight(0x0f00000000000000, 8, 1));
+    // f, 12 0s
     printf("%llx\n", arithmeticShiftRight(0x0f00000000000000, 8, 0)); // 0
 
     printf("rotateRight\n");
@@ -109,10 +113,13 @@ void testHelperFunctions() {
 
     printf("storeInMemory\n");
     storeInMemory(0x00ff00ff, 0, 0);
-    printf("%02x%02x%02x%02x\n", machine.memory[3], machine.memory[2], machine.memory[1], machine.memory[0]);
+    printf("%02x%02x%02x%02x\n", machine.memory[3], machine.memory[2],
+           machine.memory[1], machine.memory[0]);
     storeInMemory(0x00ff00ffffff0000, 0, 0);
-    printf("%02x%02x%02x%02x", machine.memory[7], machine.memory[6], machine.memory[5], machine.memory[4]);
-    printf("%02x%02x%02x%02x\n", machine.memory[3], machine.memory[2], machine.memory[1], machine.memory[0]);
+    printf("%02x%02x%02x%02x", machine.memory[7], machine.memory[6],
+           machine.memory[5], machine.memory[4]);
+    printf("%02x%02x%02x%02x\n", machine.memory[3], machine.memory[2],
+           machine.memory[1], machine.memory[0]);
 }
 
 // Test executing an arithmetic instruction using our helper function
@@ -129,7 +136,7 @@ void testExecuteArithmetic() {
 // Test executing DP-Immediate instructions
 void testExecuteDPImmediateArithmetic() {
     resetMachine();
-    uint64_t sf, opc, opi, rd, sh, imm12, rn, op0;
+    uint64_t sf, opc, op0, opi, sh, imm12, rd, rn;
     sf = 0;
     opc = 0;
     op0 = 0b100;
@@ -140,7 +147,9 @@ void testExecuteDPImmediateArithmetic() {
     rn = 1;
     machine.registers[rn] = 1;
     machine.registers[rd] = 0;
-    machine.instruction = (sf << 31) | (opc << 29) | (op0 << 26) | (opi << 23) | (sh << 22) | (imm12 << 10) | (rn << 5) | (rd);
+    machine.instruction = (sf << 31) | (opc << 29) | (op0 << 26) |
+                          (opi << 23) | (sh << 22) | (imm12 << 10) | (rn << 5) |
+                          (rd);
     printf("instruction %lld\n", machine.instruction);
     executeDPImmediate();
     printf("rd %lld\n", machine.registers[rd]); // 3

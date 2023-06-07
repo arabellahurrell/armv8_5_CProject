@@ -2,7 +2,7 @@
  * Structures and initializers
  */
 
-// Represents the P-STATE register
+// Represents the PSTATE register
 struct PState {
     bool N, Z, C, V;
 };
@@ -16,7 +16,8 @@ enum Error {
 // Represents the state of an ARMv8 machine
 struct Machine {
     uint8_t memory[NO_BYTES_MEMORY]; // 2MiB memory
-    uint64_t registers[NO_REGISTERS + 1]; // 31 64-bit registers // Index 31 represents the Zero Register
+    uint64_t registers[NO_REGISTERS + 1]; // 31 64-bit registers
+    // note: Index 31 represents the Zero Register
     uint64_t PC; // Program Counter
     uint64_t instruction; // The current instruction being executed
     struct PState state; // The P-STATE register
