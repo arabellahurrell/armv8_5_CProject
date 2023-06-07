@@ -3,12 +3,6 @@
 //
 
 
-#include <string.h>
-#include "utility.c"
-#include "shifts.c"
-
-
-
 char* shiftBits (char* shiftType) {
     static char shifts[2];
     if (strcmp(shiftType, "lsl") == 0) {
@@ -244,8 +238,3 @@ char* mneg (char* arguments, char* address) {
 char* nop (char* arguments, char* address) {
     return "11010101000000110010000000011111";
 }
-
-
-
-
-

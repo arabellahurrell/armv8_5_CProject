@@ -2,10 +2,6 @@
 // Created by Arabella Hurrell on 05/06/2023.
 //
 
-#include <string.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 char* charToString (char c) {
     char* str = malloc(2 * sizeof(char));
@@ -14,10 +10,21 @@ char* charToString (char c) {
     return str;
 }
 
+char* duplicateString(const char* originalString) {
+    size_t length = strlen(originalString) + 1; // Include space for the null terminator
+
+    char* duplicatedString = malloc(length); // Allocate memory for the duplicated string
+
+    if (duplicatedString != NULL) {
+        strcpy(duplicatedString, originalString); // Copy the original string into the new memory
+    }
+
+    return duplicatedString;
+}
+
 char* intToString(int num) {
-    int size = snprintf(NULL, 0, "%d", num) + 1;
-    char* str = malloc(size * sizeof(char));
-    snprintf(str, size, "%d", num);
+    char* str = malloc(12 * sizeof(char)); // Allocate memory for the string
+    sprintf(str, "%d", num); // Convert the integer to a string
     return str;
 }
 
@@ -76,7 +83,7 @@ char* convert(char* denary, int numBits) {
     return binary;
 }
 
-const char* truncateString(char* str, int length) {
+char* truncateString(char* str, int length) {
     int strLength = strlen(str);
 
     if (strLength > length) {
@@ -158,7 +165,7 @@ bool removeNonAlphaNumeric(char c) {
 char** splitStringOnWhitespace(char* str) {
     int count = 0;
     const char* delimiter = " ";
-    char* strCopy = strdup(str);
+    char* strCopy = duplicateString(str);
     char* word = strtok(strCopy, delimiter);
 
     while (word != NULL) {
@@ -166,7 +173,7 @@ char** splitStringOnWhitespace(char* str) {
         word = strtok(NULL, delimiter);
     }
     char** words = (char**)malloc((count + 1) * sizeof(char*));
-    strCopy = strdup(str);
+    strCopy = duplicateString(str);
     word = strtok(strCopy, delimiter);
     int index = 0;
 

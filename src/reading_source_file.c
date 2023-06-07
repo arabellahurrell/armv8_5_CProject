@@ -3,24 +3,6 @@
 //
 
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-int isLabel (const char* line) {
-    if (line[strlen(line) - 1] == ':') {
-        return 1;
-    }
-    return 0;
-}
-
-int isDirective (const char* line) {
-    if (line[0] == '.') {
-        return 1;
-    }
-    return 0;
-}
-
 #define MAX_LINE_LENGTH 256
 #define INITIAL_ARRAY_SIZE 10
 
@@ -79,11 +61,4 @@ char** readLinesFromFile(const char* filename, int* lineCount) {
     *lineCount = count;
 
     return lines;
-}
-
-void freeLinesArray(char** lines, int lineCount) {
-    for (int i = 0; i < lineCount; i++) {
-        free(lines[i]);
-    }
-    free(lines);
 }
