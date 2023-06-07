@@ -1,31 +1,22 @@
-// Potential bugs
-//  - signed/unsigned int32
-//  - little endian
-//  - int/int64/int32
-//  - Spec has changed
-//  - Add more errors
-
-// New potential bugs
-// - 32/64-bit registers and add/subtract bit-width etc.
-// - Working with zero register
+// todo
+// More errors
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdint.h> // Tests fail without this
 
-#define WORD_BYTES 4
-#define NO_REGISTERS 31
-#define NO_BYTES_MEMORY 0x200000
-#define NOP_INSTRUCTION 0xD503201F
+#define WORD_BYTES       4
+#define NO_REGISTERS     31
+#define NO_BYTES_MEMORY  0x200000
+#define NOP_INSTRUCTION  0xD503201F
 #define HALT_INSTRUCTION 0x8A000000
-#define ZERO_REGISTER 0b11111
+#define ZERO_REGISTER    0b11111
 
 /*
- * Structures
+ * Models
  */
 
-// Represents the PSTATE unit
+// Represents the P-STATE register
 struct PState {
     bool N, Z, C, V;
 };
@@ -36,24 +27,28 @@ enum Error {
     UNKNOWN_OPCODE
 };
 
-// Represents the state of the ARMv8 machine
+// Represents the state of an ARMv8 machine
 struct Machine {
-    uint8_t memory[NO_BYTES_MEMORY]; // 2MB memory
-    uint64_t registers[NO_REGISTERS + 1], PC, instruction; // 64-bit registers, ZR and PC, and current instruction
-    struct PState state; // PState register
-    enum Error error; // If an error occurred during execution
+    uint8_t memory[NO_BYTES_MEMORY]; // 2MiB memory
+    uint64_t registers[NO_REGISTERS + 1]; // 31 64-bit registers // Index 31 represents the Zero Register
+    uint64_t PC; // Program Counter
+    uint64_t instruction; // The current instruction being executed
+    struct PState state; // The P-STATE register
+    enum Error error; // Set if an error occurred during execution
 };
 
 /*
- * Global variables
+ * Global Variables
  */
 
+// The single machine entity used across all execute functions
 struct Machine machine;
-struct Machine machineEmpty = {0};
+// Used to reset the machine to all zero values
+struct Machine empty_machine = {0};
 
 // Resets the machine to the initial state
 void resetMachine() {
-    machine = machineEmpty;
+    machine = empty_machine;
     machine.state.Z = true;
 }
 
@@ -61,110 +56,132 @@ void resetMachine() {
  * Helper Functions
  */
 
-// Returns mask of length `bits` set to 1
-uint64_t getMask(uint64_t bits) {
-    if (bits >= 64) {
-        return -1;
+// Returns a mask with trailing `length` bits set to 1
+uint64_t getMask(uint64_t length) {
+    if (length >= 64) {
+        return -1; // Return all bits set
     } else {
-        return (1LL << bits) - 1;
+        return (1LL << length) - 1;
     }
 }
 
-// Returns mask set to 1 from bit `left` - 1 to bit `right` (inclusive)
+// Returns a mask with bits from `left` - 1 to `right` (inclusive) set to 1
 uint64_t getMaskBetween(uint64_t left, uint64_t right) {
     return getMask(left) ^ getMask(right);
 }
 
-// Negates the given `value`
-uint64_t negate(uint64_t value) {
-    return ~value + 1;
+// Returns the number of bits of the bit-width `sf`
+uint64_t getLength(bool sf) {
+    return sf ? 64 : 32;
 }
 
-// Returns mask to be applied to the result of an operation
+// Returns the number of bytes in a word with the bit-width `sf`
+uint64_t getWordBytes(bool sf) {
+    return sf ? 8 : 4;
+}
+
+// Returns a mask to be applied to the result of an operation using the given bit-width `sf`
 uint64_t getResultMask(bool sf) {
-    return getMask(sf ? 64 : 32);
+    return getMask(getLength(sf));
 }
 
-// Returns the given `bit` of the given `value`
-bool getBit(uint64_t value, uint64_t bit) {
+// Returns true if the `bit` of `value` is set using little-endian interpretation
+bool isSet(uint64_t value, uint64_t bit) {
     return (value >> bit) & 1;
 }
 
-// Returns the most significant bit of the given value
-bool getSignBit(uint64_t value, bool sf) {
-    return getBit(value, sf ? 63 : 31);
+// Returns true if the most significant bit of `value` is set using the bit-width `sf`
+bool isSigned(uint64_t value, bool sf) {
+    return isSet(value, getLength(sf) - 1);
 }
 
-// Returns whether the masked value is equal to the target value
-bool isMaskEquals(uint64_t value, uint64_t mask, uint64_t equalTo) {
-    return (value & mask) == equalTo;
+// Returns true if `mask` applied to `value` equals `target` value
+bool isMaskEquals(uint64_t value, uint64_t mask, uint64_t target) {
+    return (value & mask) == target;
 }
 
-// Returns the given portion of the given value
+// Returns a portion of `value` starting at bit `littleEnd` of `length` bits
 uint64_t getPart(uint64_t value, uint64_t littleEnd, uint64_t length) {
     return (value >> littleEnd) & getMask(length);
 }
 
-// Returns the given portion of the given `value` as a 64-bit signed value
-uint64_t getSignedPart(uint64_t value, uint64_t littleEnd, uint64_t length) {
+// Returns a portion of `value` starting at bit `littleEnd` of `length` bits with sign extension
+uint64_t getPartSigned(uint64_t value, uint64_t littleEnd, uint64_t length) {
     uint64_t part = getPart(value, littleEnd, length);
-    if (getBit(part, length - 1)) { // Signed
-        return part | getMaskBetween(64, length);
+    if (isSet(part, length - 1)) { // Signed
+        return part | getMaskBetween(64, length); // Sign-extend part
     } else { // Not signed
         return part;
     }
 }
 
-// Returns the given portion of the current instruction
+// Returns a portion of the current instruction starting at bit `littleEnd` of `length` bits
 uint64_t getInstructionPart(uint64_t littleEnd, uint64_t length) {
     return getPart(machine.instruction, littleEnd, length);
 }
 
-// Returns the given signed portion of the current instruction
+// Returns a portion of the current instruction starting at bit `littleEnd` of `length` bits with sign extension
 uint64_t getInstructionPartSigned(uint64_t littleEnd, uint64_t length) {
-    return getSignedPart(machine.instruction, littleEnd, length);
+    return getPartSigned(machine.instruction, littleEnd, length);
 }
 
-// Fetches a word or double word from memory starting at `startIndex`
+// Returns the value of register `reg` using the bit-width `sf`
+uint64_t getRegisterValue(uint64_t reg, bool sf) {
+    return machine.registers[reg] & getResultMask(sf);
+}
+
+// Sets the value of register `reg` to `value` using the bit-width `sf`
+void setRegisterValue(uint64_t reg, uint64_t value, bool sf) {
+    if (reg != ZERO_REGISTER) { // Cannot assign to the zero register
+        machine.registers[reg] = value & getResultMask(sf);
+    }
+}
+
+// Fetches a word or double word from memory starting at address `startIndex` using the bit-width `sf`
 uint64_t loadFromMemory(uint64_t startIndex, bool sf) {
-    uint64_t value = 0, byte;
-    for (int i = 0; i < (sf ? 8 : 4); i++) {
+    uint64_t byte, value = 0;
+    for (int i = 0; i < getWordBytes(sf); i++) {
         byte = machine.memory[startIndex + i];
         value |= byte << (i * 8);
     }
     return value;
 }
 
-// Stores the given value in memory
+// Stores `value` in memory at address `startIndex` using the bit-width `sf`
 void storeInMemory(uint64_t value, uint64_t startIndex, bool sf) {
-    for (int i = 0; i < (sf ? 8 : 4); ++i) {
+    for (int i = 0; i < getWordBytes(sf); ++i) {
         machine.memory[startIndex + i] = (uint8_t) value;
         value >>= 8;
     }
 }
 
-// Reads the given file into the given machine's memory
+// Increments the machine's PC ready to load the sequentially next instruction
+void incrementPC() {
+    machine.PC += WORD_BYTES;
+}
+
+// Reads the file `filename` into the machine's memory
 void readFileIntoMemory(char filename[]) {
     FILE *file = fopen(filename, "rb"); // rb = read binary
 
-    // Determine size of file
+    // Determine the size of file
     fseek(file, 0, SEEK_END);
     size_t size = ftell(file);
     rewind(file);
 
-    // Read file into memory
+    // Read the file into memory
     fread(machine.memory, size, 1, file);
     fclose(file);
 }
 
-// Outputs the current state of the ARMv8 machine
+// Outputs the current state of the machine to the file `filename`
 void outputStateToFile(char filename[]) {
-    FILE *file = fopen(filename, "w"); // write
+    FILE *file = fopen(filename, "w"); // w = write
 
     // Registers
     fprintf(file, "Registers:\n");
     for (int i = 0; i < NO_REGISTERS; i++) {
-        fprintf(file, "X%02d = %016llx\n", i, machine.registers[i]);
+        fprintf(file, "X%02d = %016llx\n", i, getRegisterValue(i, 1));
     }
     // PC
     fprintf(file, "PC = %016llx\n", machine.PC);
@@ -179,30 +196,34 @@ void outputStateToFile(char filename[]) {
             fprintf(file, "0x%08x: 0x%08x\n", i, value);
         }
     }
-    // todo: print errors?
+    // Print any errors to the console
+    if (machine.error) {
+        printf("Error occurred: %i\n", machine.error);
+    }
     fclose(file);
 }
 
-// Performs arithmetic shift right
+// Performs arithmetic shift right by `shiftAmount` on the `value` using the bit-width `sf`
 uint64_t arithmeticShiftRight(uint64_t value, uint64_t shiftAmount, uint64_t sf) {
-    uint64_t result;
-    if (getSignBit(value, sf)) { // Signed
-        result = (value >> shiftAmount) | getMaskBetween(64, (sf ? 64 : 32) - shiftAmount);
+    uint64_t result, mask;
+    if (isSigned(value, sf)) { // Signed
+        mask = getMaskBetween(64, getLength(sf) - shiftAmount);
+        result = (value >> shiftAmount) | mask;
     } else { // Unsigned
         result = value >> shiftAmount;
     }
     return result & getResultMask(sf);
 }
 
-// Performs rotate right shift to the given value
+// Performs rotate right by `shiftAmount` on the `value` using the bit-width `sf`
 uint64_t rotateRight(uint64_t value, uint64_t shiftAmount, uint64_t sf) {
     uint64_t shifted, rotated;
     shifted = value >> shiftAmount;
-    rotated = value << ((sf ? 64 : 32) - shiftAmount);
+    rotated = value << (getLength(sf) - shiftAmount);
     return (shifted | rotated) & getResultMask(sf);
 }
 
-// Applies the given shift to the given value
+// Applies the shift given by `shiftType` to `value` by `shiftAmount` using the bit-width `sf`
 uint64_t applyShift(uint64_t value, uint64_t shiftType, uint64_t shiftAmount, uint64_t sf) {
     switch (shiftType) {
         case 0b00: // lsl
@@ -222,51 +243,50 @@ uint64_t applyShift(uint64_t value, uint64_t shiftType, uint64_t shiftAmount, ui
  */
 
 // Helper function to execute an arithmetic instruction
+// rd  = destination register
+// a   = first operand
+// b   = second operand
+// opc = type of arithmetic operation
+// sf  = bit-width of the operation
 void executeArithmeticInstruction(uint64_t rd, uint64_t a, uint64_t b, uint64_t opc, uint64_t sf) {
     uint64_t result;
-    a &= getResultMask(sf);
-    b &= getResultMask(sf);
-
-    // Calculate result
     switch (opc) {
         case 0b00: // Add
-            result = a + b;
+            setRegisterValue(rd, a + b, sf);
             break;
         case 0b01: // Add and set flags
             result = (a + b) & getResultMask(sf);
+            setRegisterValue(rd, result, sf);
 
-            machine.state.N = getSignBit(result, sf);
+            machine.state.N = isSigned(result, sf);
             machine.state.Z = result == 0;
             machine.state.C = a > getResultMask(sf) - b;
             // Overflow iff sign bits of a and b the same and result has opposite sign
-            machine.state.V = (getSignBit(a, sf) == getSignBit(b, sf))
-                           && (getSignBit(a, sf) != getSignBit(result, sf));
+            machine.state.V = (isSigned(a, sf) == isSigned(b, sf))
+                           && (isSigned(a, sf) != isSigned(result, sf));
             break;
         case 0b10: // Subtract
-            result = a - b;
+            setRegisterValue(rd, a - b, sf);
             break;
         case 0b11: // Subtract and set flags
             result = (a - b) & getResultMask(sf);
+            setRegisterValue(rd, result, sf);
 
-            machine.state.N = getSignBit(result, sf);
+            machine.state.N = isSigned(result, sf);
             machine.state.Z = result == 0;
             machine.state.C = a >= b;
             // Overflow iff sign bits of a and b are different and the sign bit of result same as subtrahend
-            machine.state.V = (getSignBit(a, sf) != getSignBit(b, sf))
-                           && (getSignBit(b, sf) == getSignBit(result, sf));
+            machine.state.V = (isSigned(a, sf) != isSigned(b, sf))
+                           && (isSigned(b, sf) == isSigned(result, sf));
             break;
         default: break;
-    }
-
-    // Store calculated value
-    if (rd != ZERO_REGISTER) { // Cannot assign to the zero register
-        machine.registers[rd] = result & getResultMask(sf);
     }
 }
 
 // Executes DP-Immediate instruction
 void executeDPImmediate() {
-    uint64_t sf, opc, opi, rd, sh, imm12, rn, hw, imm16, op, shift, lower_rd, upper_rd;
+    uint64_t sf, opc, opi, rd, sh, imm12, rn, hw, imm16, shifted, shiftAmount, lower_rd, upper_rd, result;
+    // Decode instruction and extract relevant parts
     sf = getInstructionPart(31, 1);
     opc = getInstructionPart(29, 2);
     opi = getInstructionPart(23, 3);
@@ -285,32 +305,26 @@ void executeDPImmediate() {
             }
 
             // Execute instruction
-            executeArithmeticInstruction(rd, machine.registers[rn], imm12, opc, sf);
+            executeArithmeticInstruction(rd, getRegisterValue(rn, sf), imm12, opc, sf);
             break;
         case 0b101: // Wide move
-            if (rd == ZERO_REGISTER) { // Cannot assign to the zero register
-                return;
-            }
-
-            shift = hw * 16;
-            op = imm16 << shift;
+            shiftAmount = hw * 16;
+            shifted = imm16 << shiftAmount;
             switch (opc) {
                 case 0b00: // Move wide with NOT
-                    machine.registers[rd] = ~op;
+                    setRegisterValue(rd, ~shifted, sf);
                     break;
                 case 0b10: // Move wide with zero
-                    machine.registers[rd] = op;
+                    setRegisterValue(rd, shifted, sf);
                     break;
                 case 0b11: // Move wide with keep
-                    lower_rd = machine.registers[rd] & getMask(shift);
-                    upper_rd = machine.registers[rd] & getMaskBetween(64, shift + 16);
-                    machine.registers[rd] = lower_rd | op | upper_rd;
+                    lower_rd = getRegisterValue(rd, 1) & getMask(shiftAmount);
+                    upper_rd = getRegisterValue(rd, 1) & getMaskBetween(64, shiftAmount + 16);
+                    result = lower_rd | shifted | upper_rd;
+                    setRegisterValue(rd, result, sf);
                     break;
                 default: break;
             }
-
-            // Ensure value within bit-width
-            machine.registers[rd] &= getResultMask(sf);
             break;
         default: break;
     }
@@ -318,7 +332,7 @@ void executeDPImmediate() {
 
 // Executes DP-Register instruction
 void executeDPRegister() {
-    uint64_t sf, opc, M, rm, rn, rd, shiftType, imm6, isArithmetic, N, x, ra, op2, mul, result;
+    uint64_t sf, opc, M, rm, rn, rd, shiftType, imm6, isArithmetic, N, x, ra, op2, multiplied, result, rnValue;
     sf = getInstructionPart(31, 1);
     opc = getInstructionPart(29, 2);
     M = getInstructionPart(28, 1);
@@ -333,46 +347,47 @@ void executeDPRegister() {
     x = getInstructionPart(15, 1);
 
     if (M) { // Multiply
-        if (rd == ZERO_REGISTER) { // Cannot assign to the zero register
-            return;
+        multiplied = getRegisterValue(rn, sf) * getRegisterValue(rm, sf);
+
+        // Handle negate flag
+        if (x) {
+            multiplied *= -1;
         }
-        mul = machine.registers[rn] * machine.registers[rm] * (x ? -1 : 1);
-        machine.registers[rd] = (machine.registers[ra] + mul) & getResultMask(sf);
+
+        setRegisterValue(rd, getRegisterValue(ra, sf) + multiplied, sf);
     } else { // Arithmetic or Logical
-        // ror shift (0b11) not valid for arithmetic instructions todo: what to do if given 0b11 with arithmetic?
-        op2 = applyShift(machine.registers[rm], shiftType, imm6, sf);
+        // Apply shift to operand
+        op2 = applyShift(getRegisterValue(rm, sf), shiftType, imm6, sf);
 
         if (isArithmetic) { // Arithmetic
-            executeArithmeticInstruction(rd, machine.registers[rn], op2, opc, sf);
+            executeArithmeticInstruction(rd, getRegisterValue(rn, sf), op2, opc, sf);
         } else { // Logical
-            if (N) { // Bitwise negate op2
+            // Handle bitwise negate flag
+            if (N) {
                 op2 = ~op2;
             }
+
+            rnValue = getRegisterValue(rn, sf);
             switch (opc) {
                 case 0b00: // AND
-                    result = machine.registers[rn] & op2;
+                    setRegisterValue(rd, rnValue & op2, sf);
                     break;
                 case 0b01: // OR
-                    result = machine.registers[rn] | op2;
+                    setRegisterValue(rd, rnValue | op2, sf);
                     break;
                 case 0b10: // XOR
-                    result = machine.registers[rn] ^ op2;
+                    setRegisterValue(rd, rnValue ^ op2, sf);
                     break;
                 case 0b11: // AND, and set flags
-                    result = machine.registers[rn] & op2;
-                    result &= getResultMask(sf);
+                    result = rnValue & op2 & getResultMask(sf);
+                    setRegisterValue(rd, result, sf);
 
-                    machine.state.N = getSignBit(result, sf);
+                    machine.state.N = isSigned(result, sf);
                     machine.state.Z = result == 0;
                     machine.state.C = 0;
                     machine.state.V = 0;
                     break;
                 default: break;
-            }
-
-            // Store calculated value
-            if (rd != ZERO_REGISTER) { // Cannot assign to the zero register
-                machine.registers[rd] = result & getResultMask(sf);
             }
         }
     }
@@ -397,23 +412,19 @@ void executeLoadOrStore() {
     // Determine address to load/store
     if (isSDT) { // Single data transfer
         if (U) { // Unsigned immediate offset
-            address = machine.registers[xn] + imm12 * (sf ? 8 : 4);
+            address = getRegisterValue(xn, sf) + imm12 * getWordBytes(sf);
         } else if (isRegOffset) { // Register offset
-            address = machine.registers[xn] + machine.registers[xm];
+            address = getRegisterValue(xn, sf) + getRegisterValue(xm, sf);
         } else if (I) { // Pre-indexed
-            address = machine.registers[xn] + simm9;
+            address = getRegisterValue(xn, sf) + simm9;
 
             // Implement write-back
-            if (xn != ZERO_REGISTER) {
-                machine.registers[xn] = address;
-            }
+            setRegisterValue(xn, address, sf);
         } else { // Post-indexed
-            address = machine.registers[xn];
+            address = getRegisterValue(xn, sf);
 
             // Implement write-back
-            if (xn != ZERO_REGISTER) {
-                machine.registers[xn] = address + simm9;
-            }
+            setRegisterValue(xn, address + simm9, sf);
         }
     } else { // Load literal
         address = machine.PC + simm19 * WORD_BYTES;
@@ -421,16 +432,15 @@ void executeLoadOrStore() {
 
     // Execute
     if (!isSDT || L) { // Load
-        if (rt != ZERO_REGISTER) { // Cannot write to ZR
-            machine.registers[rt] = loadFromMemory(address, sf);
-        }
+        setRegisterValue(rt, loadFromMemory(address, sf), sf);
     } else { // Store
-        storeInMemory(machine.registers[rt], address, sf);
+        storeInMemory(getRegisterValue(rt, sf), address, sf);
     }
 }
 
 // Executes Branch instruction
 void executeBranch() {
+    bool jump;
     uint64_t xn, cond, opc, simm26, simm19;
     xn = getInstructionPart(5, 5);
     cond = getInstructionPart(0, 4);
@@ -438,16 +448,16 @@ void executeBranch() {
     simm26 = getInstructionPartSigned(0, 26);
     simm19 = getInstructionPartSigned(5, 19);
 
-    bool jump = true;
     switch (opc) {
         case 0b00: // Unconditional
             machine.PC += simm26 * WORD_BYTES;
             break;
         case 0b11: // Register
-            machine.PC = machine.registers[xn];
+            machine.PC = getRegisterValue(xn, 0);
             break;
         case 0b01: // Conditional
             // Determine whether to jump
+            jump = true;
             switch (cond) {
                 case 0b0000: // Equal
                     jump = machine.state.Z;
@@ -487,7 +497,7 @@ void executeBranch() {
  * Main Emulator functions
  */
 
-// Emulator running given file
+// Run the emulator on the binary file `readFile` and write the final state to `writeFile`
 void emulate(char readFile[], char writeFile[]) {
     // Setup ARMv8 machine
     resetMachine();
@@ -495,7 +505,7 @@ void emulate(char readFile[], char writeFile[]) {
     // Read binary file into machine memory
     readFileIntoMemory(readFile);
 
-    // Main emulate loop
+    // Main emulator loop
     while (true) {
         // Fetch
         if (machine.PC > NO_BYTES_MEMORY) { // Instruction out of range of memory
@@ -509,29 +519,27 @@ void emulate(char readFile[], char writeFile[]) {
 
         // Execute
         if (machine.instruction == NOP_INSTRUCTION) { // Move to next instruction
-            machine.PC += WORD_BYTES;
+            incrementPC();
         } else if (machine.instruction == HALT_INSTRUCTION) { // Stop emulation
             break;
         } else if (isMaskEquals(op0, 0b1110, 0b1010)) { // Branch
             executeBranch();
-        } else {
-            if (isMaskEquals(op0, 0b1110, 0b1000)) { // DP Immediate
-                executeDPImmediate();
-            } else if (isMaskEquals(op0, 0b0111, 0b0101)) { // DP Register
-                executeDPRegister();
-            } else if (isMaskEquals(op0, 0b0101, 0b0100)) { // Loads and Stores
-                executeLoadOrStore();
-            } else { // Unknown instruction
-                machine.error = UNKNOWN_OPCODE;
-                break;
-            }
-
-            // Increment PC
-            machine.PC += WORD_BYTES;
+        } else if (isMaskEquals(op0, 0b1110, 0b1000)) { // DP Immediate
+            executeDPImmediate();
+            incrementPC();
+        } else if (isMaskEquals(op0, 0b0111, 0b0101)) { // DP Register
+            executeDPRegister();
+            incrementPC();
+        } else if (isMaskEquals(op0, 0b0101, 0b0100)) { // Loads and Stores
+            executeLoadOrStore();
+            incrementPC();
+        } else { // Unknown instruction
+            machine.error = UNKNOWN_OPCODE;
+            break;
         }
     }
 
-    // Output result
+    // Output final machine state
     outputStateToFile(writeFile);
 }
 
