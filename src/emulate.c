@@ -2,10 +2,10 @@
 // More errors
 
 #include <stdlib.h>
-#include "dp_immediate.c"
-#include "dp_register.c"
-#include "load_or_store.c"
-#include "emulate_branch.c"
+#include "emulator/dp_immediate.c"
+#include "emulator/dp_register.c"
+#include "emulator/load_or_store.c"
+#include "emulator/emulate_branch.c"
 
 #define NOP_INSTRUCTION  0xD503201F
 #define HALT_INSTRUCTION 0x8A000000
