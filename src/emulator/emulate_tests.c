@@ -1,8 +1,6 @@
-//
-// Created by Jack Finnis on 05/06/2023.
-//
-
-#include "emulate.c"
+/*
+ * Testing functions for emulator
+ */
 
 void testHelperFunctions() {
     printf("getMask\n");
@@ -10,12 +8,6 @@ void testHelperFunctions() {
     printf("%llx\n", getMask(8)); // ff
     printf("%llx\n", getMask(32)); // 32/4 = 8fs
     printf("%llx\n", getMask(64)); // 16fs
-
-    printf("negate\n");
-    printf("%llx\n", negate(1)); // 16fs
-    printf("%llx\n", negate(-1)); // 1
-    printf("%llx\n", negate(16)); // 15 fs, 0
-    printf("%llx\n", negate(-16)); // 10
 
     printf("getMaskBetween\n");
     printf("%llx\n", getMaskBetween(64, 0)); // 16fs
@@ -29,18 +21,18 @@ void testHelperFunctions() {
     printf("%llx\n", getResultMask(1)); // 16 fs
 
     printf("getBit\n");
-    printf("%i\n", getBit(0b0010, 0)); // 0
-    printf("%i\n", getBit(0b0010, 1)); // 1
-    printf("%i\n", getBit(0b0010, 2)); // 0
-    printf("%i\n", getBit(0b0010, 3)); // 0
-    printf("%i\n", getBit(0b0010, 63)); // 0
-    printf("%i\n", getBit(-1, 63)); // 1
+    printf("%i\n", isSet(0b0010, 0)); // 0
+    printf("%i\n", isSet(0b0010, 1)); // 1
+    printf("%i\n", isSet(0b0010, 2)); // 0
+    printf("%i\n", isSet(0b0010, 3)); // 0
+    printf("%i\n", isSet(0b0010, 63)); // 0
+    printf("%i\n", isSet(-1, 63)); // 1
 
     printf("getSignBit\n");
-    printf("%i\n", getSignBit(1, 0)); // 0
-    printf("%i\n", getSignBit(1, 1)); // 0
-    printf("%i\n", getSignBit(-1, 0)); // 1
-    printf("%i\n", getSignBit(-1, 1)); // 1
+    printf("%i\n", isSigned(1, 0)); // 0
+    printf("%i\n", isSigned(1, 1)); // 0
+    printf("%i\n", isSigned(-1, 0)); // 1
+    printf("%i\n", isSigned(-1, 1)); // 1
 
     printf("isMaskEquals\n");
     printf("%i\n", isMaskEquals(0b0011, 0b0001, 0b0001)); // 1
@@ -52,13 +44,13 @@ void testHelperFunctions() {
     printf("%i\n", isMaskEquals(0b0110, 0b0001, 0b0101)); // 0
 
     printf("getSignedPart\n");
-    printf("%llx\n", getSignedPart(0b0101, 0, 0)); // 0
-    printf("%llx\n", getSignedPart(0b0100, 0, 1)); // 0
-    printf("%llx\n", getSignedPart(0b0100, 0, 2)); // 0
-    printf("%llx\n", getSignedPart(0b0100, 0, 3)); // -4
-    printf("%llx\n", getSignedPart(0b0100, 0, 4)); // 4
-    printf("%llx\n", getSignedPart(0xffff0000, 0, 16)); // 0
-    printf("%llx\n", getSignedPart(0xffff0000, 0, 17)); // 12 fs, 0000
+    printf("%llx\n", getPartSigned(0b0101, 0, 0)); // 0
+    printf("%llx\n", getPartSigned(0b0100, 0, 1)); // 0
+    printf("%llx\n", getPartSigned(0b0100, 0, 2)); // 0
+    printf("%llx\n", getPartSigned(0b0100, 0, 3)); // -4
+    printf("%llx\n", getPartSigned(0b0100, 0, 4)); // 4
+    printf("%llx\n", getPartSigned(0xffff0000, 0, 16)); // 0
+    printf("%llx\n", getPartSigned(0xffff0000, 0, 17)); // 12 fs, 0000
 
     printf("arithmeticShiftRight\n");
     printf("%llx\n", arithmeticShiftRight(0xf0000000, 4, 0)); // ff000000
@@ -151,16 +143,6 @@ void testExecuteDPImmediateArithmetic() {
     printf("rd %lld\n", machine.registers[rd]); // 3
 }
 
-void testExecuteDPImmediateWideMove() {
-    resetMachine();
-    uint64_t sf, opc, opi, rd, hw, imm16;
-    machine.instruction = 0;
-}
-
-void testExecuteDPRegister() {
-
-}
-
 void testExecuteLoadOrStore() {
     resetMachine();
     uint64_t sf, U, L , xn, rt, xm, imm12, I, isRegOffset, isSDT, simm9, simm19;
@@ -177,6 +159,10 @@ void testExecuteLoadOrStore() {
     simm9 = 0;
     simm19 = 0;
     machine.instruction = 0;
+}
+
+void testExecuteDPRegister() {
+
 }
 
 void testExecuteBranch() {
