@@ -2,6 +2,7 @@
  * Testing functions for emulator
  */
 
+// Test our binary helper functions
 void testHelperFunctions() {
     printf("getMask\n");
     printf("%llx\n", getMask(3)); // 7
@@ -114,6 +115,7 @@ void testHelperFunctions() {
     printf("%02x%02x%02x%02x\n", machine.memory[3], machine.memory[2], machine.memory[1], machine.memory[0]);
 }
 
+// Test executing an arithmetic instruction using our helper function
 void testExecuteArithmetic() {
     resetMachine();
     executeArithmeticInstruction(0, -2, -1, 1, 0);
@@ -124,6 +126,7 @@ void testExecuteArithmetic() {
     printf("V %i\n", machine.state.V); // 3
 }
 
+// Test executing DP-Immediate instructions
 void testExecuteDPImmediateArithmetic() {
     resetMachine();
     uint64_t sf, opc, opi, rd, sh, imm12, rn, op0;
@@ -141,30 +144,4 @@ void testExecuteDPImmediateArithmetic() {
     printf("instruction %lld\n", machine.instruction);
     executeDPImmediate();
     printf("rd %lld\n", machine.registers[rd]); // 3
-}
-
-void testExecuteLoadOrStore() {
-    resetMachine();
-    uint64_t sf, U, L , xn, rt, xm, imm12, I, isRegOffset, isSDT, simm9, simm19;
-    sf = 0;
-    U = 0;
-    L = 0;
-    xn = 0;
-    rt = 0;
-    xm = 0;
-    imm12 = 0;
-    I = 0;
-    isRegOffset = 0;
-    isSDT = 0;
-    simm9 = 0;
-    simm19 = 0;
-    machine.instruction = 0;
-}
-
-void testExecuteDPRegister() {
-
-}
-
-void testExecuteBranch() {
-
 }
