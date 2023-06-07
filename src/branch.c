@@ -2,7 +2,7 @@
 // Created by Arabella Hurrell on 02/06/2023.
 //
 
-#include "utility.c"
+//#include "utility.c"
 
 char* branching (char* mnemonic, char* value, int offset) {
     char* encoding;

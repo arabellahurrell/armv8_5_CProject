@@ -2,20 +2,17 @@
 // Created by Arabella Hurrell on 30/05/2023.
 //
 
-#include <string.h>
-#include "utility.c"
-#include "shifts.c"
 
-char* singleData (char* rt, char* xn, char* val, char* shiftAmount) {
-    char* x = sf(rt);
-    int sizeOfValue = strlen(val);
-    if (val[sizeOfValue -1] == "!") {
-
-    }
-}
+//char* singleData (char* rt, char* xn, char* val, char* shiftAmount) {
+//    char* x = sf(rt);
+//    int sizeOfValue = strlen(val);
+//    if (val[sizeOfValue -1] == "!") {
+//
+//    }
+//}
 
 char* registerOffset(char* rt, char* xn, char* xm, char* shiftAmount, char* u, char* l) {
-    convert((char*) (binaryToDecimal(master(xm, "lsl", shiftAmount)) + binaryToDecimal(xn)), 19);
+    convert(intToString(binaryToDecimal(master(xm, "lsl", shiftAmount)) + binaryToDecimal(xn)), 19);
     return strcat(strcat(strcat("1", sf(rt)), strcat("1110000", l)), strcat(strcat("1", convert(xm, 5)), strcat("011010", strcat(convert(xn, 5), convert(rt, 5)))));
 }
 
