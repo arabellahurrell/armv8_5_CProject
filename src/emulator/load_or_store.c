@@ -19,23 +19,19 @@ void executeLoadOrStore() {
     // Determine address to load/store
     if (isSDT) { // Single data transfer
         if (U) { // Unsigned immediate offset
-            address = machine.registers[xn] + imm12 * (sf ? 8 : 4);
+            address = getRegisterValue(xn, sf) + imm12 * getWordBytes(sf);
         } else if (isRegOffset) { // Register offset
-            address = machine.registers[xn] + machine.registers[xm];
+            address = getRegisterValue(xn, sf) + getRegisterValue(xm, sf);
         } else if (I) { // Pre-indexed
-            address = machine.registers[xn] + simm9;
+            address = getRegisterValue(xn, sf) + simm9;
 
             // Implement write-back
-            if (xn != ZERO_REGISTER) {
-                machine.registers[xn] = address;
-            }
+            setRegisterValue(xn, address, sf);
         } else { // Post-indexed
-            address = machine.registers[xn];
+            address = getRegisterValue(xn, sf);
 
             // Implement write-back
-            if (xn != ZERO_REGISTER) {
-                machine.registers[xn] = address + simm9;
-            }
+            setRegisterValue(xn, address + simm9, sf);
         }
     } else { // Load literal
         address = machine.PC + simm19 * WORD_BYTES;
@@ -43,10 +39,8 @@ void executeLoadOrStore() {
 
     // Execute
     if (!isSDT || L) { // Load
-        if (rt != ZERO_REGISTER) { // Cannot write to ZR
-            machine.registers[rt] = loadFromMemory(address, sf);
-        }
+        setRegisterValue(rt, loadFromMemory(address, sf), sf);
     } else { // Store
-        storeInMemory(machine.registers[rt], address, sf);
+        storeInMemory(getRegisterValue(rt, sf), address, sf);
     }
 }

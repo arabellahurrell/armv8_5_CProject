@@ -2,7 +2,7 @@
 
 // Executes DP-Register instruction
 void executeDPRegister() {
-    uint64_t sf, opc, M, rm, rn, rd, shiftType, imm6, isArithmetic, N, x, ra, op2, mul, result;
+    uint64_t sf, opc, M, rm, rn, rd, shiftType, imm6, isArithmetic, N, x, ra, op2, multiplied, result, rnValue;
     sf = getInstructionPart(31, 1);
     opc = getInstructionPart(29, 2);
     M = getInstructionPart(28, 1);
@@ -17,46 +17,47 @@ void executeDPRegister() {
     x = getInstructionPart(15, 1);
 
     if (M) { // Multiply
-        if (rd == ZERO_REGISTER) { // Cannot assign to the zero register
-            return;
+        multiplied = getRegisterValue(rn, sf) * getRegisterValue(rm, sf);
+
+        // Handle negate flag
+        if (x) {
+            multiplied *= -1;
         }
-        mul = machine.registers[rn] * machine.registers[rm] * (x ? -1 : 1);
-        machine.registers[rd] = (machine.registers[ra] + mul) & getResultMask(sf);
+
+        setRegisterValue(rd, getRegisterValue(ra, sf) + multiplied, sf);
     } else { // Arithmetic or Logical
-        // ror shift (0b11) not valid for arithmetic instructions todo: what to do if given 0b11 with arithmetic?
-        op2 = applyShift(machine.registers[rm], shiftType, imm6, sf);
+        // Apply shift to operand
+        op2 = applyShift(getRegisterValue(rm, sf), shiftType, imm6, sf);
 
         if (isArithmetic) { // Arithmetic
-            executeArithmeticInstruction(rd, machine.registers[rn], op2, opc, sf);
+            executeArithmeticInstruction(rd, getRegisterValue(rn, sf), op2, opc, sf);
         } else { // Logical
-            if (N) { // Bitwise negate op2
+            // Handle bitwise negate flag
+            if (N) {
                 op2 = ~op2;
             }
+
+            rnValue = getRegisterValue(rn, sf);
             switch (opc) {
                 case 0b00: // AND
-                    result = machine.registers[rn] & op2;
+                    setRegisterValue(rd, rnValue & op2, sf);
                     break;
                 case 0b01: // OR
-                    result = machine.registers[rn] | op2;
+                    setRegisterValue(rd, rnValue | op2, sf);
                     break;
                 case 0b10: // XOR
-                    result = machine.registers[rn] ^ op2;
+                    setRegisterValue(rd, rnValue ^ op2, sf);
                     break;
                 case 0b11: // AND, and set flags
-                    result = machine.registers[rn] & op2;
-                    result &= getResultMask(sf);
+                    result = rnValue & op2 & getResultMask(sf);
+                    setRegisterValue(rd, result, sf);
 
-                    machine.state.N = getSignBit(result, sf);
+                    machine.state.N = isSigned(result, sf);
                     machine.state.Z = result == 0;
                     machine.state.C = 0;
                     machine.state.V = 0;
                     break;
                 default: break;
-            }
-
-            // Store calculated value
-            if (rd != ZERO_REGISTER) { // Cannot assign to the zero register
-                machine.registers[rd] = result & getResultMask(sf);
             }
         }
     }

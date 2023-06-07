@@ -2,7 +2,8 @@
 
 // Executes DP-Immediate instruction
 void executeDPImmediate() {
-    uint64_t sf, opc, opi, rd, sh, imm12, rn, hw, imm16, op, shift, lower_rd, upper_rd;
+    uint64_t sf, opc, opi, rd, sh, imm12, rn, hw, imm16, shifted, shiftAmount, lower_rd, upper_rd, result;
+    // Decode instruction and extract relevant parts
     sf = getInstructionPart(31, 1);
     opc = getInstructionPart(29, 2);
     opi = getInstructionPart(23, 3);
@@ -21,32 +22,26 @@ void executeDPImmediate() {
             }
 
             // Execute instruction
-            executeArithmeticInstruction(rd, machine.registers[rn], imm12, opc, sf);
+            executeArithmeticInstruction(rd, getRegisterValue(rn, sf), imm12, opc, sf);
             break;
         case 0b101: // Wide move
-            if (rd == ZERO_REGISTER) { // Cannot assign to the zero register
-                return;
-            }
-
-            shift = hw * 16;
-            op = imm16 << shift;
+            shiftAmount = hw * 16;
+            shifted = imm16 << shiftAmount;
             switch (opc) {
                 case 0b00: // Move wide with NOT
-                    machine.registers[rd] = ~op;
+                    setRegisterValue(rd, ~shifted, sf);
                     break;
                 case 0b10: // Move wide with zero
-                    machine.registers[rd] = op;
+                    setRegisterValue(rd, shifted, sf);
                     break;
                 case 0b11: // Move wide with keep
-                    lower_rd = machine.registers[rd] & getMask(shift);
-                    upper_rd = machine.registers[rd] & getMaskBetween(64, shift + 16);
-                    machine.registers[rd] = lower_rd | op | upper_rd;
+                    lower_rd = getRegisterValue(rd, 1) & getMask(shiftAmount);
+                    upper_rd = getRegisterValue(rd, 1) & getMaskBetween(64, shiftAmount + 16);
+                    result = lower_rd | shifted | upper_rd;
+                    setRegisterValue(rd, result, sf);
                     break;
                 default: break;
             }
-
-            // Ensure value within bit-width
-            machine.registers[rd] &= getResultMask(sf);
             break;
         default: break;
     }

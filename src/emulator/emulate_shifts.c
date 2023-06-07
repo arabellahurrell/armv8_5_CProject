@@ -1,25 +1,26 @@
 #include "binary_functions.c"
 
-// Performs arithmetic shift right
+// Performs arithmetic shift right by `shiftAmount` on the `value` using the bit-width `sf`
 uint64_t arithmeticShiftRight(uint64_t value, uint64_t shiftAmount, uint64_t sf) {
-    uint64_t result;
-    if (getSignBit(value, sf)) { // Signed
-        result = (value >> shiftAmount) | getMaskBetween(64, (sf ? 64 : 32) - shiftAmount);
+    uint64_t result, mask;
+    if (isSigned(value, sf)) { // Signed
+        mask = getMaskBetween(64, getLength(sf) - shiftAmount);
+        result = (value >> shiftAmount) | mask;
     } else { // Unsigned
         result = value >> shiftAmount;
     }
     return result & getResultMask(sf);
 }
 
-// Performs rotate right shift to the given value
+// Performs rotate right by `shiftAmount` on the `value` using the bit-width `sf`
 uint64_t rotateRight(uint64_t value, uint64_t shiftAmount, uint64_t sf) {
     uint64_t shifted, rotated;
     shifted = value >> shiftAmount;
-    rotated = value << ((sf ? 64 : 32) - shiftAmount);
+    rotated = value << (getLength(sf) - shiftAmount);
     return (shifted | rotated) & getResultMask(sf);
 }
 
-// Applies the given shift to the given value
+// Applies the shift given by `shiftType` to `value` by `shiftAmount` using the bit-width `sf`
 uint64_t applyShift(uint64_t value, uint64_t shiftType, uint64_t shiftAmount, uint64_t sf) {
     switch (shiftType) {
         case 0b00: // lsl

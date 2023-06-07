@@ -1,60 +1,70 @@
-#include "read_binary_file.c"
+#include "structures.c"
 
-// Returns mask of length `bits` set to 1
-uint64_t getMask(uint64_t bits) {
-    if (bits >= 64) {
-        return -1;
+// Returns a mask with trailing `length` bits set to 1
+uint64_t getMask(uint64_t length) {
+    if (length >= 64) {
+        return -1; // Return all bits set
     } else {
-        return (1LL << bits) - 1;
+        return (1LL << length) - 1;
     }
 }
 
-// Returns mask set to 1 from bit `left` - 1 to bit `right` (inclusive)
+// Returns a mask with bits from `left` - 1 to `right` (inclusive) set to 1
 uint64_t getMaskBetween(uint64_t left, uint64_t right) {
     return getMask(left) ^ getMask(right);
 }
 
-// Returns mask to be applied to the result of an operation
-uint64_t getResultMask(bool sf) {
-    return getMask(sf ? 64 : 32);
+// Returns the number of bits of the bit-width `sf`
+uint64_t getLength(bool sf) {
+    return sf ? 64 : 32;
 }
 
-// Returns the given `bit` of the given `value`
-bool getBit(uint64_t value, uint64_t bit) {
+// Returns the number of bytes in a word with the bit-width `sf`
+uint64_t getWordBytes(bool sf) {
+    return sf ? 8 : 4;
+}
+
+// Returns a mask to be applied to the result of an operation using the given bit-width `sf`
+uint64_t getResultMask(bool sf) {
+    return getMask(getLength(sf));
+}
+
+// Returns true if the `bit` of `value` is set using little-endian interpretation
+bool isSet(uint64_t value, uint64_t bit) {
     return (value >> bit) & 1;
 }
 
-// Returns the most significant bit of the given value
-bool getSignBit(uint64_t value, bool sf) {
-    return getBit(value, sf ? 63 : 31);
+// Returns true if the most significant bit of `value` is set using the bit-width `sf`
+bool isSigned(uint64_t value, bool sf) {
+    return isSet(value, getLength(sf) - 1);
 }
 
-// Returns whether the masked value is equal to the target value
-bool isMaskEquals(uint64_t value, uint64_t mask, uint64_t equalTo) {
-    return (value & mask) == equalTo;
+// Returns true if `mask` applied to `value` equals `target` value
+bool isMaskEquals(uint64_t value, uint64_t mask, uint64_t target) {
+    return (value & mask) == target;
 }
 
-// Returns the given portion of the given value
+// Returns a portion of `value` starting at bit `littleEnd` of `length` bits
 uint64_t getPart(uint64_t value, uint64_t littleEnd, uint64_t length) {
     return (value >> littleEnd) & getMask(length);
 }
 
-// Returns the given portion of the given `value` as a 64-bit signed value
-uint64_t getSignedPart(uint64_t value, uint64_t littleEnd, uint64_t length) {
+// Returns a portion of `value` starting at bit `littleEnd` of `length` bits with sign extension
+uint64_t getPartSigned(uint64_t value, uint64_t littleEnd, uint64_t length) {
     uint64_t part = getPart(value, littleEnd, length);
-    if (getBit(part, length - 1)) { // Signed
-        return part | getMaskBetween(64, length);
+    if (isSet(part, length - 1)) { // Signed
+        return part | getMaskBetween(64, length); // Sign-extend part
     } else { // Not signed
         return part;
     }
 }
 
-// Returns the given portion of the current instruction
+// Returns a portion of the current instruction starting at bit `littleEnd` of `length` bits
 uint64_t getInstructionPart(uint64_t littleEnd, uint64_t length) {
     return getPart(machine.instruction, littleEnd, length);
 }
 
-// Returns the given signed portion of the current instruction
+// Returns a portion of the current instruction starting at bit `littleEnd` of `length` bits with sign extension
 uint64_t getInstructionPartSigned(uint64_t littleEnd, uint64_t length) {
-    return getSignedPart(machine.instruction, littleEnd, length);
+    return getPartSigned(machine.instruction, littleEnd, length);
 }
