@@ -1,4 +1,4 @@
-#include "../emulate.c"
+#include "emulate.c"
 
 void testHelperFunctions() {
     printf("getMask\n");
