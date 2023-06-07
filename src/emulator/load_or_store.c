@@ -4,11 +4,11 @@
 
 // Executes Load or Store Instruction
 void executeLoadOrStore() {
-    uint64_t rt, L, sf, isSDT, xn, I, simm9, isRegOffset, U, imm12,
+    uint64_t rt, l, sf, isSDT, xn, i, simm9, isRegOffset, u, imm12,
             address, xm, simm19;
     // Extracts relevant parts of the instruction
     rt = getInstructionPart(0, 5);
-    L = getInstructionPart(22, 1);
+    l = getInstructionPart(22, 1);
     sf = getInstructionPart(30, 1);
     isSDT = getInstructionPart(31, 1);
 
@@ -16,12 +16,12 @@ void executeLoadOrStore() {
     if (isSDT) { // Single data transfer
         // Extracts the relevant parts of the single data transfer instruction
         xn = getInstructionPart(5, 5);
-        I = getInstructionPart(11, 1);
+        i = getInstructionPart(11, 1);
         simm9 = getInstructionPartSigned(12, 9);
         isRegOffset = getInstructionPart(21, 1);
-        U = getInstructionPart(24, 1);
+        u = getInstructionPart(24, 1);
 
-        if (U) { // Unsigned immediate offset
+        if (u) { // Unsigned immediate offset
             // Extracts the immediate value for the unsigned offset
             imm12 = getInstructionPart(10, 12);
 
@@ -31,7 +31,7 @@ void executeLoadOrStore() {
             xm = getInstructionPart(16, 5);
 
             address = getRegisterValue(xn, sf) + getRegisterValue(xm, sf);
-        } else if (I) { // Pre-indexed
+        } else if (i) { // Pre-indexed
             address = getRegisterValue(xn, sf) + simm9;
 
             // Implement write-back
@@ -50,7 +50,7 @@ void executeLoadOrStore() {
     }
 
     // Execute
-    if (!isSDT || L) { // Load
+    if (!isSDT || l) { // Load
         setRegisterValue(rt, loadFromMemory(address, sf), sf);
     } else { // Store
         storeInMemory(getRegisterValue(rt, sf), address, sf);

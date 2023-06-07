@@ -3,17 +3,17 @@
  */
 
 void executeDPRegister() {
-    uint64_t rd, rn, rm, M, opc, sf, ra, x, multiplied, imm6, shiftType,
-            isArithmetic, op2, N, rnValue, result;
+    uint64_t rd, rn, rm, m, opc, sf, ra, x, multiplied, imm6, shiftType,
+            isArithmetic, op2, n, rnValue, result;
     // Extracts and decodes relevant parts of the instruction
     rd = getInstructionPart(0, 5);
     rn = getInstructionPart(5, 5);
     rm = getInstructionPart(16, 5);
-    M = getInstructionPart(28, 1);
+    m = getInstructionPart(28, 1);
     opc = getInstructionPart(29, 2);
     sf = getInstructionPart(31, 1);
 
-    if (M) { // Multiply
+    if (m) { // Multiply
         // Extracts and decodes the operand for multiply instruction
         ra = getInstructionPart(10, 5);
         x = getInstructionPart(15, 1);
@@ -42,10 +42,10 @@ void executeDPRegister() {
         } else { // Logical
             // Extracts the bit for when the shifted register
             // is to be bitwise negated
-            N = getInstructionPart(21, 1);
+            n = getInstructionPart(21, 1);
 
             // Handle bitwise negate flag
-            if (N) {
+            if (n) {
                 op2 = ~op2;
             }
 
