@@ -2,8 +2,6 @@
 // Created by Arabella Hurrell on 02/06/2023.
 //
 
-#include "passing.h"
-#include "symbol_table.c"
 #include <string.h>
 #include "utility.c"
 #include "data_processing.c"
@@ -28,17 +26,13 @@ struct passOne {
     char* address;
 };
 
-struct mnemonic {
-    char* mnemonic;
-    char* arguments;
-};
 
 bool isLabel (char* instruction) {
-    return instruction[strlen(instruction) - 1] == ":";
+    return instruction[strlen(instruction) - 1] == ':';
 }
 
 bool isDirective (char* instruction) {
-    return instruction[0] == ".";
+    return instruction[0] == ':';
 }
 
 
@@ -76,9 +70,7 @@ char* functionSelector(char* mnemonic, char* arguments, char* address)
 }
 
 
-char** one_pass(char** instruction, char* name) {
-
-    FILE* file = fopen(name, "wb");
+void one_pass(char** instruction, char* name) {
 
     int capacity = 2;
     int num = 0;
@@ -119,5 +111,4 @@ char** one_pass(char** instruction, char* name) {
             writeStringToFile(name, result);
         }
     }
-
 }

@@ -2,19 +2,17 @@
 // Created by Arabella Hurrell on 02/06/2023.
 //
 
-#include "branch.h"
-#include <string.h>
 #include "utility.c"
 
 char* branching (char* mnemonic, char* value, int offset) {
-    char* encoding = "";
+    char* encoding;
     if (strcmp(mnemonic, "b") == 0) {
-        char* res = convert((char*) (binaryToDecimal(hexToBinary(value)) + offset) , 26);
+        char* res = convert(intToString(binaryToDecimal(hexToBinary(value)) + offset) , 26);
         return strcat("000101", res);
     } else if (strcmp(mnemonic, "br") == 0) {
         return strcat("1101011000011111000000", convert(value, 26));
     } else {
-        char* res = convert((char*) (binaryToDecimal(value) + offset) , 19);
+        char* res = convert(intToString(binaryToDecimal(value) + offset) , 19);
         if (strcmp(mnemonic, "b.eq") == 0) {
             encoding = "0000";
         } else if (strcmp(mnemonic, "b.ne") == 0) {
