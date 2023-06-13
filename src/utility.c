@@ -50,14 +50,12 @@ int binaryToDecimal(const char* binary) {
 
 char* hexToBinary(const char* hex) {
     int hexLength = strlen(hex);
-    int j = hexLength - 1;
     int resultSize = (hexLength - 2) * 4;
     char* binary = (char*) malloc((resultSize + 1) * sizeof(char));
     binary[resultSize] = '\0';
-    for (int i = 2 ; i <= j; i++) {
+    for (int i = 2 ; i < hexLength; i++) {
         char c = hex[i];
-        int value = 0;
-
+        int value;
         if (c >= '0' && c <= '9') {
             value = c - '0';
         } else if (c >= 'A' && c <= 'F') {
@@ -70,7 +68,6 @@ char* hexToBinary(const char* hex) {
             binary[(i - 2) * 4 + k] = bit + '0';
         }
     }
-
     return binary;
 }
 
@@ -107,11 +104,18 @@ char * sf (char* reg) {
 }
 
 
-bool isSecondCharacterX(char* str) {
+int immOrHex(char* str) {
+    if (strlen(str) <=1 ) {
+        return 0;
+    }
     if (str[1] == 'x') {
-        return true;
+        return binaryToDecimal(hexToBinary(str));
     } else {
-        return false;
+        char* res = malloc(strlen(str) - 1);
+        for (int i = 0; i < strlen(str) - 1; i++) {
+            res[i] = str[i+1];
+        }
+        return atoi(res);
     }
 }
 
