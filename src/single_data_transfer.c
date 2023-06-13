@@ -10,6 +10,8 @@
 //
 //    }
 //}
+#include <string.h>
+
 
 char* registerOffset(char* rt, char* xn, char* xm, char* shiftAmount, char* u, char* l) {
     convert(intToString(binaryToDecimal(master(xm, "lsl", shiftAmount)) + binaryToDecimal(xn)), 19);

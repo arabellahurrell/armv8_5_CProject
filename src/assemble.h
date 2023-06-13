@@ -6,6 +6,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <ctype.h>
 
 #include "utility.c"
 #include "reading_source_file.c"

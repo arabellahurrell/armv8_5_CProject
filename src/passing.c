@@ -1,6 +1,9 @@
 //
 // Created by Arabella Hurrell on 02/06/2023.
 //
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 void writeStringToFile(char* fileName, const char* str) {
     FILE* file = fopen(fileName, "ab");
