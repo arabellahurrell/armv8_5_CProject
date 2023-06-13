@@ -9,6 +9,8 @@ void writeStringToFile(char* fileName, const char* str) {
         return;
     }
     size_t length = strlen(str);
+    //convert the string to int decimal value.
+    //fwrite(&val, sizeof(val), 1, fptr)
     fwrite(str, sizeof(char), length, file);
     fclose(file);
 
