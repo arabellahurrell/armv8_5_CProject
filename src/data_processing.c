@@ -54,15 +54,15 @@ char* arithmeticParser (char* opcode, char** splitted) {
 
 char* moveWideParser (char* opcode, char** splitted) {
     if (getStringArrayLength(splitted) == 2) {
-        if (binaryToDecimal(hexToBinary(splitted[1])) > ((1 << 12) -1)) {
-            splitted[1] = convert(intToString(binaryToDecimal(hexToBinary(splitted[1])) << 12), 16);
+        if (immOrHex(splitted[1]) > ((1 << 12) -1)) {
+            splitted[1] = convert(intToString(immOrHex(splitted[1]) << 12), 16);
             return moveWides(opcode, splitted[0], splitted[1], "1" , "lsl", "0");
         } else {
             return moveWides(opcode, splitted[0], splitted[1], "0" , "lsl", "0");
         }
     } else {
-        if (binaryToDecimal(hexToBinary(splitted[1])) > ((1 << 12) -1) ) {
-            splitted[1] = convert(intToString(binaryToDecimal(hexToBinary(splitted[1])) << 12), 16);
+        if (immOrHex(splitted[1]) > ((1 << 12) -1)) {
+            splitted[1] = convert(intToString(immOrHex(splitted[1]) << 12), 16);
             return moveWides(opcode, splitted[0], splitted[1], "1" , splitted[2], splitted[3]);
         } else {
             return moveWides(opcode, splitted[0], splitted[1], "0" , splitted[2], splitted[3]);
@@ -133,6 +133,7 @@ char* movz (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
     return moveWideParser("11", splitted);
 }
+
 
 char* madd (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
