@@ -91,11 +91,12 @@ char* truncateString(char* str, int length) {
         return str;
     }
     else if (length > strLength) {
-        char res [length];
+        char* res = malloc((length + 1) * sizeof(char));
         int temp = length - strLength;
         for(int i = 0; i < temp; i++) {
             res[i] = '0';
         }
+        res[temp] = '\0';
         strcat(res, str);
         return res;
     }

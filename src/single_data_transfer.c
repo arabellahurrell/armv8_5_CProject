@@ -10,24 +10,89 @@
 //
 //    }
 //}
-//#include <string.h>
 
 
 char* registerOffset(char* rt, char* xn, char* xm, char* shiftAmount, char* u, char* l) {
-    convert(intToString(binaryToDecimal(master(xm, "lsl", shiftAmount)) + binaryToDecimal(xn)), 19);
-    return strcat(strcat(strcat("1", sf(rt)), strcat("1110000", l)), strcat(strcat("1", convert(xm, 5)), strcat("011010", strcat(convert(xn, 5), convert(rt, 5)))));
+    char* result = malloc(33 * sizeof(char));
+    result[0] = '\0';
+
+    int decimal = binaryToDecimal(master(xm, "lsl", shiftAmount)) + binaryToDecimal(xn);
+    char* intToString_result = intToString(decimal);
+    char* convert_result = convert(intToString_result, 19);
+
+    strcat(result, "1");
+    strcat(result, sf(rt));
+    strcat(result, "1110000");
+    strcat(result, l);
+    strcat(result, "1");
+    strcat(result, convert(xm, 5));
+    strcat(result, "011010");
+    strcat(result, convert(xn, 5));
+    strcat(result, convert(rt, 5));
+
+    printf("%s\n", result);
+    fflush(stdout);
+
+    return result;
+//    convert(intToString(binaryToDecimal(master(xm, "lsl", shiftAmount)) + binaryToDecimal(xn)), 19);
+//    return strcat(strcat(strcat("1", sf(rt)), strcat("1110000", l)), strcat(strcat("1", convert(xm, 5)), strcat("011010", strcat(convert(xn, 5), convert(rt, 5)))));
 }
 
 char* indexedOffset(char* rt, char* xn, char* value, char* l, char* i) {
-    return strcat(strcat(strcat("1", sf(rt)), strcat("1110000", l)), strcat(strcat(truncateString(value, 9), i), strcat(strcat("1", convert(xn, 5)), convert(rt, 5))));
+    char* result = malloc(33 * sizeof(char));
+    result[0] = '\0';
+
+    strcat(result, "1");
+    strcat(result, sf(rt));
+    strcat(result, "1110000");
+    strcat(result, l);
+    strcat(result, truncateString(value, 9));
+    strcat(result, i);
+    strcat(result, "1");
+    strcat(result, convert(xn, 5));
+    strcat(result, convert(rt, 5));
+
+    printf("%s\n", result);
+    fflush(stdout);
+
+    return result;
+    //return strcat(strcat(strcat("1", sf(rt)), strcat("1110000", l)), strcat(strcat(truncateString(value, 9), i), strcat(strcat("1", convert(xn, 5)), convert(rt, 5))));
 }
 
 char* unsignedOffset (char* rt, char* xn, char* value, char* l) {
-    return strcat(strcat("0", strcat(sf(rt), "1110010")), strcat(strcat(l, truncateString(value, 12)), strcat(convert(xn, 5), convert(rt, 5))));
+    char* result = malloc(33 * sizeof(char));
+    result[0] = '\0';
+
+    strcat(result, "0");
+    strcat(result, sf(rt));
+    strcat(result, "1110010");
+    strcat(result, l);
+    strcat(result, truncateString(value, 12));
+    strcat(result, convert(xn, 5));
+    strcat(result, convert(rt, 5));
+
+    printf("%s\n", result);
+    fflush(stdout);
+
+    return result;
+    //return strcat(strcat("0", strcat(sf(rt), "1110010")), strcat(strcat(l, truncateString(value, 12)), strcat(convert(xn, 5), convert(rt, 5))));
 }
 
 char* loadLiteral(char* rt, char* value) {
-    return strcat(strcat("0", sf(rt)), strcat("011000", strcat(truncateString(value, 19), convert(rt, 5))));
+    char* result = malloc(33 * sizeof(char));
+    result[0] = '\0';
+
+    strcat(result, "0");
+    strcat(result, sf(rt));
+    strcat(result, "011000");
+    strcat(result, truncateString(value, 19));
+    strcat(result, convert(rt, 5));
+
+    printf("%s\n", result);
+    fflush(stdout);
+
+    return result;
+    //return strcat(strcat("0", sf(rt)), strcat("011000", strcat(truncateString(value, 19), convert(rt, 5))));
 }
 
 char* dataTransferParser (char** splitted, char* l) {

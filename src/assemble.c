@@ -4,9 +4,10 @@
 int main(int argc, char **argv) {
     //char** read = splitStringOnWhitespace(argv);
     printf("Program started\n");
-    const char* filename = "add02.s";
+    const char* filename = argv[1];
     char** lines = readLinesFromFile(filename);
     printf("File Read\n");
-    one_pass(lines, "output.bin");
+    fopen(argv[2], "w");
+    one_pass(lines, argv[2]);
     printf("Passed\n");
 }

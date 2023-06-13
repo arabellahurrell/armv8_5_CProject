@@ -12,10 +12,11 @@ void writeStringToFile(char* fileName, const char* str) {
         return;
     }
     size_t length = strlen(str);
-    fwrite(str - '0', sizeof(char), length, file);
+    fwrite(&str, sizeof(char), length, file);
+    //fwrite(str - '0', sizeof(char), length, file);
     //convert the string to int decimal value.
     //fwrite(&val, sizeof(val), 1, fptr)
-    fwrite(str, sizeof(char), length, file);
+    //fwrite(str, sizeof(char), length, file);
     fclose(file);
 
     printf("String written to the file successfully.\n");
@@ -82,7 +83,10 @@ void one_pass(char** instruction, char* name) {
             //char** x = strtok(instruction[i], ":");
             struct passOne pass;
             pass.label = instruction[i];
-            pass.address = strcat("#", decimalToHexadecimal(i + 1));
+            char* res = decimalToHexadecimal(i + 1);
+            char* address = malloc((strlen(res)+2)*sizeof(char));
+            strcat(address, "#");
+            pass.address = strcat(address, res);
             passone[num] = pass;
             num++;
             if (num == capacity) {
@@ -112,6 +116,9 @@ void one_pass(char** instruction, char* name) {
         else {
             printf("Hitting else\n");
             printf("%d\n", num);
+            if (num == 0) {
+                break;
+            }
             for (int j = 0; j < num; j++) {
                 printf("Checkpoint 2\n");
                 if (isSubstringInString(instruction[i], passone[j].label)) {
@@ -124,11 +131,15 @@ void one_pass(char** instruction, char* name) {
             char* result = functionSelector(split[0], split[1], intToString(i));
             printf("Checkpoint 2\n");
             fflush(stdout);
-            writeStringToFile(name, result);
+            char* writeWithNewLine = malloc((strlen(result) + 2) * sizeof(char));
+            strcpy(writeWithNewLine, result);
+            strcat(writeWithNewLine, "\n");
+            writeStringToFile(name, writeWithNewLine);
+            free(writeWithNewLine);
             printf("Checkpoint 3\n");
             fflush(stdout);
         }
 
     }
-//    fclose(file);
+//
 }

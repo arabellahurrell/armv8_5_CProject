@@ -23,23 +23,54 @@ char* shiftBits (char* shiftType) {
 
 
 char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, char* shiftAmount) {
+    char* result = malloc(33 * sizeof(char));
+    result[0] = '\0';
 
-    return strcat(strcat(sf(rn), strcat(opcode, "100010")), strcat(master(convert(op2,18), shiftType, shiftAmount) + 10, convert(rd, 5)));
+    char* sf_rn = sf(rn);
+    char* convert_op2 = convert(op2, 18);
+    char* master_result = master(convert_op2, shiftType, shiftAmount);
+    char* convert_rd = convert(rd, 5);
+
+    strcat(result, sf_rn);
+    strcat(result, opcode);
+    strcat(result, "100010");
+    strcat(result, master_result);
+    strcat(result, "10");
+    strcat(result, convert_rd);
+    printf("%s\n", result);
+    fflush(stdout);
+    return result;
+    //return strcat(strcat(sf(rn), strcat(opcode, "100010")), strcat(master(convert(op2,18), shiftType, shiftAmount) + 10, convert(rd, 5)));
 }
 
 char* registerArithmetic(char* opcode, char* rd, char* rn, char*rm, char* shiftType, char* value) {
-    return strcat(strcat(strcat(sf(rd), opcode), strcat("01011", shiftBits(shiftType))), strcat(strcat("0", convert(rm, 5)), strcat(
-            convert(value, 6), strcat(convert(rn, 5), convert(rd, 5)))));
+    char* result = malloc(50 * sizeof(char));
+    result[0] = '\0';
+
+    strcat(result, sf(rd));
+    strcat(result, opcode);
+    strcat(result, "01011");
+    strcat(result, shiftBits(shiftType));
+    strcat(result, "0");
+    strcat(result, convert(rm, 5));
+    strcat(result, convert(value, 6));
+    strcat(result, convert(rn, 5));
+    strcat(result, convert(rd, 5));
+
+    printf("%s\n", result);
+    fflush(stdout);
+
+    return result;
 }
 
 char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, char* shiftAmount) {
-    char result[32] = "";
+    char* result = malloc(33 * sizeof(char));
+    result[0] = '\0';
     strcat(result, sf(rd));
     strcat(result, opcode);
     strcat(result, "100101");
     strcat(result, convert(shiftAmount, 2));
     strcat(result, truncateString(imm, 16));
-    printf("%s\n", result);
     strcat(result, convert(rd, 5));
     printf("%s\n", result);
     fflush(stdout);
