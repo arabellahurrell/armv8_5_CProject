@@ -10,7 +10,7 @@
 //
 //    }
 //}
-#include <string.h>
+//#include <string.h>
 
 
 char* registerOffset(char* rt, char* xn, char* xm, char* shiftAmount, char* u, char* l) {

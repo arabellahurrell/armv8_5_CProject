@@ -4,8 +4,6 @@
 
 //#include "utility.c"
 
-#include <string.h>
-
 char* branching (char* mnemonic, char* value, int offset) {
     char* encoding;
     if (strcmp(mnemonic, "b") == 0) {

@@ -1,14 +1,11 @@
 //
 // Created by Arabella Hurrell on 30/05/2023.
 //
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define MAX_LINE_LENGTH 256
 #define INITIAL_ARRAY_SIZE 10
 
-char** readLinesFromFile(const char* filename, int* lineCount) {
+char** readLinesFromFile(const char* filename) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error opening file: %s\n", filename);
@@ -59,8 +56,6 @@ char** readLinesFromFile(const char* filename, int* lineCount) {
     }
 
     fclose(file);
-
-    *lineCount = count;
 
     return lines;
 }
