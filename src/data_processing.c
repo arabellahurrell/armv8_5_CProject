@@ -54,7 +54,7 @@ char* arithmeticParser (char* opcode, char** splitted) {
 
 char* moveWideParser (char* opcode, char** splitted) {
     if (getStringArrayLength(splitted) == 2) {
-        if (binaryToDecimal(hexToBinary(splitted[1])) > (2^12 -1)) {
+        if (binaryToDecimal(hexToBinary(splitted[1])) > ((1 << 12) -1)) {
             splitted[1] = convert(intToString(binaryToDecimal(hexToBinary(splitted[1])) << 12), 16);
             return moveWides(opcode, splitted[0], splitted[1], "1" , "lsl", "0");
         } else {
