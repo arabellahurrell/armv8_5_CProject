@@ -86,9 +86,19 @@ char* convert(char* denary, int numBits) {
 
 char* truncateString(char* str, int length) {
     int strLength = strlen(str);
-
-    if (strLength > length) str[length] = '\0';
-
+    if (strLength > length) {
+        str[length] = '\0';
+        return str;
+    }
+    else if (length > strLength) {
+        char res [length];
+        int temp = length - strLength;
+        for(int i = 0; i < temp; i++) {
+            res[i] = '0';
+        }
+        strcat(res, str);
+        return res;
+    }
     return str;
 }
 
@@ -168,7 +178,7 @@ bool removeNonAlphaNumeric(char c) {
 
 char** splitStringOnWhitespace(char* str) {
     int count = 0;
-    const char* delimiter = " ";
+    const char* delimiter = " ,";
     char* strCopy = duplicateString(str);
     char* word = strtok(strCopy, delimiter);
 

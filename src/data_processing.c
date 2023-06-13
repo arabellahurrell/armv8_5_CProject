@@ -33,7 +33,18 @@ char* registerArithmetic(char* opcode, char* rd, char* rn, char*rm, char* shiftT
 }
 
 char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, char* shiftAmount) {
-    return strcat(strcat(sf(rd), strcat(opcode, strcat("101", convert(shiftAmount, 2)))), strcat(strcat(master(convert(imm, 16), shiftType, shiftAmount), sh), convert(rd, 16)));
+    char result[32] = "";
+    strcat(result, sf(rd));
+    strcat(result, opcode);
+    strcat(result, "100101");
+    strcat(result, convert(shiftAmount, 2));
+    strcat(result, truncateString(imm, 16));
+    printf("%s\n", result);
+    strcat(result, convert(rd, 5));
+    printf("%s\n", result);
+    fflush(stdout);
+    return result;
+    //return strcat(strcat(sf(rd), strcat(opcode, strcat("100101", convert(shiftAmount, 2)))), strcat(strcat(master(convert(imm, 16), shiftType, shiftAmount), sh), convert(rd, 16)));
 }
 
 char* arithmeticParser (char* opcode, char** splitted) {
@@ -54,17 +65,27 @@ char* arithmeticParser (char* opcode, char** splitted) {
 
 char* moveWideParser (char* opcode, char** splitted) {
     if (getStringArrayLength(splitted) == 2) {
+        printf("Two elements\n");
+        fflush(stdout);
         if (immOrHex(splitted[1]) > ((1 << 12) -1)) {
+            printf("Greater\n");
+            fflush(stdout);
             splitted[1] = convert(intToString(immOrHex(splitted[1]) << 12), 16);
             return moveWides(opcode, splitted[0], splitted[1], "1" , "lsl", "0");
         } else {
             return moveWides(opcode, splitted[0], splitted[1], "0" , "lsl", "0");
         }
     } else {
+        printf("Less than two elements\n");
+        fflush(stdout);
         if (immOrHex(splitted[1]) > ((1 << 12) -1)) {
+            printf("Greater\n");
+            fflush(stdout);
             splitted[1] = convert(intToString(immOrHex(splitted[1]) << 12), 16);
             return moveWides(opcode, splitted[0], splitted[1], "1" , splitted[2], splitted[3]);
         } else {
+            printf("Less than\n");
+            fflush(stdout);
             return moveWides(opcode, splitted[0], splitted[1], "0" , splitted[2], splitted[3]);
         }
     }
@@ -131,6 +152,10 @@ char* movn (char* arguments, char* address) {
 
 char* movz (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
+    for (int i = 0; i < getStringArrayLength(splitted); i++) {
+        printf("%s\n", splitted[i]);
+    }
+    fflush(stdout);
     return moveWideParser("11", splitted);
 }
 

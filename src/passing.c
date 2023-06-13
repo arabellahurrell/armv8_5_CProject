@@ -54,6 +54,8 @@ char* functionSelector(char* mnemonic, char* arguments, char* address)
              return (*fun_ptr_arr[i])(arguments, address);
         }
     }
+    printf("Ending function selector\n");
+    fflush(stdout);
     return NULL;
 //    unsigned int ch, a = 15, b = 10;
 //
@@ -90,26 +92,43 @@ void one_pass(char** instruction, char* name) {
             }
         }
     }
+    printf("Checkpoint 1\n");
 //    int capacity2 = 2;
 //    int num2 = 0;
 
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
         if (isLabel(instruction[i])) {
+            printf("Hitting if\n");
+            //fflush(stdout);
         }
         else if (isDirective(instruction[i])) {
+            printf("Hitting else if\n");
             char** splitted = splitStringOnWhitespace(instruction[i]);
+            fflush(stdout);
             writeStringToFile(name ,hexToBinary(splitted[1]));
+            printf("Finishing else if\n");
+            fflush(stdout);
         }
         else {
+            printf("Hitting else\n");
+            printf("%d\n", num);
             for (int j = 0; j < num; j++) {
+                printf("Checkpoint 2\n");
                 if (isSubstringInString(instruction[i], passone[j].label)) {
                     replaceSubstring(instruction[i], passone[j].label, passone[j].address);
                 }
             }
             char** split = splitStringOnFirstSpace(instruction[i]);
+            printf("%s\n", split[0]);
+            printf("%s\n", split[1]);
             char* result = functionSelector(split[0], split[1], intToString(i));
+            printf("Checkpoint 2\n");
+            fflush(stdout);
             writeStringToFile(name, result);
+            printf("Checkpoint 3\n");
+            fflush(stdout);
         }
+
     }
 //    fclose(file);
 }
