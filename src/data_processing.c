@@ -2,6 +2,7 @@
 // Created by Arabella Hurrell on 30/05/2023.
 //
 
+#include <string.h>
 
 char* shiftBits (char* shiftType) {
     static char shifts[2];
@@ -54,14 +55,14 @@ char* arithmeticParser (char* opcode, char** splitted) {
 
 char* moveWideParser (char* opcode, char** splitted) {
     if (getStringArrayLength(splitted) == 2) {
-        if (binaryToDecimal(hexToBinary(splitted[1])) > (2^12 -1)) {
+        if (binaryToDecimal(hexToBinary(splitted[1])) > ((1 << 12) -1)) {
             splitted[1] = convert(intToString(binaryToDecimal(hexToBinary(splitted[1])) << 12), 16);
             return moveWides(opcode, splitted[0], splitted[1], "1" , "lsl", "0");
         } else {
             return moveWides(opcode, splitted[0], splitted[1], "0" , "lsl", "0");
         }
     } else {
-        if (binaryToDecimal(hexToBinary(splitted[1])) > (2^12 -1) ) {
+        if (binaryToDecimal(hexToBinary(splitted[1])) > ((1 << 12) -1) ) {
             splitted[1] = convert(intToString(binaryToDecimal(hexToBinary(splitted[1])) << 12), 16);
             return moveWides(opcode, splitted[0], splitted[1], "1" , splitted[2], splitted[3]);
         } else {

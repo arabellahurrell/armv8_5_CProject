@@ -1,6 +1,43 @@
 /*
- * Helper functions for reading from and writing to files
+ * Helper functions for reading from the binary file
+ * and writing to output file
  */
+
+// Returns the value of register 'reg' using the bit-width 'sf'
+uint64_t getRegisterValue(uint64_t reg, bool sf) {
+    return machine.registers[reg] & getResultMask(sf);
+}
+
+// Sets the value of register 'reg' to 'value' using the bit-width 'sf'
+void setRegisterValue(uint64_t reg, uint64_t value, bool sf) {
+    if (reg != ZERO_REGISTER) { // Cannot assign to the zero register
+        machine.registers[reg] = value & getResultMask(sf);
+    }
+}
+
+// Fetches a word or double word from memory starting at address
+// 'startIndex' using the bit-width 'sf'
+uint64_t loadFromMemory(uint64_t startIndex, bool sf) {
+    uint64_t byte, value = 0;
+    for (int i = 0; i < getWordBytes(sf); i++) {
+        byte = machine.memory[startIndex + i];
+        value |= byte << (i * 8);
+    }
+    return value;
+}
+
+// Stores 'value' in memory at address 'startIndex' using the bit-width 'sf'
+void storeInMemory(uint64_t value, uint64_t startIndex, bool sf) {
+    for (int i = 0; i < getWordBytes(sf); ++i) {
+        machine.memory[startIndex + i] = (uint8_t) value;
+        value >>= 8;
+    }
+}
+
+// Increments the machine's PC ready to load the sequentially next instruction
+void incrementPC() {
+    machine.PC += WORD_BYTES;
+}
 
 // Reads the file `filename` into the machine's memory
 void readFileIntoMemory(char filename[]) {
@@ -28,8 +65,10 @@ void outputStateToFile(char filename[]) {
     // PC
     fprintf(file, "PC = %016llx\n", machine.PC);
     // PState
-    fprintf(file, "PSTATE: %s%s", machine.state.N ? "N" : "-", machine.state.Z ? "Z" : "-");
-    fprintf(file, "%s%s\n", machine.state.C ? "C" : "-", machine.state.V ? "V" : "-");
+    fprintf(file, "PSTATE: %s%s", machine.state.N ? "N" : "-",
+            machine.state.Z ? "Z" : "-");
+    fprintf(file, "%s%s\n", machine.state.C ? "C" : "-",
+            machine.state.V ? "V" : "-");
     // Non-zero memory
     fprintf(file, "Non-zero memory:\n");
     for (uint32_t i = 0; i < NO_BYTES_MEMORY; i += WORD_BYTES) {

@@ -1,7 +1,8 @@
 //
 // Created by Arabella Hurrell on 01/06/2023.
 //
-
+#include <string.h>
+#include <stdlib.h>
 
 char* master(char* value, char* type, char* amount) {
     int length = strlen(value);

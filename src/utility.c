@@ -2,6 +2,10 @@
 // Created by Arabella Hurrell on 05/06/2023.
 //
 
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <math.h>
 
 char* charToString (char c) {
     char* str = malloc(2 * sizeof(char));
@@ -102,9 +106,6 @@ char * sf (char* reg) {
     return x;
 }
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <ctype.h>
 
 bool isSecondCharacterX(char* str) {
     if (str[1] == 'x') {

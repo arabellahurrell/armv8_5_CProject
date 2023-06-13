@@ -1,24 +1,23 @@
 /*
- * Execute DP-Register instructions
+ * Execute DP Register instructions
  */
 
-// Executes DP-Register instruction
 void executeDPRegister() {
-    uint64_t sf, opc, M, rm, rn, rd, shiftType, imm6, isArithmetic, N, x, ra, op2, multiplied, result, rnValue;
-    sf = getInstructionPart(31, 1);
-    opc = getInstructionPart(29, 2);
-    M = getInstructionPart(28, 1);
-    rm = getInstructionPart(16, 5);
-    rn = getInstructionPart(5, 5);
+    uint64_t rd, rn, rm, m, opc, sf, ra, x, multiplied, imm6, shiftType,
+            isArithmetic, op2, n, rnValue, result;
+    // Extracts and decodes relevant parts of the instruction
     rd = getInstructionPart(0, 5);
-    shiftType = getInstructionPart(22, 2);
-    imm6 = getInstructionPart(10, 6);
-    isArithmetic = getInstructionPart(24, 1);
-    N = getInstructionPart(21, 1);
-    ra = getInstructionPart(10, 5);
-    x = getInstructionPart(15, 1);
+    rn = getInstructionPart(5, 5);
+    rm = getInstructionPart(16, 5);
+    m = getInstructionPart(28, 1);
+    opc = getInstructionPart(29, 2);
+    sf = getInstructionPart(31, 1);
 
-    if (M) { // Multiply
+    if (m) { // Multiply
+        // Extracts and decodes the operand for multiply instruction
+        ra = getInstructionPart(10, 5);
+        x = getInstructionPart(15, 1);
+
         multiplied = getRegisterValue(rn, sf) * getRegisterValue(rm, sf);
 
         // Handle negate flag
@@ -28,14 +27,25 @@ void executeDPRegister() {
 
         setRegisterValue(rd, getRegisterValue(ra, sf) + multiplied, sf);
     } else { // Arithmetic or Logical
+        // Extracts and decodes the relevant parts of the operand and the
+        // opr for the arithmetic and logical instructions
+        imm6 = getInstructionPart(10, 6);
+        shiftType = getInstructionPart(22, 2);
+        isArithmetic = getInstructionPart(24, 1);
+
         // Apply shift to operand
         op2 = applyShift(getRegisterValue(rm, sf), shiftType, imm6, sf);
 
         if (isArithmetic) { // Arithmetic
-            executeArithmeticInstruction(rd, getRegisterValue(rn, sf), op2, opc, sf);
+            executeArithmeticInstruction(rd, getRegisterValue(rn, sf), op2, opc,
+                                         sf);
         } else { // Logical
+            // Extracts the bit for when the shifted register
+            // is to be bitwise negated
+            n = getInstructionPart(21, 1);
+
             // Handle bitwise negate flag
-            if (N) {
+            if (n) {
                 op2 = ~op2;
             }
 
@@ -54,12 +64,14 @@ void executeDPRegister() {
                     result = rnValue & op2 & getResultMask(sf);
                     setRegisterValue(rd, result, sf);
 
+                    // Setting PSTATE
                     machine.state.N = isSigned(result, sf);
                     machine.state.Z = result == 0;
                     machine.state.C = 0;
                     machine.state.V = 0;
                     break;
-                default: break;
+                default:
+                    break;
             }
         }
     }

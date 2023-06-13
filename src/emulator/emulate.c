@@ -1,10 +1,17 @@
 /*
  * Main emulator file
+ *
+ * Emulate function runs the fetch, execute and decode cycle
+ * and writes to the output file.
+ *
+ * Main function checks the number of arguments given
+ * and runs the emulate function.
  */
 
 #include "emulate.h"
 
-// Run the emulator on the binary file `readFile` and write the final state to `writeFile`
+// Runs the emulator on the binary file 'readFile'
+// and writes the final state to 'writeFile'
 void emulate(char readFile[], char writeFile[]) {
     // Setup ARMv8 machine
     resetMachine();
@@ -15,22 +22,26 @@ void emulate(char readFile[], char writeFile[]) {
     // Main emulator loop
     while (true) {
         // Fetch
-        if (machine.PC > NO_BYTES_MEMORY) { // Instruction out of range of memory
+        if (machine.PC > NO_BYTES_MEMORY) {
+            // Instruction is out of range of memory
             machine.error = OUT_OF_RANGE;
             break;
         }
+
         machine.instruction = loadFromMemory(machine.PC, 0);
 
         // Decode
         uint64_t op0 = getInstructionPart(25, 4);
 
         // Execute
-        if (machine.instruction == NOP_INSTRUCTION) { // Move to next instruction
+        if (machine.instruction ==
+            NOP_INSTRUCTION) { // Move to next instruction
             incrementPC();
         } else if (machine.instruction == HALT_INSTRUCTION) { // Stop emulation
             break;
         } else if (isMaskEquals(op0, 0b1110, 0b1010)) { // Branch
             executeBranch();
+            // incrementPC not needed as this is executed in emulate_branch file
         } else if (isMaskEquals(op0, 0b1110, 0b1000)) { // DP Immediate
             executeDPImmediate();
             incrementPC();
