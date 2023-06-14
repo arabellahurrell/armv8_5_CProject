@@ -12,7 +12,8 @@ void writeStringToFile(char* fileName, const char* str) {
         return;
     }
     size_t length = strlen(str);
-    fwrite(&str, sizeof(char), length, file);
+    //fwrite(str, sizeof(char), length, file);
+    fprintf(file, "%s", str);
     //fwrite(str - '0', sizeof(char), length, file);
     //convert the string to int decimal value.
     //fwrite(&val, sizeof(val), 1, fptr)
@@ -116,9 +117,9 @@ void one_pass(char** instruction, char* name) {
         else {
             printf("Hitting else\n");
             printf("%d\n", num);
-            if (num == 0) {
-                break;
-            }
+//            if (num == 0) {
+//                break;
+//            }
             for (int j = 0; j < num; j++) {
                 printf("Checkpoint 2\n");
                 if (isSubstringInString(instruction[i], passone[j].label)) {

@@ -121,11 +121,24 @@ int immOrHex(char* str) {
     if (str[1] == 'x') {
         return binaryToDecimal(hexToBinary(str));
     } else {
-        char* res = malloc(strlen(str) - 1);
-        for (int i = 0; i < strlen(str) - 1; i++) {
-            res[i] = str[i+1];
-        }
-        return atoi(res);
+//        char* res = malloc(strlen(str) - 1);
+//        for (int i = 0; i < strlen(str) - 1; i++) {
+//            res[i] = str[i+1];
+//        }
+        return atoi(str);
+    }
+}
+
+char* immConverter(char* str) {
+    if (strlen(str) <=1 ) {
+        return 0;
+    }
+    if (str[1] == 'x') {
+        return hexToBinary(str);
+    } else {
+        //char* res = malloc(17 * sizeof(char));
+        char* res = convert(str, 16);
+        return res;
     }
 }
 

@@ -3,11 +3,8 @@
 
 int main(int argc, char **argv) {
     //char** read = splitStringOnWhitespace(argv);
-    printf("Program started\n");
-    const char* filename = argv[1];
+    const char* filename = argv[1];//"add02.s";
     char** lines = readLinesFromFile(filename);
-    printf("File Read\n");
-    fopen(argv[2], "w");
-    one_pass(lines, argv[2]);
-    printf("Passed\n");
+    //FILE* file = fopen("output.bin", "w");
+    one_pass(lines, argv[2]);//"output.bin");
 }

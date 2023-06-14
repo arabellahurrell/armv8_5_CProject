@@ -70,8 +70,16 @@ char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, ch
     strcat(result, opcode);
     strcat(result, "100101");
     strcat(result, convert(shiftAmount, 2));
-    strcat(result, truncateString(imm, 16));
+    if (imm[1] == 'x') {
+        strcat(result, truncateString(hexToBinary(imm), 16));
+    } else {
+        strcat(result, convert(imm, 16));
+    }
+    printf("%s\n", result);
+    fflush(stdout);
     strcat(result, convert(rd, 5));
+    printf("%s\n", convert(rd, 5));
+    fflush(stdout);
     printf("%s\n", result);
     fflush(stdout);
     return result;

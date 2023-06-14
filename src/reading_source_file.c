@@ -36,10 +36,14 @@ char** readLinesFromFile(const char* filename) {
             return NULL;
         }
 
-        // Copy the line to the array
-        strcpy(lines[count], line);
+        if(!isalpha(line[0])) {
 
-        count++;
+        } else {
+            // Copy the line to the array
+            strcpy(lines[count], line);
+
+            count++;
+        }
 
         // Resize the array if necessary
         if (count >= arraySize) {
