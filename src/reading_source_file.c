@@ -36,7 +36,7 @@ char** readLinesFromFile(const char* filename) {
             return NULL;
         }
 
-        if(!isalpha(line[0])) {
+        if(!isalpha(line[0]) && line[0] != '.' ) {
 
         } else {
             // Copy the line to the array
