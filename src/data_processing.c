@@ -31,14 +31,26 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
     char* master_result = master(convert_op2, shiftType, shiftAmount);
     char* convert_rd = convert(rd, 5);
     char* convert_rn = convert(rn, 5);
+    char* operand;
+    char* sh;
+    // TODO: check if op2 is bigger than 2^12 - 1
+    if (strcmp(op2, "") == 0) {
+        operand = master(master_result, "lsl", "12");
+        sh = "1";
+    } else {
+        operand = master_result;
+        sh = "0";
+    }
 
     strcat(result, sf_rn);
     strcat(result, opcode);
     strcat(result, "100010");
     // sh if bigger that 2^12 - 1
-    strcat(result, master_result);
+    strcat(result, sh);
+    strcat(result, operand);
     strcat(result, convert_rn);
     strcat(result, convert_rd);
+
     printf("%s\n", result);
     fflush(stdout);
     return result;
@@ -46,7 +58,7 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
 }
 
 char* registerArithmetic(char* opcode, char* rd, char* rn, char*rm, char* shiftType, char* value) {
-    char* result = malloc(50 * sizeof(char));
+    char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
     strcat(result, sf(rd));
@@ -169,7 +181,7 @@ char* multiply (char* negate, char* rd, char* rn, char* rm, char* ra) {
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
-    strcat(result, sf(rn);
+    strcat(result, sf(rn));
     strcat(result, "0011011000");
     strcat(result, negate);
     strcat(result, convert(ra,5));
@@ -178,8 +190,8 @@ char* multiply (char* negate, char* rd, char* rn, char* rm, char* ra) {
     printf("%s\n", result);
     fflush(stdout);
     return result;
-    char* result = strcat(strcat(sf(rd), strcat("0011011000", convert(rm, 5))), strcat(negate, strcat(convert(ra,5), strcat(convert(rn, 5), convert(rd, 5)))));
-    return result;
+    //char* result = strcat(strcat(sf(rd), strcat("0011011000", convert(rm, 5))), strcat(negate, strcat(convert(ra,5), strcat(convert(rn, 5), convert(rd, 5)))));
+    //return result;
 }
 
 char* add (char* arguments, char* address) {
@@ -286,12 +298,14 @@ char* cmn (char* arguments, char* address) {
 
 char* neg (char* arguments, char* address) {
     char** split = splitStringOnFirstSpace(arguments);
+    // TODO: string cat won't work here
     arguments = strcat(split[0], strcat(" 11111 ", split[1]));
     return sub(arguments, address);
 }
 
 char* negs (char* arguments, char* address) {
     char** split = splitStringOnFirstSpace(arguments);
+    // TODO: string cat won't work here
     arguments = strcat(split[0], strcat(" 11111 ", split[1]));
     return subs(arguments, address);
 }
@@ -303,12 +317,14 @@ char* tst (char* arguments, char* address) {
 
 char* mvn (char* arguments, char* address) {
     char** split = splitStringOnFirstSpace(arguments);
+    // TODO: string cat won't work here
     arguments = strcat(split[0], strcat(" 11111 ", split[1]));
     return orn(arguments, address);
 }
 
 char* mov (char* arguments, char* address) {
     char** split = splitStringOnFirstSpace(arguments);
+    // TODO: string cat won't work here
     arguments = strcat(split[0], strcat(" 11111 ", split[1]));
     return orr(arguments, address);
 }
