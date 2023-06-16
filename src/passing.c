@@ -11,16 +11,10 @@ void writeStringToFile(char* fileName, const char* str) {
         printf("Unable to open the file.\n");
         return;
     }
-    size_t length = strlen(str);
-    //fwrite(str, sizeof(char), length, file);
-    fprintf(file, "%s", str);
-    //fwrite(str - '0', sizeof(char), length, file);
-    //convert the string to int decimal value.
-    //fwrite(&val, sizeof(val), 1, fptr)
-    //fwrite(str, sizeof(char), length, file);
+    int x = strtoul(str, NULL, 2);
+    fwrite(&x, sizeof(x), 1, file);
     fclose(file);
 
-    printf("String written to the file successfully.\n");
 }
 
 struct passOne {
@@ -56,8 +50,6 @@ char* functionSelector(char* mnemonic, char* arguments, char* address)
              return (*fun_ptr_arr[i])(arguments, address);
         }
     }
-    printf("Ending function selector\n");
-    fflush(stdout);
     return NULL;
 //    unsigned int ch, a = 15, b = 10;
 //
@@ -98,13 +90,11 @@ void one_pass(char** instruction, char* name) {
         }
     }
     printf("Checkpoint 1\n");
-//    int capacity2 = 2;
-//    int num2 = 0;
 
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
         if (isLabel(instruction[i])) {
             printf("Hitting if\n");
-            //fflush(stdout);
+            fflush(stdout);
         }
         else if (isDirective(instruction[i])) {
             printf("Hitting else if\n");
@@ -116,10 +106,6 @@ void one_pass(char** instruction, char* name) {
         }
         else {
             printf("Hitting else\n");
-            printf("%d\n", num);
-//            if (num == 0) {
-//                break;
-//            }
             for (int j = 0; j < num; j++) {
                 printf("Checkpoint 2\n");
                 if (isSubstringInString(instruction[i], passone[j].label)) {
@@ -132,11 +118,7 @@ void one_pass(char** instruction, char* name) {
             char* result = functionSelector(split[0], split[1], intToString(i));
             printf("Checkpoint 2\n");
             fflush(stdout);
-            char* writeWithNewLine = malloc((strlen(result) + 2) * sizeof(char));
-            strcpy(writeWithNewLine, result);
-            strcat(writeWithNewLine, "\n");
-            writeStringToFile(name, writeWithNewLine);
-            free(writeWithNewLine);
+            writeStringToFile(name, result);
             printf("Checkpoint 3\n");
             fflush(stdout);
         }

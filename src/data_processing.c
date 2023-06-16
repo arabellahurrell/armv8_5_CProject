@@ -21,33 +21,58 @@ char* shiftBits (char* shiftType) {
     return shifts;
 }
 
+char* hw (char* size) {
+    int num = atoi(size);
+    if (num < 16) {
+        return "00";
+    } else if (num >=16 && num < 32) {
+        return "01";
+    } else if (num >= 32 && num < 48) {
+        return "10";
+    } else {
+        return "11";
+    }
+}
+
 
 char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, char* shiftAmount) {
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
     char* sf_rn = sf(rn);
-    char* convert_op2 = convert(op2, 12);
-    char* master_result = master(convert_op2, shiftType, shiftAmount);
+    char* convert_op2 = convert(op2, 18);
     char* convert_rd = convert(rd, 5);
     char* convert_rn = convert(rn, 5);
     char* operand;
     char* sh;
-    // TODO: check if op2 is bigger than 2^12 - 1
-    if (strcmp(op2, "") == 0) {
-        operand = master(master_result, "lsl", "12");
-        sh = "1";
+    char* master_result;
+    if (atoi(op2) > ((1 << 12) -1)) {
+         master_result = master(convert(op2, 12), shiftType, "12");
     } else {
-        operand = master_result;
-        sh = "0";
+        master_result  = convert_op2;
     }
+    if (strcmp(shiftAmount, "0") == 0) {
+        sh = "0";
+    } else {
+        sh = "1";
+    }
+//    if (strcmp(op2, "") == 0) {
+//        operand = master(master_result, "lsl", "12");
+//        sh = "1";
+//    } else {
+//        operand = master_result;
+//        sh = "0";
+//    }
 
     strcat(result, sf_rn);
+    printf("%d\n", strlen(opcode));
+    fflush(stdout);
     strcat(result, opcode);
     strcat(result, "100010");
     // sh if bigger that 2^12 - 1
     strcat(result, sh);
-    strcat(result, operand);
+    strcat(result, truncateString(master_result, 18));
+    fflush(stdout);
     strcat(result, convert_rn);
     strcat(result, convert_rd);
 
@@ -78,24 +103,28 @@ char* registerArithmetic(char* opcode, char* rd, char* rn, char*rm, char* shiftT
 }
 
 char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, char* shiftAmount) {
+    char* imm16;
+    if (imm[1] == 'x') {
+        imm16 = master(truncateString(hexToBinary(imm), 16), shiftType, shiftAmount);
+        printf("shifted : %s\n", master(hexToBinary(imm), shiftType, shiftAmount));
+    } else {
+        imm16 = master(convert(imm, 16), shiftType, shiftAmount);
+        printf("shifted : %s\n", master(convert(imm, 16), shiftType, shiftAmount));
+    }
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
     strcat(result, sf(rd));
     strcat(result, opcode);
     strcat(result, "100101");
-    strcat(result, convert(shiftAmount, 2));
-    if (imm[1] == 'x') {
-        strcat(result, truncateString(hexToBinary(imm), 16));
-    } else {
-        strcat(result, convert(imm, 16));
-    }
-    printf("%s\n", result);
-    fflush(stdout);
+    strcat(result, hw(shiftAmount));
+    printf("hw : %s\n", hw(shiftAmount));
+    strcat(result, imm16);
+    printf("imm: %s\n", imm);
+    printf("imm16: %s\n", imm16);
+    printf("rd: %s\n", rd);
+    printf("converted: %s\n", convert(rd, 5));
     strcat(result, convert(rd, 5));
-    printf("%s\n", convert(rd, 5));
-    fflush(stdout);
-    printf("%s\n", result);
-    fflush(stdout);
+    printf("result : %s\n", result);
     return result;
     //return strcat(strcat(sf(rd), strcat(opcode, strcat("100101", convert(shiftAmount, 2)))), strcat(strcat(master(convert(imm, 16), shiftType, shiftAmount), sh), convert(rd, 16)));
 }
@@ -118,27 +147,21 @@ char* arithmeticParser (char* opcode, char** splitted) {
 
 char* moveWideParser (char* opcode, char** splitted) {
     if (getStringArrayLength(splitted) == 2) {
-        printf("Two elements\n");
-        fflush(stdout);
         if (immOrHex(splitted[1]) > ((1 << 12) -1)) {
-            printf("Greater\n");
-            fflush(stdout);
-            splitted[1] = convert(intToString(immOrHex(splitted[1]) << 12), 16);
+            printf("greater\n");
+            splitted[1] = intToString(immOrHex(splitted[1]) << 12);
             return moveWides(opcode, splitted[0], splitted[1], "1" , "lsl", "0");
         } else {
+            printf("not greater\n");
             return moveWides(opcode, splitted[0], splitted[1], "0" , "lsl", "0");
         }
     } else {
-        printf("Less than two elements\n");
-        fflush(stdout);
         if (immOrHex(splitted[1]) > ((1 << 12) -1)) {
-            printf("Greater\n");
-            fflush(stdout);
-            splitted[1] = convert(intToString(immOrHex(splitted[1]) << 12), 16);
+            printf("greater\n");
+            splitted[1] = intToString(immOrHex(splitted[1]) << 12);
             return moveWides(opcode, splitted[0], splitted[1], "1" , splitted[2], splitted[3]);
         } else {
-            printf("Less than\n");
-            fflush(stdout);
+            printf("not greater\n");
             return moveWides(opcode, splitted[0], splitted[1], "0" , splitted[2], splitted[3]);
         }
     }
@@ -166,27 +189,36 @@ char* logicalBitwise (char* mnemonic, char* rd, char* rn, char* rm, char* shiftT
 
     //char* shifts = strcat(shiftBits(shiftType), N);
     char* result = malloc(33 * sizeof(char));
-
-    printf("test here\n");
     strcat(result, sf(rd));
+    printf("%s\n", result);
     strcat(result, opcode);
+    printf("%s\n", result);
     strcat(result, "01010");
+    printf("%s\n", result);
     if (!shiftType) {
         strcat(result, "00");
     } else {
         strcat(result, shiftType);
     }
+    printf("%s\n", result);
     strcat(result, N);
+    printf("%s\n", result);
+    printf("rm : %s\n", rm);
+    printf("rm converted: %s\n", convert(rm, 5));
     strcat(result, convert(rm, 5));
+    printf("%s\n", result);
     if (!value) {
         strcat(result, "000000");
     } else {
         strcat(result, truncateString(value, 6));
     }
-    strcat(result, convert(rn, 5));
+    printf("%s\n", result);
+    printf("rn : %s\n", rn);
+    printf("rn converted: %s\n", registerConvert(rn));
+    strcat(result, registerConvert(rn));
+    printf("%s\n", result);
     strcat(result, convert(rd, 5));
     printf("result = %s\n", result);
-    //char* result = strcat(strcat(sf(rd), strcat(opcode, strcat(strcat("01010", shifts), convert(rm, 5)))), strcat(convert(value, 6), strcat(convert(rn, 5), convert(rd, 5))));
     return result;
 }
 
@@ -204,8 +236,6 @@ char* multiply (char* negate, char* rd, char* rn, char* rm, char* ra) {
     printf("%s\n", result);
     fflush(stdout);
     return result;
-    //char* result = strcat(strcat(sf(rd), strcat("0011011000", convert(rm, 5))), strcat(negate, strcat(convert(ra,5), strcat(convert(rn, 5), convert(rd, 5)))));
-    //return result;
 }
 
 char* add (char* arguments, char* address) {
@@ -230,21 +260,17 @@ char* subs (char* arguments, char* address) {
 
 char* movk (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    return moveWideParser("00", splitted);
+    return moveWideParser("11", splitted);
 }
 
 char* movn (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    return moveWideParser("10", splitted);
+    return moveWideParser("00", splitted);
 }
 
 char* movz (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    for (int i = 0; i < getStringArrayLength(splitted); i++) {
-        printf("%s\n", splitted[i]);
-    }
-    fflush(stdout);
-    return moveWideParser("11", splitted);
+    return moveWideParser("10", splitted);
 }
 
 
@@ -260,14 +286,6 @@ char* msub (char* arguments, char* address) {
 
 char* and (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    printf("reaching this part of and \n");
-    fflush(stdout);
-//    if (getStringArrayLength(splitted) == 3) {
-//        return "10001010000000000000000000000000";
-//    }
-    for (int i = 0; i < getStringArrayLength(splitted); i++) {
-        printf("%s\n", splitted[i]);
-    }
     return logicalBitwise("and" ,splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
 }
 
@@ -344,6 +362,10 @@ char* mvn (char* arguments, char* address) {
 char* mov (char* arguments, char* address) {
     char** split = splitStringOnFirstSpace(arguments);
     // TODO: string cat won't work here
+    for (int i = 0; i < getStringArrayLength(split); i++) {
+        printf("%s\n", split[i]);
+    }
+    fflush(stdout);
     arguments = strcat(split[0], strcat(" 11111 ", split[1]));
     return orr(arguments, address);
 }

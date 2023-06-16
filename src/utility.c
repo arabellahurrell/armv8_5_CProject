@@ -71,18 +71,85 @@ char* hexToBinary(const char* hex) {
     return binary;
 }
 
-char* convert(char* denary, int numBits) {
-    const char* numberStr = denary + 1;
-    int decimal = atoi(numberStr);
-    char* binary = (char*)malloc(sizeof(char) * (numBits + 1));
-    for (int i = numBits - 1; i >= 0; i--) {
-        binary[i] = (decimal & 1) ? '1' : '0';
-        decimal >>= 1;
-    }
-    binary[numBits] = '\0';
+//char* convert(char* denary, int numBits) {
+//    const char* numberStr;
+//    if (denary[0] != 'x') {
+//        numberStr = denary;
+//    } else {
+//        numberStr = denary+1;
+//    }
+//    int decimal = atoi(numberStr);
+//
+//    char* binary = (char*)malloc(sizeof(char) * (numBits + 1));
+//    for (int i = numBits - 1; i >= 0; i--) {
+//        binary[i] = (decimal & 1) ? '1' : '0';
+//        decimal >>= 1;
+//    }
+//    binary[numBits] = '\0';
+//
+//    return binary;
+//}
 
+char* convert(char* denary, int numBits) {
+    const char* numberStr;
+    printf("%d\n", numBits);
+    if (denary[0] != 'x') {
+        numberStr = denary;
+    } else {
+        numberStr = denary + 1;
+    }
+    int decimalValue = atoi(numberStr);
+    int binaryLength = 0;
+    int temp = decimalValue;
+
+    // Count the number of bits required
+    while (temp > 0) {
+        binaryLength++;
+        temp >>= 1;
+    }
+
+    // Determine the effective number of bits to consider
+    int effectiveBits = (binaryLength > numBits) ? binaryLength : numBits;
+
+    // Allocate memory for the binary string
+    char* binaryString = (char*)malloc((effectiveBits + 1) * sizeof(char));
+    if (!binaryString) {
+        printf("malloc error\n");
+        return NULL;
+    }
+
+    binaryString[effectiveBits] = '\0';
+
+    // Convert decimal to binary
+    for (int i = effectiveBits - 1; i >= 0; i--) {
+        binaryString[i] = (decimalValue & 1) ? '1' : '0';
+        decimalValue >>= 1;
+    }
+
+    // Allocate memory for the binary array
+    char* binary = (char*)malloc((numBits + 1) * sizeof(char));
+    if (!binary) {
+        printf("malloc failed\n");
+        free(binaryString);
+        return NULL;
+    }
+
+    // Copy binaryString to binary array, adding leading zeros if necessary
+    for (int i = 0; i < numBits; i++) {
+
+        fflush(stdout);
+        if (i < effectiveBits) {
+            binary[i] = binaryString[i];
+        } else {
+            binary[i] = '0';
+        }
+    }
+
+    binary[numBits] = '\0';
+    free(binaryString); // Free the memory allocated for binaryString
     return binary;
 }
+
 
 char* truncateString(char* str, int length) {
     int strLength = strlen(str);
@@ -269,4 +336,14 @@ char** splitStringOnFirstSpace(const char* input) {
     }
 
     return output;
+}
+
+char* registerConvert(char* r) {
+    printf("%s\n", r);
+    if (strcmp(r, "xzr") == 0 || strcmp(r, "wzr") == 0) {
+        printf("is a zero register\n");
+        return "11111";
+    } else {
+        return convert(r, 5);
+    }
 }
