@@ -145,6 +145,7 @@ char* moveWideParser (char* opcode, char** splitted) {
 }
 
 char* logicalBitwise (char* mnemonic, char* rd, char* rn, char* rm, char* shiftType, char* value) {
+
     char* N;
     char* opcode;
     if (strcmp(mnemonic, "and") ==0 || strcmp(mnemonic, "orr") ==0 || strcmp(mnemonic, "eon") ==0 || strcmp(mnemonic, "ands") ==0) {
@@ -152,6 +153,7 @@ char* logicalBitwise (char* mnemonic, char* rd, char* rn, char* rm, char* shiftT
     } else {
         N = "1";
     }
+
     if (strcmp(mnemonic, "and") == 0 || strcmp(mnemonic, "bic") == 0) {
         opcode = "00";
     } else if (strcmp(mnemonic, "orr") == 0 || strcmp(mnemonic, "orn") == 0) {
@@ -164,6 +166,7 @@ char* logicalBitwise (char* mnemonic, char* rd, char* rn, char* rm, char* shiftT
 
     char* shifts = strcat(shiftBits(shiftType), N);
     char* result = malloc(33 * sizeof(char));
+    printf("test here\n");
     strcat(result, sf(rd));
     strcat(result, opcode);
     strcat(result, "01010");
@@ -172,6 +175,7 @@ char* logicalBitwise (char* mnemonic, char* rd, char* rn, char* rm, char* shiftT
     strcat(result, truncateString(value, 6));
     strcat(result, convert(rn, 5));
     strcat(result, convert(rd, 5));
+    printf("result = %s\n", result);
     //char* result = strcat(strcat(sf(rd), strcat(opcode, strcat(strcat("01010", shifts), convert(rm, 5)))), strcat(convert(value, 6), strcat(convert(rn, 5), convert(rd, 5))));
     return result;
 }
@@ -246,9 +250,9 @@ char* msub (char* arguments, char* address) {
 
 char* and (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    if (getStringArrayLength(splitted) == 3) {
+    /*if (getStringArrayLength(splitted) == 3) {
         return "10001010000000000000000000000000";
-    }
+    }*/
     return logicalBitwise("and" ,splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
 }
 
