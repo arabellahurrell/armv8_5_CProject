@@ -164,15 +164,25 @@ char* logicalBitwise (char* mnemonic, char* rd, char* rn, char* rm, char* shiftT
         opcode = "11";
     }
 
-    char* shifts = strcat(shiftBits(shiftType), N);
+    //char* shifts = strcat(shiftBits(shiftType), N);
     char* result = malloc(33 * sizeof(char));
+
     printf("test here\n");
     strcat(result, sf(rd));
     strcat(result, opcode);
     strcat(result, "01010");
-    strcat(result, shifts);
+    if (!shiftType) {
+        strcat(result, "00");
+    } else {
+        strcat(result, shiftType);
+    }
+    strcat(result, N);
     strcat(result, convert(rm, 5));
-    strcat(result, truncateString(value, 6));
+    if (!value) {
+        strcat(result, "000000");
+    } else {
+        strcat(result, truncateString(value, 6));
+    }
     strcat(result, convert(rn, 5));
     strcat(result, convert(rd, 5));
     printf("result = %s\n", result);
@@ -250,9 +260,14 @@ char* msub (char* arguments, char* address) {
 
 char* and (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    /*if (getStringArrayLength(splitted) == 3) {
-        return "10001010000000000000000000000000";
-    }*/
+    printf("reaching this part of and \n");
+    fflush(stdout);
+//    if (getStringArrayLength(splitted) == 3) {
+//        return "10001010000000000000000000000000";
+//    }
+    for (int i = 0; i < getStringArrayLength(splitted); i++) {
+        printf("%s\n", splitted[i]);
+    }
     return logicalBitwise("and" ,splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
 }
 
