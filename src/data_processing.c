@@ -27,15 +27,17 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
     result[0] = '\0';
 
     char* sf_rn = sf(rn);
-    char* convert_op2 = convert(op2, 18);
+    char* convert_op2 = convert(op2, 12);
     char* master_result = master(convert_op2, shiftType, shiftAmount);
     char* convert_rd = convert(rd, 5);
+    char* convert_rn = convert(rn, 5);
 
     strcat(result, sf_rn);
     strcat(result, opcode);
     strcat(result, "100010");
+    // sh if bigger that 2^12 - 1
     strcat(result, master_result);
-    strcat(result, "10");
+    strcat(result, convert_rn);
     strcat(result, convert_rd);
     printf("%s\n", result);
     fflush(stdout);
@@ -149,12 +151,33 @@ char* logicalBitwise (char* mnemonic, char* rd, char* rn, char* rm, char* shiftT
     }
 
     char* shifts = strcat(shiftBits(shiftType), N);
-    char* result = strcat(strcat(sf(rd), strcat(opcode, strcat(strcat("01010", shifts), convert(rm, 5)))), strcat(convert(value, 6), strcat(convert(rn, 5), convert(rd, 5))));
+    char* result = malloc(33 * sizeof(char));
+    strcat(result, sf(rd));
+    strcat(result, opcode);
+    strcat(result, "01010");
+    strcat(result, shifts);
+    strcat(result, convert(rm, 5));
+    strcat(result, truncateString(value, 6));
+    strcat(result, convert(rn, 5));
+    strcat(result, convert(rd, 5));
+    //char* result = strcat(strcat(sf(rd), strcat(opcode, strcat(strcat("01010", shifts), convert(rm, 5)))), strcat(convert(value, 6), strcat(convert(rn, 5), convert(rd, 5))));
     return result;
 }
 
 
 char* multiply (char* negate, char* rd, char* rn, char* rm, char* ra) {
+    char* result = malloc(33 * sizeof(char));
+    result[0] = '\0';
+
+    strcat(result, sf(rn);
+    strcat(result, "0011011000");
+    strcat(result, negate);
+    strcat(result, convert(ra,5));
+    strcat(result, convert(rn,5));
+    strcat(result, convert(rd,5));
+    printf("%s\n", result);
+    fflush(stdout);
+    return result;
     char* result = strcat(strcat(sf(rd), strcat("0011011000", convert(rm, 5))), strcat(negate, strcat(convert(ra,5), strcat(convert(rn, 5), convert(rd, 5)))));
     return result;
 }
