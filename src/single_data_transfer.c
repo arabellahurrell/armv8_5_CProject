@@ -83,9 +83,13 @@ char* loadLiteral(char* rt, char* value) {
     result[0] = '\0';
 
     strcat(result, "0");
+    printf("%s\n", result);
     strcat(result, sf(rt));
+    printf("%s\n", result);
     strcat(result, "011000");
-    strcat(result, truncateString(value, 19));
+    printf("%s\n", result);
+    strcat(result, truncateString(registerConvert(value), 19));
+    printf("%s\n", result);
     strcat(result, convert(rt, 5));
 
     printf("%s\n", result);
@@ -119,5 +123,8 @@ char* str (char* arguments, char* address) {
 
 char* ldr (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
+    for (int i = 0; i < getStringArrayLength(splitted); i++) {
+        printf("%s\n",splitted[i]);
+    }
     return dataTransferParser(splitted, "1");
 }

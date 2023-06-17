@@ -36,26 +36,37 @@ char* hw (char* size) {
 
 
 char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, char* shiftAmount) {
+    printf("normal arithemtic\n");
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
-
+    char* convert_op2;
+    int op;
+    if(op2[1] == 'x') {
+        op = binaryToDecimal(hexToBinary(op2));
+        convert_op2 = truncateString(hexToBinary(op2), 18);
+    } else {
+        op = atoi(op2);
+        convert_op2 = convert(op2, 12);
+    }
     char* sf_rn = sf(rn);
-    char* convert_op2 = convert(op2, 18);
-    char* convert_rd = convert(rd, 5);
-    char* convert_rn = convert(rn, 5);
-    char* operand;
+    char* convert_rd = registerConvert(rd);
+    char* convert_rn = registerConvert(rn);
     char* sh;
     char* master_result;
-    if (atoi(op2) > ((1 << 12) -1)) {
-         master_result = master(convert(op2, 12), shiftType, "12");
-    } else {
-        master_result  = convert_op2;
-    }
-    if (strcmp(shiftAmount, "0") == 0) {
-        sh = "0";
-    } else {
+    if (op > ((1 << 12) -1)) {
         sh = "1";
+         master_result = master(truncateString(intToString(op),12), shiftType, shiftAmount);
+         printf("master 1: %s\n", master_result);
+    } else {
+        sh = "0";
+        master_result  = convert_op2;
+        printf("master 2 : %s\n", master_result);
     }
+//    if (strcmp(shiftAmount, "0") == 0) {
+//        sh = "0";
+//    } else {
+//        sh = "1";
+//    }
 //    if (strcmp(op2, "") == 0) {
 //        operand = master(master_result, "lsl", "12");
 //        sh = "1";
@@ -65,24 +76,21 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
 //    }
 
     strcat(result, sf_rn);
-    printf("%d\n", strlen(opcode));
-    fflush(stdout);
     strcat(result, opcode);
     strcat(result, "100010");
     // sh if bigger that 2^12 - 1
     strcat(result, sh);
-    strcat(result, truncateString(master_result, 18));
-    fflush(stdout);
+    strcat(result, truncateString(master_result,12));
     strcat(result, convert_rn);
     strcat(result, convert_rd);
-
-    printf("%s\n", result);
+    printf("result : %s\n", result);
     fflush(stdout);
     return result;
     //return strcat(strcat(sf(rn), strcat(opcode, "100010")), strcat(master(convert(op2,18), shiftType, shiftAmount) + 10, convert(rd, 5)));
 }
 
 char* registerArithmetic(char* opcode, char* rd, char* rn, char*rm, char* shiftType, char* value) {
+    printf("register arithmetic\n");
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
@@ -168,10 +176,14 @@ char* moveWideParser (char* opcode, char** splitted) {
 }
 
 char* logicalBitwise (char* mnemonic, char* rd, char* rn, char* rm, char* shiftType, char* value) {
-
+    printf("mnemonic : %s\n", mnemonic);
+    printf("rd : %s\n", rd);
+    printf("rn : %s\n", rn);
+    printf("rm : %s\n", rm);
+    printf("shiftType : %s\n", shiftType);
     char* N;
     char* opcode;
-    if (strcmp(mnemonic, "and") ==0 || strcmp(mnemonic, "orr") ==0 || strcmp(mnemonic, "eon") ==0 || strcmp(mnemonic, "ands") ==0) {
+    if (strcmp(mnemonic, "and") ==0 || strcmp(mnemonic, "orr") ==0 || strcmp(mnemonic, "eor") ==0 || strcmp(mnemonic, "ands") ==0) {
         N = "0";
     } else {
         N = "1";
@@ -204,8 +216,8 @@ char* logicalBitwise (char* mnemonic, char* rd, char* rn, char* rm, char* shiftT
     strcat(result, N);
     printf("%s\n", result);
     printf("rm : %s\n", rm);
-    printf("rm converted: %s\n", convert(rm, 5));
-    strcat(result, convert(rm, 5));
+    printf("rm converted: %s\n", registerConvert(rm));
+    strcat(result, registerConvert(rm));
     printf("%s\n", result);
     if (!value) {
         strcat(result, "000000");
@@ -217,7 +229,7 @@ char* logicalBitwise (char* mnemonic, char* rd, char* rn, char* rm, char* shiftT
     printf("rn converted: %s\n", registerConvert(rn));
     strcat(result, registerConvert(rn));
     printf("%s\n", result);
-    strcat(result, convert(rd, 5));
+    strcat(result, registerConvert(rd));
     printf("result = %s\n", result);
     return result;
 }
@@ -286,7 +298,11 @@ char* msub (char* arguments, char* address) {
 
 char* and (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("and" ,splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("and", splitted[0], splitted[1], splitted[2], NULL, NULL);
+    } else {
+        return logicalBitwise("and", splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    }
 }
 
 char* ands (char* arguments, char* address) {

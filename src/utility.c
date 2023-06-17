@@ -92,7 +92,6 @@ char* hexToBinary(const char* hex) {
 
 char* convert(char* denary, int numBits) {
     const char* numberStr;
-    printf("%d\n", numBits);
     if (denary[0] != 'x') {
         numberStr = denary;
     } else {

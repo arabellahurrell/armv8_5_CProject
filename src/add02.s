@@ -1,3 +1,7 @@
-movz x2, #0x300, lsl #16
+movz x0,#0x0B
+ldr x2,[x0]
+movz x1,#3
+sub x1,x1,#5
+movz x3,#1638
 
 and x0, x0, x0
