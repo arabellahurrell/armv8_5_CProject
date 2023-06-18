@@ -63,7 +63,9 @@ char* unsignedOffset (char* rt, char* xn, char* value, char* l) {
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
-    strcat(result, "0");
+    //if (strcmp(sf(rt), "0");
+
+    strcat(result, "1");
     strcat(result, sf(rt));
     strcat(result, "1110010");
     strcat(result, l);
@@ -88,7 +90,7 @@ char* loadLiteral(char* rt, char* value) {
     printf("%s\n", result);
     strcat(result, "011000");
     printf("%s\n", result);
-    strcat(result, truncateString(registerConvert(value), 19));
+    strcat(result, truncateString(value, 19));
     printf("%s\n", result);
     strcat(result, convert(rt, 5));
 
@@ -101,9 +103,7 @@ char* loadLiteral(char* rt, char* value) {
 
 char* dataTransferParser (char** splitted, char* l) {
     int length = getStringArrayLength(splitted);
-    if( length == 5) {
-        return registerOffset(splitted[0], splitted[1], splitted[2], splitted[4], "0", l);
-    } else if (length == 3) {
+    if (length == 3) {
         if ((splitted[2])[strlen(splitted[2]) - 1] == '!' && (splitted[2])[0] == '-') {
             return indexedOffset(splitted[0], splitted[1], splitted[2], l, "1");
         } else if ((splitted[2])[0] != '-') {
@@ -111,6 +111,8 @@ char* dataTransferParser (char** splitted, char* l) {
         } else {
             return indexedOffset(splitted[0], splitted[1], splitted[2], l, "0");
         }
+    } else if (length == 2) {
+        return unsignedOffset(splitted[0], splitted[1], "000000000000", l);
     } else {
         return loadLiteral(splitted[0], splitted[1]);
     }
