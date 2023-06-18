@@ -2,7 +2,7 @@
 #include "assemble.h"
 
 int main(int argc, char **argv) {
-    const char* filename = "add02.s";
+    const char* filename = argv[1];
     char** lines = readLinesFromFile(filename);
-    one_pass(lines, "output.bin");
+    one_pass(lines, argv[2]);
 }
