@@ -92,7 +92,7 @@ char* hexToBinary(const char* hex) {
 
 char* convert(char* denary, int numBits) {
     const char* numberStr;
-    if (denary[0] != 'x') {
+    if (denary[0] != 'x' && denary[0] != 'w') {
         numberStr = denary;
     } else {
         numberStr = denary + 1;
@@ -150,23 +150,63 @@ char* convert(char* denary, int numBits) {
 }
 
 
-char* truncateString(char* str, int length) {
+//char* truncateString(char* str, int length) {
+//    int strLength = strlen(str);
+//    if (strLength > length) {
+//        str[length] = '\0';
+//        return str;
+//    }
+//    else if (length > strLength) {
+//        char* res = malloc((length + 1) * sizeof(char));
+//        int temp = length - strLength;
+//        for(int i = 0; i < temp; i++) {
+//            res[i] = '0';
+//        }
+//        res[temp] = '\0';
+//        strcat(res, str);
+//        return res;
+//    }
+//    return str;
+//}
+
+
+char* truncateString(const char* str, int length) {
     int strLength = strlen(str);
     if (strLength > length) {
-        str[length] = '\0';
-        return str;
-    }
-    else if (length > strLength) {
-        char* res = malloc((length + 1) * sizeof(char));
-        int temp = length - strLength;
-        for(int i = 0; i < temp; i++) {
-            res[i] = '0';
+        // Remove extra leading zeros if the original string is larger than the desired size
+        int leadingZeros = 0;
+        int i = 0;
+        while (str[i] == '0' && i < strLength) {
+            leadingZeros++;
+            i++;
         }
-        res[temp] = '\0';
-        strcat(res, str);
-        return res;
+
+        char* truncatedStr = malloc((length + 1) * sizeof(char));
+
+        // if (leadingZeros > 1) {
+        //     leadingZeros = 1;
+        // }
+        leadingZeros --;
+
+        strncpy(truncatedStr, str + leadingZeros, length);
+        truncatedStr[length] = '\0';
+        return truncatedStr;
     }
-    return str;
+    else {
+        // Add leading zeros
+        int leadingZeros = length - strLength;
+        int newLength = strLength + leadingZeros;
+
+        char* truncatedStr = malloc((newLength + 1) * sizeof(char));
+
+        for (int i = 0; i < leadingZeros; i++) {
+            truncatedStr[i] = '0';
+        }
+
+        strncpy(truncatedStr + leadingZeros, str, strLength);
+        truncatedStr[newLength] = '\0';
+        return truncatedStr;
+    }
 }
 
 char * sf (char* reg) {
@@ -185,6 +225,7 @@ int immOrHex(char* str) {
         return 0;
     }
     if (str[1] == 'x') {
+        //printf("HEX VALUE: %d\n", binaryToDecimal(hexToBinary(str)));
         return binaryToDecimal(hexToBinary(str));
     } else {
 //        char* res = malloc(strlen(str) - 1);
@@ -338,7 +379,6 @@ char** splitStringOnFirstSpace(const char* input) {
 }
 
 char* registerConvert(char* r) {
-    printf("%s\n", r);
     if (strcmp(r, "xzr") == 0 || strcmp(r, "wzr") == 0) {
         printf("is a zero register\n");
         return "11111";

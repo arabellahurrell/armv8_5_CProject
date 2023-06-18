@@ -1,7 +1,4 @@
-movz x0,#0x0B
-ldr x2,[x0]
-movz x1,#3
-sub x1,x1,#5
-movz x3,#1638
-
+add w11, w11, #0x8ee, lsl #12
+add w16, w16, #1059, lsl #12
+mul x21, x11, x16
 and x0, x0, x0
