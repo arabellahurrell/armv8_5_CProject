@@ -91,12 +91,16 @@ void one_pass(char** instruction, char* name) {
     }
 
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
+        printf("INSTRUCTION START\n");
+        printf("%s\n", instruction[i]);
+        printf("INSTRUCTION END\n");
+        fflush(stdout);
         if (isLabel(instruction[i])) {
         }
         else if (isDirective(instruction[i])) {
             char** splitted = splitStringOnWhitespace(instruction[i]);
             fflush(stdout);
-            writeStringToFile(name ,hexToBinary(splitted[1]));
+            writeStringToFile(name, hexToBinary(splitted[1]));
             fflush(stdout);
         }
         else {
