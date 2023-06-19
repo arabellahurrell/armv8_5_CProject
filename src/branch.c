@@ -14,8 +14,6 @@ char* branching (char* mnemonic, char* value, int offset) {
         strcat(result, "000101");
         strcat(result, res);
 
-        printf("%s\n", result);
-        fflush(stdout);
 
         return result;
         //return strcat("000101", res);
@@ -45,9 +43,6 @@ char* branching (char* mnemonic, char* value, int offset) {
         strcat(result, "0");
         strcat(result, encoding);
 
-        printf("%s\n", result);
-        fflush(stdout);
-
         return result;
         //return strcat(strcat("01010100", res), strcat("0", encoding));
     }
@@ -55,7 +50,11 @@ char* branching (char* mnemonic, char* value, int offset) {
 
 char* b (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset = binaryToDecimal(hexToBinary(address)) - binaryToDecimal(hexToBinary(splitted[0]));
+    printf("address: %s\n", address);
+    printf("splitted[0]: %s\n", splitted[0]);
+    //int offset = binaryToDecimal(hexToBinary("0xd")) + binaryToDecimal(hexToBinary("0x4"));
+    int offset = binaryToDecimal(hexToBinary(address)) + binaryToDecimal(hexToBinary(splitted[0]));
+    printf("offset: %d\n", offset);
     return branching("b", splitted[0], offset);
 
 }
