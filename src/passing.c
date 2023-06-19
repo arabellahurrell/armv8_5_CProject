@@ -12,7 +12,6 @@ void writeStringToFile(char* fileName, const char* str) {
         return;
     }
     int x = strtoul(str, NULL, 2);
-    printf("DECIMAL BEING PRINTED: %u\n", x);
     fwrite(&x, sizeof(x), 1, file);
     fclose(file);
 
@@ -107,10 +106,7 @@ void one_pass(char** instruction, char* name) {
                 }
             }
             char** split = splitStringOnFirstSpace(instruction[i]);
-            printf("%s\n", split[0]);
-            printf("%s\n", split[1]);
             char* result = functionSelector(split[0], split[1], intToString(i));
-            printf("writing: %s\n", result);
             writeStringToFile(name, result);
         }
 

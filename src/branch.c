@@ -14,8 +14,6 @@ char* branching (char* mnemonic, char* value, int offset) {
         strcat(result, "000101");
         strcat(result, res);
 
-        printf("%s\n", result);
-        fflush(stdout);
 
         return result;
         //return strcat("000101", res);
@@ -44,9 +42,6 @@ char* branching (char* mnemonic, char* value, int offset) {
         strcat(result, res);
         strcat(result, "0");
         strcat(result, encoding);
-
-        printf("%s\n", result);
-        fflush(stdout);
 
         return result;
         //return strcat(strcat("01010100", res), strcat("0", encoding));

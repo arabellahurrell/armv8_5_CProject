@@ -381,7 +381,7 @@ char** splitStringOnFirstSpace(const char* input) {
 char* registerConvert(char* r) {
     if (strcmp(r, "xzr") == 0 || strcmp(r, "wzr") == 0) {
         printf("is a zero register\n");
-        return "11111";
+        return "31";
     } else {
         return convert(r, 5);
     }
