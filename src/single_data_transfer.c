@@ -12,25 +12,26 @@
 //}
 
 
-char* registerOffset(char* rt, char* xn, char* xm, char* shiftAmount, char* u, char* l) {
+char* registerOffset(char* rt, char* xn, char* xm, char* l) {
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
-    int decimal = binaryToDecimal(master(xm, "lsl", shiftAmount)) + binaryToDecimal(xn);
-    char* intToString_result = intToString(decimal);
-    char* convert_result = convert(intToString_result, 19);
+    // int decimal = binaryToDecimal(master(xm, "lsl", shiftAmount)) + binaryToDecimal(xn);
+    //char* intToString_result = intToString(decimal);
+    //char* convert_result = convert(intToString_result, 19);
 
+    printf("Loading Literal");
     strcat(result, "1");
     strcat(result, sf(rt));
     strcat(result, "1110000");
     strcat(result, l);
     strcat(result, "1");
-    strcat(result, convert(xm, 5));
+    strcat(result, registerConvert(xm));
     strcat(result, "011010");
-    strcat(result, convert(xn, 5));
-    strcat(result, convert(rt, 5));
+    strcat(result, registerConvert(xn));
+    strcat(result, registerConvert(rt));
 
-    printf("%s\n", result);
+    printf("register result: %s\n", result);
     fflush(stdout);
 
     return result;
@@ -46,11 +47,12 @@ char* indexedOffset(char* rt, char* xn, char* value, char* l, char* i) {
     strcat(result, sf(rt));
     strcat(result, "1110000");
     strcat(result, l);
+    strcat(result, "0");
     strcat(result, truncateString(value, 9));
     strcat(result, i);
     strcat(result, "1");
-    strcat(result, convert(xn, 5));
-    strcat(result, convert(rt, 5));
+    strcat(result, registerConvert(xn, 5));
+    strcat(result, registerConvert(rt, 5));
 
     printf("%s\n", result);
     fflush(stdout);
@@ -104,11 +106,17 @@ char* loadLiteral(char* rt, char* value) {
 char* dataTransferParser (char** splitted, char* l) {
     int length = getStringArrayLength(splitted);
     if (length == 3) {
-        if ((splitted[2])[strlen(splitted[2]) - 1] == '!' && (splitted[2])[0] == '-') {
+        if ((splitted[2])[strlen(splitted[2]) - 1] == '!') {
+            printf("PRE-INDEX OFFSETTING\n");
             return indexedOffset(splitted[0], splitted[1], splitted[2], l, "1");
-        } else if ((splitted[2])[0] != '-') {
+        } else if (splitted[2][0] == 'w' || splitted[2][0] == 'x') {
+            printf("REGISTER OFFSETTING\n");
+            return registerOffset(splitted[0], splitted[1], splitted[2], l);
+        } else if ((splitted[2])[strlen(splitted[2]) - 1] == ']') {
+            printf("UNSIGNED OFFSETTING\n");
             return unsignedOffset(splitted[0], splitted[1], splitted[2], l);
         } else {
+            printf("POST-INDEX OFFSETTING\n");
             return indexedOffset(splitted[0], splitted[1], splitted[2], l, "0");
         }
     } else if (length == 2) {
