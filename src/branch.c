@@ -50,7 +50,11 @@ char* branching (char* mnemonic, char* value, int offset) {
 
 char* b (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset = binaryToDecimal(hexToBinary(address)) - binaryToDecimal(hexToBinary(splitted[0]));
+    printf("address: %s\n", address);
+    printf("splitted[0]: %s\n", splitted[0]);
+    //int offset = binaryToDecimal(hexToBinary("0xd")) + binaryToDecimal(hexToBinary("0x4"));
+    int offset = binaryToDecimal(hexToBinary(address)) + binaryToDecimal(hexToBinary(splitted[0]));
+    printf("offset: %d\n", offset);
     return branching("b", splitted[0], offset);
 
 }
