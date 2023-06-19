@@ -297,11 +297,17 @@ char* multiply (char* negate, char* rd, char* rn, char* rm, char* ra) {
     result[0] = '\0';
 
     strcat(result, sf(rn));
+    printf("%s\n", result);
     strcat(result, "0011011000");
+    printf("%s\n", result);
+    strcat(result, registerConvert(rm));
     strcat(result, negate);
-    strcat(result, convert(ra,5));
-    strcat(result, convert(rn,5));
-    strcat(result, convert(rd,5));
+    printf("%s\n", result);
+    strcat(result, registerConvert(ra));
+    printf("%s\n", result);
+    strcat(result, registerConvert(rn));
+    printf("%s\n", result);
+    strcat(result, registerConvert(rd));
     printf("%s\n", result);
     fflush(stdout);
     return result;

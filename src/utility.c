@@ -386,3 +386,13 @@ char* registerConvert(char* r) {
         return convert(r, 5);
     }
 }
+
+char* immHexToDenary (char* value, int x) {
+    char* v = malloc((x+1)*sizeof(char));
+    if (value[1] == 'x') {
+        v = truncateString(hexToBinary(value), x);
+    } else {
+        v = convert(value, x);
+    }
+    return v;
+}
