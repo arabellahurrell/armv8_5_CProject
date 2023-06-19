@@ -94,7 +94,7 @@ char* loadLiteral(char* rt, char* value) {
     printf("%s\n", result);
     strcat(result, truncateString(value, 19));
     printf("%s\n", result);
-    strcat(result, convert(rt, 5));
+    strcat(result, registerConver(rt, 5));
 
     printf("%s\n", result);
     fflush(stdout);
@@ -119,10 +119,14 @@ char* dataTransferParser (char** splitted, char* l) {
             printf("POST-INDEX OFFSETTING\n");
             return indexedOffset(splitted[0], splitted[1], splitted[2], l, "0");
         }
-    } else if (length == 2) {
-        return unsignedOffset(splitted[0], splitted[1], "000000000000", l);
     } else {
-        return loadLiteral(splitted[0], splitted[1]);
+        if ((splitted[2])[strlen(splitted[2]) - 1] == ']') {
+            printf("ZERO UNSIGNED OFFSETTING\n");
+            return unsignedOffset(splitted[0], splitted[1], "0", l);
+        } else {
+            printf("LOADING LITERAL\n");
+            return loadLiteral(splitted[0], splitted[1]);
+        }
     }
 }
 
