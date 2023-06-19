@@ -12,6 +12,7 @@ void writeStringToFile(char* fileName, const char* str) {
         return;
     }
     int x = strtoul(str, NULL, 2);
+    printf("DECIMAL BEING PRINTED: %u\n", x);
     fwrite(&x, sizeof(x), 1, file);
     fclose(file);
 
@@ -89,25 +90,18 @@ void one_pass(char** instruction, char* name) {
             }
         }
     }
-    printf("Checkpoint 1\n");
 
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
         if (isLabel(instruction[i])) {
-            printf("Hitting if\n");
-            fflush(stdout);
         }
         else if (isDirective(instruction[i])) {
-            printf("Hitting else if\n");
             char** splitted = splitStringOnWhitespace(instruction[i]);
             fflush(stdout);
             writeStringToFile(name ,hexToBinary(splitted[1]));
-            printf("Finishing else if\n");
             fflush(stdout);
         }
         else {
-            printf("Hitting else\n");
             for (int j = 0; j < num; j++) {
-                printf("Checkpoint 2\n");
                 if (isSubstringInString(instruction[i], passone[j].label)) {
                     replaceSubstring(instruction[i], passone[j].label, passone[j].address);
                 }
@@ -116,13 +110,9 @@ void one_pass(char** instruction, char* name) {
             printf("%s\n", split[0]);
             printf("%s\n", split[1]);
             char* result = functionSelector(split[0], split[1], intToString(i));
-            printf("Checkpoint 2\n");
-            fflush(stdout);
+            printf("writing: %s\n", result);
             writeStringToFile(name, result);
-            printf("Checkpoint 3\n");
-            fflush(stdout);
         }
 
     }
-//
 }
