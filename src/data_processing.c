@@ -1,7 +1,7 @@
 //
 // Created by Arabella Hurrell on 30/05/2023.
 //
-
+#define zeroregister "31";
 
 char* shiftBits (char* shiftType) {
     static char shifts[2];
@@ -237,10 +237,8 @@ char* logicalBitwise (char* mnemonic, char* rd, char* rn, char* rm, char* shiftT
     if (!value) {
         v = "000000";
     }
-    else if (value[1] == 'x') {
-        v = truncateString(hexToBinary(value), 6);
-    } else {
-        v = convert(value, 6);
+    else  {
+        v = immHexToDenary(value, 6);
     }
     char* N;
     char* opcode;
@@ -296,12 +294,23 @@ char* multiply (char* negate, char* rd, char* rn, char* rm, char* ra) {
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
+    printf("ra : %s\n", ra);
+    printf("rd : %s\n", rd);
+    printf("rn : %s\n", rn);
+
     strcat(result, sf(rn));
+    printf("%s\n", result);
     strcat(result, "0011011000");
+    printf("%s\n", result);
+    strcat(result, registerConvert(rm));
+    printf("%s\n", result);
     strcat(result, negate);
-    strcat(result, convert(ra,5));
-    strcat(result, convert(rn,5));
-    strcat(result, convert(rd,5));
+    printf("%s\n", result);
+    strcat(result, registerConvert(ra));
+    printf("%s\n", result);
+    strcat(result, registerConvert(rn));
+    printf("%s\n", result);
+    strcat(result, registerConvert(rd));
     printf("%s\n", result);
     fflush(stdout);
     return result;
@@ -404,59 +413,59 @@ char* eon (char* arguments, char* address) {
 }
 
 char* cmp (char* arguments, char* address) {
-    arguments = strcat("11111 ", arguments);
+    arguments = strcat("31 ", arguments);
     return subs(arguments, address);
 }
 
 char* cmn (char* arguments, char* address) {
-    arguments = strcat("11111 ", arguments);
+    arguments = strcat("31 ", arguments);
     return adds(arguments, address);
 }
 
 char* neg (char* arguments, char* address) {
     char** split = splitStringOnFirstSpace(arguments);
-    // TODO: string cat won't work here
-    arguments = strcat(split[0], strcat(" 11111 ", split[1]));
+    arguments = strcat(split[0], " 31 ");
+    arguments = strcat(arguments, split[1]);
     return sub(arguments, address);
 }
 
 char* negs (char* arguments, char* address) {
     char** split = splitStringOnFirstSpace(arguments);
-    // TODO: string cat won't work here
-    arguments = strcat(split[0], strcat(" 11111 ", split[1]));
+    arguments = strcat(split[0], " 31 ");
+    arguments = strcat(arguments, split[1]);
     return subs(arguments, address);
 }
 
 char* tst (char* arguments, char* address) {
-    arguments = strcat("11111 ", arguments);
+    arguments = strcat("31 ", arguments);
     return ands(arguments, address);
 }
 
 char* mvn (char* arguments, char* address) {
     char** split = splitStringOnFirstSpace(arguments);
-    // TODO: string cat won't work here
-    arguments = strcat(split[0], strcat(" 11111 ", split[1]));
+    arguments = strcat(split[0], " 31 ");
+    arguments = strcat(arguments, split[1]);
     return orn(arguments, address);
 }
 
 char* mov (char* arguments, char* address) {
     char** split = splitStringOnFirstSpace(arguments);
-    // TODO: string cat won't work here
     for (int i = 0; i < getStringArrayLength(split); i++) {
         printf("%s\n", split[i]);
     }
     fflush(stdout);
-    arguments = strcat(split[0], strcat(" 11111 ", split[1]));
+    arguments = strcat(split[0], " 31 ");
+    arguments = strcat(arguments, split[1]);
     return orr(arguments, address);
 }
 
 char* mul (char* arguments, char* address) {
-    arguments = strcat(arguments, " 11111");
+    arguments = strcat(arguments, " 31");
     return madd(arguments, address);
 }
 
 char* mneg (char* arguments, char* address) {
-    arguments = strcat(arguments, " 11111");
+    arguments = strcat(arguments, " 31");
     return msub(arguments, address);
 }
 

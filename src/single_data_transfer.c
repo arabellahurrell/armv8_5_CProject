@@ -42,17 +42,17 @@ char* registerOffset(char* rt, char* xn, char* xm, char* l) {
 char* indexedOffset(char* rt, char* xn, char* value, char* l, char* i) {
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
-
+    char* v = immHexToDenary(value, 9);
     strcat(result, "1");
     strcat(result, sf(rt));
     strcat(result, "1110000");
     strcat(result, l);
     strcat(result, "0");
-    strcat(result, truncateString(value, 9));
+    strcat(result, v);
     strcat(result, i);
     strcat(result, "1");
-    strcat(result, registerConvert(xn, 5));
-    strcat(result, registerConvert(rt, 5));
+    strcat(result, registerConvert(xn));
+    strcat(result, registerConvert(rt));
 
     printf("%s\n", result);
     fflush(stdout);
@@ -65,13 +65,14 @@ char* unsignedOffset (char* rt, char* xn, char* value, char* l) {
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
+    char* val = immHexToDenary(value, 12);
     //if (strcmp(sf(rt), "0");
 
     strcat(result, "1");
     strcat(result, sf(rt));
     strcat(result, "1110010");
     strcat(result, l);
-    strcat(result, truncateString(value, 12));
+    strcat(result, val);
     strcat(result, convert(xn, 5));
     strcat(result, convert(rt, 5));
 
@@ -86,15 +87,17 @@ char* loadLiteral(char* rt, char* value) {
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
+    char* val = immHexToDenary(value, 19);
+
     strcat(result, "0");
     printf("%s\n", result);
     strcat(result, sf(rt));
     printf("%s\n", result);
     strcat(result, "011000");
     printf("%s\n", result);
-    strcat(result, truncateString(value, 19));
+    strcat(result, val);
     printf("%s\n", result);
-    strcat(result, registerConver(rt, 5));
+    strcat(result, registerConvert(rt));
 
     printf("%s\n", result);
     fflush(stdout);
@@ -107,6 +110,7 @@ char* dataTransferParser (char** splitted, char* l) {
     int length = getStringArrayLength(splitted);
     if (length == 3) {
         if ((splitted[2])[strlen(splitted[2]) - 1] == '!') {
+            splitted[2][strlen(splitted[2]) - 1] = '\0';
             printf("PRE-INDEX OFFSETTING\n");
             return indexedOffset(splitted[0], splitted[1], splitted[2], l, "1");
         } else if (splitted[2][0] == 'w' || splitted[2][0] == 'x') {
