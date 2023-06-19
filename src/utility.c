@@ -1,11 +1,5 @@
 //
 // Created by Arabella Hurrell on 05/06/2023.
-//
-
-//#include <stdlib.h>
-//#include <string.h>
-//#include <stdio.h>
-//#include <math.h>
 
 char* charToString (char c) {
     char* str = malloc(2 * sizeof(char));
@@ -283,10 +277,17 @@ bool isSubstringInString(const char* str, const char* substr) {
 }
 
 char* decimalToHexadecimal(int decimal) {
-    char* hexadecimal = (char*)malloc(9 * sizeof(char));
-    sprintf(hexadecimal, "%X", decimal);
-    return hexadecimal;
+    char* hexString = malloc(11 * sizeof(char)); // Maximum 8 digits for hexadecimal representation + 2 characters for "0x" + 1 character for null terminator
+
+    if (hexString == NULL) {
+        printf("Memory allocation failed.\n");
+        return NULL;
+    }
+
+    sprintf(hexString, "0x%X", decimal);
+    return hexString;
 }
+
 
 bool removeNonAlphaNumeric(char c) {
         if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
@@ -394,5 +395,6 @@ char* immHexToDenary (char* value, int x) {
     } else {
         v = convert(value, x);
     }
+
     return v;
 }
