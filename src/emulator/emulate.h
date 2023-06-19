@@ -2,11 +2,6 @@
  * Emulate header file
  */
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-
 // Must define before including .c files
 #define WORD_BYTES       4
 #define NO_REGISTERS     31
@@ -14,6 +9,11 @@
 #define NO_BYTES_MEMORY  0x200000
 #define NOP_INSTRUCTION  0xD503201F
 #define HALT_INSTRUCTION 0x8A000000
+
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #include "structures.c"
 #include "binary_helpers.c"

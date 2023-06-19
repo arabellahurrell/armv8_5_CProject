@@ -20,7 +20,7 @@ void emulate(char readFile[], char writeFile[]) {
     readFileIntoMemory(readFile);
 
     // Main emulator loop
-    while (true) {
+    for (;;) {
         // Fetch
         if (machine.PC > NO_BYTES_MEMORY) {
             // Instruction is out of range of memory
