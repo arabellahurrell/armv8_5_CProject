@@ -48,11 +48,10 @@ int binaryToDecimal(const char* binary) {
     return decimal;
 }
 
-char* hexToBinary(const char* hex) {
+char* hexToBinary(char* hex) {
     int hexLength = strlen(hex);
     int resultSize = (hexLength - 2) * 4;
     char* binary = (char*) malloc((resultSize + 1) * sizeof(char));
-    binary[resultSize] = '\0';
     for (int i = 2 ; i < hexLength; i++) {
         char c = hex[i];
         int value;
@@ -274,7 +273,6 @@ char* replaceSubstring(const char* str, const char* oldSubstr, const char* newSu
     }
     strncpy(result + resultIndex, ptr, strLength - (ptr - str));
     result[newLength] = '\0';
-
     return result;
 }
 
@@ -290,7 +288,7 @@ char* decimalToHexadecimal(int decimal) {
 
 bool removeNonAlphaNumeric(char c) {
         if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-            (c >= '0' && c <= '9') || (c == '-') || (c == '!') || (c == '.')) {
+            (c >= '0' && c <= '9') || (c == '-') || (c == '!') || (c == '.') || (c == ':')) {
             return true;
         }
         return false;
