@@ -8,10 +8,22 @@ char* branching (char* mnemonic, char* value, int offset) {
     char* encoding;
     if (strcmp(mnemonic, "b") == 0) {
         char* res = convert(intToString(binaryToDecimal(hexToBinary(value)) + offset) , 26);
-        return strcat("000101", res);
+        char* result = malloc(33 * sizeof(char));
+        result[0] = '\0';
+
+        strcat(result, "000101");
+        strcat(result, res);
+
+        printf("%s\n", result);
+        fflush(stdout);
+
+        return result;
+        //return strcat("000101", res);
     } else if (strcmp(mnemonic, "br") == 0) {
         return strcat("1101011000011111000000", convert(value, 26));
     } else {
+        char* result = malloc(33 * sizeof(char));
+        result[0] = '\0';
         char* res = convert(intToString(binaryToDecimal(value) + offset) , 19);
         if (strcmp(mnemonic, "b.eq") == 0) {
             encoding = "0000";
@@ -28,7 +40,16 @@ char* branching (char* mnemonic, char* value, int offset) {
         } else {
             encoding = "1110";
         }
-        return strcat(strcat("01010100", res), strcat("0", encoding));
+        strcat(result, "01010100");
+        strcat(result, res);
+        strcat(result, "0");
+        strcat(result, encoding);
+
+        printf("%s\n", result);
+        fflush(stdout);
+
+        return result;
+        //return strcat(strcat("01010100", res), strcat("0", encoding));
     }
 }
 

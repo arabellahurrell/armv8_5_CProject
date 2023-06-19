@@ -2,11 +2,10 @@
 // Created by Arabella Hurrell on 30/05/2023.
 //
 
-
 #define MAX_LINE_LENGTH 256
 #define INITIAL_ARRAY_SIZE 10
 
-char** readLinesFromFile(const char* filename, int* lineCount) {
+char** readLinesFromFile(const char* filename) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error opening file: %s\n", filename);
@@ -37,10 +36,14 @@ char** readLinesFromFile(const char* filename, int* lineCount) {
             return NULL;
         }
 
-        // Copy the line to the array
-        strcpy(lines[count], line);
+        if(!isalpha(line[0]) && line[0] != '.' ) {
 
-        count++;
+        } else {
+            // Copy the line to the array
+            strcpy(lines[count], line);
+
+            count++;
+        }
 
         // Resize the array if necessary
         if (count >= arraySize) {
@@ -57,8 +60,6 @@ char** readLinesFromFile(const char* filename, int* lineCount) {
     }
 
     fclose(file);
-
-    *lineCount = count;
 
     return lines;
 }
