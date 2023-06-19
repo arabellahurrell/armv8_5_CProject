@@ -1,31 +1,32 @@
 //
 // Created by Arabella Hurrell on 05/06/2023.
 
-char* charToString (char c) {
+// Converts a character to a string
+char* charToString(char c) {
     char* str = malloc(2 * sizeof(char));
     str[0] = c;
     str[1] = '\0';
     return str;
 }
 
+// Duplicates a string
 char* duplicateString(const char* originalString) {
     size_t length = strlen(originalString) + 1; // Include space for the null terminator
-
     char* duplicatedString = malloc(length); // Allocate memory for the duplicated string
-
     if (duplicatedString != NULL) {
         strcpy(duplicatedString, originalString); // Copy the original string into the new memory
     }
-
     return duplicatedString;
 }
 
+// Converts an integer to a string
 char* intToString(int num) {
     char* str = malloc(12 * sizeof(char)); // Allocate memory for the string
     sprintf(str, "%d", num); // Convert the integer to a string
     return str;
 }
 
+// Converts a binary string to a decimal integer
 int binaryToDecimal(const char* binary) {
     int binaryLength = strlen(binary);
     int decimal = 0;
@@ -42,11 +43,12 @@ int binaryToDecimal(const char* binary) {
     return decimal;
 }
 
+// Converts a hexadecimal string to a binary string
 char* hexToBinary(char* hex) {
     int hexLength = strlen(hex);
     int resultSize = (hexLength - 2) * 4;
     char* binary = (char*) malloc((resultSize + 1) * sizeof(char));
-    for (int i = 2 ; i < hexLength; i++) {
+    for (int i = 2; i < hexLength; i++) {
         char c = hex[i];
         int value;
         if (c >= '0' && c <= '9') {
@@ -63,25 +65,6 @@ char* hexToBinary(char* hex) {
     }
     return binary;
 }
-
-//char* convert(char* denary, int numBits) {
-//    const char* numberStr;
-//    if (denary[0] != 'x') {
-//        numberStr = denary;
-//    } else {
-//        numberStr = denary+1;
-//    }
-//    int decimal = atoi(numberStr);
-//
-//    char* binary = (char*)malloc(sizeof(char) * (numBits + 1));
-//    for (int i = numBits - 1; i >= 0; i--) {
-//        binary[i] = (decimal & 1) ? '1' : '0';
-//        decimal >>= 1;
-//    }
-//    binary[numBits] = '\0';
-//
-//    return binary;
-//}
 
 char* convert(char* denary, int numBits) {
     const char* numberStr;
