@@ -16,8 +16,8 @@ int main(int argc, char **argv) {
         }
     }
 
-    one_pass(lines, "output.bin");  // Perform a one-pass assembly with modified lines
-//    one_pass(lines, argv[2]);  // Alternatively, use the second command line argument as the output file
+    //one_pass(lines, "output.bin");  // Perform a one-pass assembly with modified lines
+    one_pass(lines, argv[2]);  // Alternatively, use the second command line argument as the output file
 
     // The rest of the code execution continues...
 }

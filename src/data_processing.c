@@ -62,25 +62,43 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
         printf("dec op2 convert : %s\n", convert_op2);
         printf("op : %d\n", op);
     }
+    char* sf_rn = sf(rn); // Get the "sf" bits based on the register size
+    char* convert_rd = registerConvert(rd);
+    char* convert_rn = registerConvert(rn);
+    char* sh;
+    char* master_result;
+    if (op > ((1 << 12) -1)) {
+        //sh = "1";
+        master_result = master(truncateString(intToString(op),12), shiftType, shiftAmount);
+        printf("master 1: %s\n", master_result);
+    } else {
+        //sh = "0";
+        master_result  = convert_op2;
+        printf("master 2 : %s\n", master_result);
+    }
+    if ((strcmp(shiftType, "lsl") == 0 || strcmp(shiftType, "asl") == 0) && atoi(shiftAmount) % 16 >= 12) {
+        sh = "1";
+    } else {
+        sh = "0";
+    }
 
-    char* sf_rn = sf(rn);  // Get the "sf" bits based on the register size
-    char* sf_rd = sf(rd);  // Get the "sf" bits based on the register size
-    char* size_rn = hw(rn);  // Get the "size" bits based on the register size
-    char* size_rd = hw(rd);  // Get the "size" bits based on the register size
-    char* shifts = shiftBits(shiftType);  // Get the shift bits based on the shift type
 
     // Concatenate the opcode, "sf" bits, destination register, source register,
     // "size" bits, shift bits, shift amount, and operand 2 to form the resulting instruction
-    strcat(result, opcode);
-    strcat(result, sf_rd);
-    strcat(result, rd);
     strcat(result, sf_rn);
-    strcat(result, rn);
-    strcat(result, size_rd);
-    strcat(result, size_rn);
-    strcat(result, shifts);
-    strcat(result, shiftAmount);
-    strcat(result, convert_op2);
+    strcat(result, opcode);
+    printf("%s\n", result);
+    strcat(result, "100010");
+    printf("%s\n", result);
+    // sh if bigger that 2^12 - 1
+    strcat(result, sh);
+    printf("%s\n", result);
+    strcat(result, truncateString(master_result,12));
+    strcat(result, convert_rn);
+    strcat(result, convert_rd);
+    printf("result : %s\n", result);
+    fflush(stdout);
+
 
     return result;
 }
