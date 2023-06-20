@@ -17,20 +17,15 @@ char *registerOffset(char *rt, char *xn, char *xm, char *l) {
     result[0] = '\0';
 
     // Concatenate the binary representation for the register offset instruction
-    strcat(result, "1");                                // Bit 31: Always 1
-    strcat(result, sf(rt));                             // Bit 30: Set flags
-    strcat(result,
-           "1110000");                          // Bits 29-23: Opcode specific bits
-    strcat(result,
-           l);                                  // Bit 22: Load/store bit
-    strcat(result,
-           "1");                                // Bit 21: Register offset bit
-    strcat(result,
-           registerConvert(xm));                // Bits 20-16: Register Xm
-    strcat(result,
-           "011010");                           // Bits 15-10: Opcode specific bits
-    strcat(result, registerConvert(xn));                // Bits 9-5: Register Xn
-    strcat(result, registerConvert(rt));                // Bits 4-0: Register Rt
+    strcat(result, "1");                   // Bit 31: Always 1
+    strcat(result, sf(rt));                // Bit 30: Set flags
+    strcat(result, "1110000");             // Bits 29-23: Opcode specific bits
+    strcat(result, l);                     // Bit 22: Load/store bit
+    strcat(result, "1");                   // Bit 21: Register offset bit
+    strcat(result, registerConvert(xm));   // Bits 20-16: Register Xm
+    strcat(result, "011010");              // Bits 15-10: Opcode specific bits
+    strcat(result, registerConvert(xn));   // Bits 9-5: Register Xn
+    strcat(result, registerConvert(rt));   // Bits 4-0: Register Rt
 
     return result;
 }
@@ -41,22 +36,16 @@ char *indexedOffset(char *rt, char *xn, char *value, char *l, char *i) {
     char *v = immHexToDenary(value, 9);
 
     // Concatenate the binary representation for the indexed offset instruction
-    strcat(result, "1");                                // Bit 31: Always 1
-    strcat(result, sf(rt));                             // Bit 30: Set flags
-    strcat(result,
-           "1110000");                          // Bits 29-23: Opcode specific bits
-    strcat(result,
-           l);                                  // Bit 22: Load/store bit
-    strcat(result,
-           "0");                                // Bit 21: Immediate offset bit
-    strcat(result,
-           v);                                  // Bits 20-12: Immediate value
-    strcat(result,
-           i);                                  // Bit 11: Unsigned/signed bit
-    strcat(result,
-           "1");                                // Bit 10: Immediate offset bit
-    strcat(result, registerConvert(xn));                // Bits 9-5: Register Xn
-    strcat(result, registerConvert(rt));                // Bits 4-0: Register Rt
+    strcat(result, "1");                   // Bit 31: Always 1
+    strcat(result, sf(rt));                // Bit 30: Set flags
+    strcat(result, "1110000");             // Bits 29-23: Opcode specific bits
+    strcat(result, l);                     // Bit 22: Load/store bit
+    strcat(result, "0");                   // Bit 21: Immediate offset bit
+    strcat(result, v);                     // Bits 20-12: Immediate value
+    strcat(result, i);                     // Bit 11: Unsigned/signed bit
+    strcat(result, "1");                   // Bit 10: Immediate offset bit
+    strcat(result, registerConvert(xn));   // Bits 9-5: Register Xn
+    strcat(result, registerConvert(rt));   // Bits 4-0: Register Rt
 
     return result;
 }
@@ -67,14 +56,13 @@ char *unsignedOffset(char *rt, char *xn, char *value, char *l) {
     char *val = immHexToDenary(value, 12);
 
     // Concatenate the binary representation for the unsigned offset instruction
-    strcat(result, "1");          // Bit 31: Always 1
-    strcat(result, sf(rt));       // Bit 30: Set flags
-    strcat(result, "1110010");    // Bits 29-23: Opcode specific bits
-    strcat(result, l);            // Bit 22: Load/store bit
-    strcat(result, val);          // Bits 21-10: Unsigned offset value
-    strcat(result, convert(xn, 5));                      // Bits 9-5: Register Xn
-    strcat(result,
-           convert(rt, 5));                      // Bits 4-0: Register Rt
+    strcat(result, "1");               // Bit 31: Always 1
+    strcat(result, sf(rt));            // Bit 30: Set flags
+    strcat(result, "1110010");         // Bits 29-23: Opcode specific bits
+    strcat(result, l);                 // Bit 22: Load/store bit
+    strcat(result, val);               // Bits 21-10: Unsigned offset value
+    strcat(result, convert(xn, 5));    // Bits 9-5: Register Xn
+    strcat(result, convert(rt, 5));    // Bits 4-0: Register Rt
 
     return result;
 }
@@ -85,13 +73,11 @@ char *loadLiteral(char *rt, char *value) {
     char *val = immHexToDenary(value, 19);
 
     // Concatenate the binary representation for the load literal instruction
-    strcat(result, "0");                                // Bit 31: Always 0
-    strcat(result, sf(rt));                             // Bit 30: Set flags
-    strcat(result,
-           "011000");                           // Bits 29-24: Opcode specific bits
-    strcat(result,
-           val);                                // Bits 23-5: Literal value
-    strcat(result, registerConvert(rt));                // Bits 4-0: Register Rt
+    strcat(result, "0");                   // Bit 31: Always 0
+    strcat(result, sf(rt));                // Bit 30: Set flags
+    strcat(result, "011000");              // Bits 29-24: Opcode specific bits
+    strcat(result, val);                   // Bits 23-5: Literal value
+    strcat(result, registerConvert(rt));   // Bits 4-0: Register Rt
 
     return result;
 }

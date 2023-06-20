@@ -2,32 +2,37 @@
 // Created by Arabella Hurrell on 05/06/2023.
 
 // Converts a character to a string
-char* charToString(char c) {
-    char* str = malloc(2 * sizeof(char));
+char *charToString(char c) {
+    char *str = malloc(2 * sizeof(char));
     str[0] = c;
     str[1] = '\0';
     return str;
 }
 
 // Duplicates a string
-char* duplicateString(const char* originalString) {
-    size_t length = strlen(originalString) + 1; // Include space for the null terminator
-    char* duplicatedString = malloc(length); // Allocate memory for the duplicated string
+char *duplicateString(const char *originalString) {
+    // Include space for the null terminator
+    size_t length = strlen(originalString) + 1;
+    // Allocate memory for the duplicated string
+    char *duplicatedString = malloc(length);
     if (duplicatedString != NULL) {
-        strcpy(duplicatedString, originalString); // Copy the original string into the new memory
+        // Copy the original string into the new memory
+        strcpy(duplicatedString, originalString);
     }
     return duplicatedString;
 }
 
 // Converts an integer to a string
-char* intToString(int num) {
-    char* str = malloc(12 * sizeof(char)); // Allocate memory for the string
-    sprintf(str, "%d", num); // Convert the integer to a string
+char *intToString(int num) {
+    // Allocate memory for the string
+    char *str = malloc(12 * sizeof(char));
+    // Convert the integer to a string
+    sprintf(str, "%d", num);
     return str;
 }
 
 // Converts a binary string to a decimal integer
-int binaryToDecimal(const char* binary) {
+int binaryToDecimal(const char *binary) {
     int binaryLength = strlen(binary);
     int decimal = 0;
     int power = 0;
@@ -44,10 +49,10 @@ int binaryToDecimal(const char* binary) {
 }
 
 // Converts a hexadecimal string to a binary string
-char* hexToBinary(char* hex) {
+char *hexToBinary(char *hex) {
     int hexLength = strlen(hex);
     int resultSize = (hexLength - 2) * 4;
-    char* binary = (char*) malloc((resultSize + 1) * sizeof(char));
+    char *binary = (char *) malloc((resultSize + 1) * sizeof(char));
     for (int i = 2; i < hexLength; i++) {
         char c = hex[i];
         int value;
@@ -66,8 +71,8 @@ char* hexToBinary(char* hex) {
     return binary;
 }
 
-char* convert(char* denary, int numBits) {
-    const char* numberStr;
+char *convert(char *denary, int numBits) {
+    const char *numberStr;
     if (denary[0] != 'x' && denary[0] != 'w') {
         numberStr = denary;
     } else {
@@ -87,7 +92,7 @@ char* convert(char* denary, int numBits) {
     int effectiveBits = (binaryLength > numBits) ? binaryLength : numBits;
 
     // Allocate memory for the binary string
-    char* binaryString = (char*)malloc((effectiveBits + 1) * sizeof(char));
+    char *binaryString = (char *) malloc((effectiveBits + 1) * sizeof(char));
     if (!binaryString) {
         printf("malloc error\n");
         return NULL;
@@ -102,7 +107,7 @@ char* convert(char* denary, int numBits) {
     }
 
     // Allocate memory for the binary array
-    char* binary = (char*)malloc((numBits + 1) * sizeof(char));
+    char *binary = (char *) malloc((numBits + 1) * sizeof(char));
     if (!binary) {
         printf("malloc failed\n");
         free(binaryString);
@@ -146,10 +151,11 @@ char* convert(char* denary, int numBits) {
 //}
 
 
-char* truncateString(const char* str, int length) {
+char *truncateString(const char *str, int length) {
     int strLength = strlen(str);
     if (strLength > length) {
-        // Remove extra leading zeros if the original string is larger than the desired size
+        // Remove extra leading zeros if the original string is larger
+        // than the desired size
         int leadingZeros = 0;
         int i = 0;
         while (str[i] == '0' && i < strLength) {
@@ -157,23 +163,22 @@ char* truncateString(const char* str, int length) {
             i++;
         }
 
-        char* truncatedStr = malloc((length + 1) * sizeof(char));
+        char *truncatedStr = malloc((length + 1) * sizeof(char));
 
         // if (leadingZeros > 1) {
         //     leadingZeros = 1;
         // }
-        leadingZeros --;
+        leadingZeros--;
 
         strncpy(truncatedStr, str + leadingZeros, length);
         truncatedStr[length] = '\0';
         return truncatedStr;
-    }
-    else {
+    } else {
         // Add leading zeros
         int leadingZeros = length - strLength;
         int newLength = strLength + leadingZeros;
 
-        char* truncatedStr = malloc((newLength + 1) * sizeof(char));
+        char *truncatedStr = malloc((newLength + 1) * sizeof(char));
 
         for (int i = 0; i < leadingZeros; i++) {
             truncatedStr[i] = '0';
@@ -185,8 +190,8 @@ char* truncateString(const char* str, int length) {
     }
 }
 
-char * sf (char* reg) {
-    char* x;
+char *sf(char *reg) {
+    char *x;
     if (reg[0] == 'x') {
         x = "1";
     } else {
@@ -196,8 +201,8 @@ char * sf (char* reg) {
 }
 
 
-int immOrHex(char* str) {
-    if (strlen(str) <=1 ) {
+int immOrHex(char *str) {
+    if (strlen(str) <= 1) {
         return 0;
     }
     if (str[1] == 'x') {
@@ -212,31 +217,32 @@ int immOrHex(char* str) {
     }
 }
 
-char* immConverter(char* str) {
-    if (strlen(str) <=1 ) {
+char *immConverter(char *str) {
+    if (strlen(str) <= 1) {
         return 0;
     }
     if (str[1] == 'x') {
         return hexToBinary(str);
     } else {
         //char* res = malloc(17 * sizeof(char));
-        char* res = convert(str, 16);
+        char *res = convert(str, 16);
         return res;
     }
 }
 
-char* replaceSubstring(const char* str, const char* oldSubstr, const char* newSubstr) {
+char *replaceSubstring(const char *str, const char *oldSubstr,
+                       const char *newSubstr) {
     size_t strLength = strlen(str);
     size_t oldSubstrLength = strlen(oldSubstr);
     size_t newSubstrLength = strlen(newSubstr);
     size_t count = 0;
-    const char* ptr = str;
+    const char *ptr = str;
     while ((ptr = strstr(ptr, oldSubstr)) != NULL) {
         count++;
         ptr += oldSubstrLength;
     }
     size_t newLength = strLength + count * (newSubstrLength - oldSubstrLength);
-    char* result = (char*) malloc((newLength + 1) * sizeof(char));
+    char *result = (char *) malloc((newLength + 1) * sizeof(char));
     size_t resultIndex = 0;
     ptr = str;
     while (count > 0 && (ptr = strstr(ptr, oldSubstr)) != NULL) {
@@ -253,12 +259,14 @@ char* replaceSubstring(const char* str, const char* oldSubstr, const char* newSu
     return result;
 }
 
-bool isSubstringInString(const char* str, const char* substr) {
+bool isSubstringInString(const char *str, const char *substr) {
     return strstr(str, substr) != NULL;
 }
 
-char* decimalToHexadecimal(int decimal) {
-    char* hexString = malloc(11 * sizeof(char)); // Maximum 8 digits for hexadecimal representation + 2 characters for "0x" + 1 character for null terminator
+char *decimalToHexadecimal(int decimal) {
+    // Maximum 8 digits for hexadecimal representation + 2 characters for
+    // "0x" + 1 character for null terminator
+    char *hexString = malloc(11 * sizeof(char));
 
     if (hexString == NULL) {
         printf("Memory allocation failed.\n");
@@ -271,32 +279,33 @@ char* decimalToHexadecimal(int decimal) {
 
 
 bool removeNonAlphaNumeric(char c) {
-        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-            (c >= '0' && c <= '9') || (c == '-') || (c == '!') || (c == '.') || (c == ':')) {
-            return true;
-        }
-        return false;
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+        (c >= '0' && c <= '9') || (c == '-') || (c == '!') || (c == '.') ||
+        (c == ':')) {
+        return true;
     }
+    return false;
+}
 
 
-char** splitStringOnWhitespace(char* str) {
+char **splitStringOnWhitespace(char *str) {
     int count = 0;
-    const char* delimiter = " ,";
-    char* strCopy = duplicateString(str);
-    char* word = strtok(strCopy, delimiter);
+    const char *delimiter = " ,";
+    char *strCopy = duplicateString(str);
+    char *word = strtok(strCopy, delimiter);
 
     while (word != NULL) {
         count++;
         word = strtok(NULL, delimiter);
     }
-    char** words = (char**)malloc((count + 1) * sizeof(char*));
+    char **words = (char **) malloc((count + 1) * sizeof(char *));
     strCopy = duplicateString(str);
     word = strtok(strCopy, delimiter);
     int index = 0;
 
     while (word != NULL) {
         int len = strlen(word);
-        char* cleanWord = (char*)malloc((len + 1) * sizeof(char));
+        char *cleanWord = (char *) malloc((len + 1) * sizeof(char));
         int cleanIndex = 0;
 
         for (int i = 0; i < len; i++) {
@@ -318,7 +327,7 @@ char** splitStringOnWhitespace(char* str) {
     return words;
 }
 
-size_t getStringArrayLength(char** array) {
+size_t getStringArrayLength(char **array) {
     size_t length = 0;
 
     if (array != NULL) {
@@ -330,8 +339,8 @@ size_t getStringArrayLength(char** array) {
     return length;
 }
 
-char** splitStringOnFirstSpace(const char* input) {
-    char** output = malloc(2 * sizeof(char*));
+char **splitStringOnFirstSpace(const char *input) {
+    char **output = malloc(2 * sizeof(char *));
     output[0] = NULL;
     output[1] = NULL;
 
@@ -360,7 +369,7 @@ char** splitStringOnFirstSpace(const char* input) {
     return output;
 }
 
-char* registerConvert(char* r) {
+char *registerConvert(char *r) {
     if (strcmp(r, "xzr") == 0 || strcmp(r, "wzr") == 0) {
         printf("is a zero register\n");
         return "11111";
@@ -369,8 +378,8 @@ char* registerConvert(char* r) {
     }
 }
 
-char* immHexToDenary (char* value, int x) {
-    char* v = malloc((x+1)*sizeof(char));
+char *immHexToDenary(char *value, int x) {
+    char *v = malloc((x + 1) * sizeof(char));
     if (value[1] == 'x') {
         v = truncateString(hexToBinary(value), x);
     } else {
