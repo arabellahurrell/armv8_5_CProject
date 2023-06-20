@@ -7,7 +7,7 @@ char* branching(char* mnemonic, char* value, int offset) {
     char* encoding;
     if (strcmp(mnemonic, "b") == 0) {
         //char* res = convert(intToString(binaryToDecimal(hexToBinary(value)) + offset), 26);
-        char* res = convert(offset, 26);
+        char* res = convert(intToString(offset), 26);
         char* result = malloc(33 * sizeof(char));
         result[0] = '\0';
 
@@ -16,7 +16,7 @@ char* branching(char* mnemonic, char* value, int offset) {
 
         return result;
     } else if (strcmp(mnemonic, "br") == 0) {
-        return strcat("1101011000011111000000", convert(value, 26));
+        return strcat("1101011000011111000000", convert(intToString(offset), 26));
     } else {
         char* result = malloc(33 * sizeof(char));
         result[0] = '\0';
