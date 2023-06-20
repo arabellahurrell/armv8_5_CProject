@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
 #include <conio.h>
 #include <unistd.h>
+#include <math.h>
 
 /*
 Constants
@@ -11,12 +11,18 @@ Constants
 
 #define ROWS 15
 #define COLS 15
-
-char SNAKE_BODY = 'X';
-char SNAKE_HEAD = 'O';
-char WALL = '+';
-char EMPTY = ' ';
-char APPLE = 'A';
+#define CLEAR_SCREEN "\033[1;1H\033[2J"
+#define SNAKE_BODY 'X'
+#define SNAKE_HEAD 'O'
+#define WALL '+'
+#define EMPTY ' '
+#define APPLE 'A'
+#define UP_ARROW 72
+#define LEFT_ARROW 75
+#define RIGHT_ARROW 77
+#define DOWN_ARROW 80
+#define INITIAL_SLEEP_DURATION 150000
+#define SPEED_MULTIPLIER 0.99
 
 /*
 Structures
@@ -44,7 +50,7 @@ struct Snake {
 };
 
 /*
-Global Varibles
+Global Variables
 */
 
 struct Snake snake;
@@ -52,16 +58,16 @@ char board[ROWS][COLS];
 enum Direction direction;
 struct Position applePos;
 bool alive;
+int sleepDuration;
 bool firstGame = true;
-bool newGame = true;
 int highscore = 0;
 
 /*
 Helper Functions
 */
 
-void setBoardChar(struct Position pos, char character) {
-    board[pos.row][pos.col] = character;
+void setBoardChar(struct Position pos, char ch) {
+    board[pos.row][pos.col] = ch;
 }
 
 char getBoardChar(struct Position pos) {
@@ -69,7 +75,8 @@ char getBoardChar(struct Position pos) {
 }
 
 bool isWall(struct Position pos) {
-    return pos.row == 0 || pos.row == ROWS - 1 || pos.col == 0 || pos.col == COLS - 1;
+    return pos.row == 0 || pos.row == ROWS - 1 || pos.col == 0 ||
+           pos.col == COLS - 1;
 }
 
 /*
@@ -108,6 +115,7 @@ void resetGame() {
     // Reset global values
     alive = true;
     direction = RIGHT;
+    sleepDuration = INITIAL_SLEEP_DURATION;
     initialiseBoard();
     placeApple();
 
@@ -122,7 +130,7 @@ void resetGame() {
 }
 
 void displayBoard() {
-    printf("\e[1;1H\e[2J");
+    printf(CLEAR_SCREEN);
     for (int row = 0; row < ROWS; row++) {
         for (int col = 0; col < COLS; col++) {
             printf(" %c ", board[row][col]);
@@ -152,22 +160,22 @@ void detectInput() {
         key = getch();
     }
     switch (key) {
-        case 72:
+        case UP_ARROW:
             if (direction != DOWN) {
                 direction = UP;
             }
             break;
-        case 75:
+        case LEFT_ARROW:
             if (direction != RIGHT) {
                 direction = LEFT;
             }
             break;
-        case 77:
+        case RIGHT_ARROW:
             if (direction != LEFT) {
                 direction = RIGHT;
             }
             break;
-        case 80:
+        case DOWN_ARROW:
             if (direction != UP) {
                 direction = DOWN;
             }
@@ -210,6 +218,7 @@ void nextState() {
     if (newHeadChar == APPLE) { // Hit an Apple
         snake.score++;
         placeApple();
+        sleepDuration = ceil(sleepDuration * SPEED_MULTIPLIER);
     } else {
         if (isWall(newHead->pos) || newHeadChar == SNAKE_BODY) { // Died
             alive = false;
@@ -223,9 +232,10 @@ void nextState() {
 }
 
 int main() {
-    while (true) {
+    for (;;) {
         char input;
-        printf("Press Enter to play%s ", firstGame ? "" : " again or x to exit");
+        printf("Press Enter to play%s ",
+               firstGame ? "" : " again or x to exit");
         firstGame = false;
         scanf("%c", &input);
         if (input == 'x') {
@@ -239,7 +249,7 @@ int main() {
             detectInput();
             nextState();
             displayBoard();
-            usleep(100000);
+            usleep(sleepDuration);
         }
 
         displayScore();
