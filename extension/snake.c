@@ -53,6 +53,8 @@ char board[ROWS][COLS];
 enum Direction direction;
 struct Position applePos;
 bool alive;
+bool firstGame = 1;
+bool newGame = 1;
 
 /*
 Helper Functions
@@ -102,6 +104,7 @@ void placeApple() {
     setBoardChar(applePos, APPLE);
 }
 
+
 void resetGame() {
     // Reset global values
     alive = true;
@@ -131,6 +134,23 @@ void displayBoard() {
 
 void displayScore() {
     printf("You scored %i!\n", snake.score);
+}
+
+void setUpGame() {
+    char ignoreInput[1000];
+    if (firstGame) {
+        displayBoard();
+        printf("Press enter to start.");
+        while (getch() != 13) {
+            usleep(10000);
+        }
+        firstGame = 0;
+    } else {
+        printf("Press enter to start replay.");
+        while (getch() != 13) {
+            usleep(10000);
+        }
+    }
 }
 
 // Function to take the input
@@ -211,16 +231,21 @@ void nextState() {
 }
 
 int main() {
-    resetGame();
-    displayBoard();
 
-    while (alive) {
-        detectInput();
-        nextState();
+    while (newGame) {
+        setUpGame();
+
+        resetGame();
         displayBoard();
-        usleep(100000);
-    }
 
-    displayScore();
+        while (alive) {
+            detectInput();
+            nextState();
+            displayBoard();
+            usleep(100000);
+        }
+
+        displayScore();
+    }
     return EXIT_SUCCESS;
 }
