@@ -11,6 +11,7 @@ void writeStringToFile(char *fileName, const char *str) {
         printf("Unable to open the file.\n");
         return;
     }
+    printf("FINAL RESULT: %s\n", str);
     int x = strtoul(str, NULL, 2);
     fwrite(&x, sizeof(x), 1, file);
     fclose(file);
@@ -80,13 +81,15 @@ void one_pass(char **instruction, char *name) {
             //instruction[i][strlen(instruction[i]) -1] = '\0';
             //char** x = strtok(instruction[i], ":");
             struct passOne pass;
-            pass.label = instruction[i];
-            char *res = decimalToHexadecimal(i + 1);
+            char* label_name = instruction[i];
+            label_name[strlen(label_name) - 1] = '\0'; // get rid of : from label
+            pass.label = label_name;
+            char *res = decimalToHexadecimal(i);
             printf("res: %s\n", res);
             int length = strlen(res);
             char *address = malloc((length + 3) * sizeof(char));
             address[0] = '\0';
-            strcat(address, "0x");
+            //strcat(address, "0x");
             pass.address = strcat(address, res);
             passone[num] = pass;
             num++;
@@ -101,44 +104,23 @@ void one_pass(char **instruction, char *name) {
         }
     }
 
-    for (int i = 0; i < capacity; i++) {
-        printf("address: %s\n", passone[i].address);
-        printf("label: %s\n", passone[i].label);
-    }
-
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
-        printf("INSTRUCTION START\n");
-        printf("%s\n", instruction[i]);
-        printf("INSTRUCTION END\n");
-        fflush(stdout);
-        printf("Before isLabel\n");
         if (isLabel(instruction[i])) {
             instruction[i][strlen(instruction[i]) - 1] = '\0';
-            printf("Label found\n");
         } else if (isDirective(instruction[i])) {
             char **splitted = splitStringOnWhitespace(instruction[i]);
             writeStringToFile(name, hexToBinary(splitted[1]));
         } else {
             for (int j = 0; j < num; j++) {
                 if (isSubstringInString(instruction[i], passone[j].label)) {
-                    printf("Hit if\n");
-                    printf("address: %s\n", passone[j].address);
-                    printf("label: %s\n", passone[j].label);
-                    printf("instruction: %s\n", instruction[i]);
                     instruction[i] = replaceSubstring(instruction[i],
                                                       passone[j].label,
                                                       passone[j].address);
-                    printf("instruction after replacement: %s\n",
-                           instruction[i]);
                 }
             }
             char **split = splitStringOnFirstSpace(instruction[i]);
-            if (strcmp(" ", split[0]) == 0) {
-                printf("HIT");
+            if (strcmp(" ", split[0]) == 0 || split[0][0] == '0') {
             } else {
-                printf("FUNCTION SELECTOR\n");
-                printf("mnemonic: %s\n", split[0]);
-                printf("arguments: %s\n", split[1]);
                 char *result = functionSelector(split[0], split[1],
                                                 decimalToHexadecimal(i));
                 writeStringToFile(name, result);
