@@ -286,7 +286,7 @@ char *decimalToHexadecimal(int decimal) {
 bool removeNonAlphaNumeric(char c) {
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
         (c >= '0' && c <= '9') || (c == '-') || (c == '!') || (c == '.') ||
-        (c == ':')) {
+        (c == ':') || (c == ']')) {
         return true;
     }
     return false;
@@ -394,3 +394,40 @@ char *immHexToBinary(char *value, int x) {
 
     return v;
 }
+
+int calculateOffset(char *label_address, char *branch_address) {
+    int x;
+    if (label_address[1] == 'x') {
+        x = strtol(label_address, NULL, 16);
+    } else {
+        x = atoi(label_address);
+    }
+    int y;
+    if (branch_address[1] == 'x') {
+        y = strtol(branch_address, NULL, 16);
+    } else {
+        y = atoi(branch_address);
+    }
+    int offset =  (x - y)/4;
+    return offset;
+}
+
+//char* twosComplement(int value) {
+//    printf("offset in function %d\n", value);
+//    if (value < 0) {
+//        printf("in the if statement");
+//        char* result = convert(intToString(value), 19);
+//        printf(result);
+//        for (int i = 0; i < strlen(result); i++) {
+//            if (result[i] == '1') {
+//                result[i] = '0';
+//            } else {
+//                result[i] = '1';
+//            }
+//        }
+//        printf(result);
+//        return convert(intToString(binaryToDecimal(result) + 1), 19);
+//    } else {
+//        return convert(intToString(value), 19);
+//    }
+//}

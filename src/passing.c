@@ -30,11 +30,12 @@ bool isLabel(char *instruction) {
 }
 
 bool isDirective(const char *instruction) {
-    return instruction[0] == ':';
+    return instruction[0] == '.';
 }
 
 
 char *functionSelector(char *mnemonic, char *arguments, char *address) {
+
     char *mnemonics[38] = {"add", "adds", "sub", "subs", "cmp", "cmn", "neg",
                            "negs", "and", "ands", "bic", "bics", "eor",
                            "eon", "orr", "orn", "tst", "mvn", "mov", "movn",
@@ -76,15 +77,18 @@ void one_pass(char **instruction, char *name) {
     int num = 0;
     struct passOne *passone = (struct passOne *) malloc(
             capacity * sizeof(struct passOne));
+    int line_counter = 0;
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
         if (isLabel(instruction[i])) {
+
             //instruction[i][strlen(instruction[i]) -1] = '\0';
             //char** x = strtok(instruction[i], ":");
             struct passOne pass;
             char* label_name = instruction[i];
             label_name[strlen(label_name) - 1] = '\0'; // get rid of : from label
             pass.label = label_name;
-            char *res = decimalToHexadecimal(i);
+            char *res = decimalToHexadecimal(4 * line_counter);
+            printf("-----------------------------------------\n");
             printf("res: %s\n", res);
             int length = strlen(res);
             char *address = malloc((length + 3) * sizeof(char));
@@ -101,31 +105,51 @@ void one_pass(char **instruction, char *name) {
                                                      sizeof(struct passOne));
                 passone = newpassone;
             }
+        } else {
+            line_counter += 1;
         }
     }
 
+    line_counter = 0;
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
+
+        printf("instruction : %s\n", instruction[i]);
         if (isLabel(instruction[i])) {
+            printf("is label\n");
             instruction[i][strlen(instruction[i]) - 1] = '\0';
         } else if (isDirective(instruction[i])) {
+            printf("is directive\n");
             char **splitted = splitStringOnWhitespace(instruction[i]);
-            writeStringToFile(name, hexToBinary(splitted[1]));
+            writeStringToFile(name, immHexToBinary(splitted[1],32));
+            line_counter += 1;
         } else {
             for (int j = 0; j < num; j++) {
                 if (isSubstringInString(instruction[i], passone[j].label)) {
+                    printf("in the replace if\n");
+                    printf("%s\n", instruction[i]);
+                    printf("%s\n", passone[j].address);
                     instruction[i] = replaceSubstring(instruction[i],
                                                       passone[j].label,
                                                       passone[j].address);
+                    printf("instruction after being replaced : %s\n", instruction[i]);
                 }
+
             }
             char **split = splitStringOnFirstSpace(instruction[i]);
-            if (strcmp(" ", split[0]) == 0 || split[0][0] == '0') {
-            } else {
-                char *result = functionSelector(split[0], split[1],
-                                                decimalToHexadecimal(i));
-                writeStringToFile(name, result);
-            }
 
+            if (strcmp(" ", split[0]) == 0 || split[0][0] == '0') {
+                printf("in if\n");
+                fflush(stdout);
+            } else {
+                printf("mnemonic: %s\n", split[0]);
+                printf("arguments: %s\n", split[1]);
+                char *result = functionSelector(split[0], split[1],
+                                                decimalToHexadecimal(4 * (line_counter)));
+                fflush(stdout);
+                writeStringToFile(name, result);
+                line_counter += 1;
+            }
+           // line_counter += 1;
         }
 
     }

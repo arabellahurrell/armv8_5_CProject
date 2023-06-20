@@ -25,10 +25,13 @@ char* branching(char* mnemonic, char* value, int offset) {
     } else {
         char* result = malloc(33 * sizeof(char));
         result[0] = '\0';
+        printf("OFFSET : %d\n", offset);
         char* res = convert(intToString(offset), 19);
+        printf("res : %s\n", res);
         if (strcmp(mnemonic, "b.eq") == 0) {
             encoding = "0000";
         } else if (strcmp(mnemonic, "b.ne") == 0) {
+            printf("branch not equal \n");
             encoding = "0001";
         } else if (strcmp(mnemonic, "b.ge") == 0) {
             encoding = "1010";
@@ -53,9 +56,11 @@ char* branching(char* mnemonic, char* value, int offset) {
 char* b (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
     //int offset = binaryToDecimal(hexToBinary(address)) + binaryToDecimal(hexToBinary(splitted[0]));
-    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address));
-//    printf("first address: %d\n", binaryToDecimal(hexToBinary(splitted[0])));
-//    printf("second address: %d\n", binaryToDecimal(hexToBinary(address)));
+    int offset = calculateOffset(splitted[0], address);
+//    printf("first address: %d\n", x);
+//    printf("%s\n", splitted[0]);
+//    printf("second address: %d\n", y);
+//    printf("%s\n", address);
 //    printf("%s\n", hexToBinary(splitted[0]));
 //    printf("OFFSET: %d\n", offset);
     return branching("b", splitted[0], offset);
@@ -63,44 +68,49 @@ char* b (char* arguments, char* address) {
 
 char* beq (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address));
+    printf("first address: %s\n", splitted[0]);
+    printf("second address: %s\n", address);
+    int offset = calculateOffset(splitted[0], address);
+    printf("OFFSET: %d\n", offset);
     return branching("b.eq", splitted[0], offset);
 
 }
 
 char* bne (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address));
+    printf("label ADDRESS: %s\n", splitted[0]);
+    printf("branch ADDRESS: %s\n", address);
+    int offset = calculateOffset(splitted[0], address);
     return branching("b.ne", splitted[0], offset);
 
 }
 char* bge (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address));
+    int offset = calculateOffset(splitted[0], address);
     return branching("b.ge", splitted[0], offset);
 
 }
 char* blt (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address));
+    int offset = calculateOffset(splitted[0], address);
     return branching("b.lt", splitted[0], offset);
 
 }
 char* bgt (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address));
+    int offset = calculateOffset(splitted[0], address);
     return branching("b.gt", splitted[0], offset);
 
 }
 char* ble (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address));
+    int offset = calculateOffset(splitted[0], address);
     return branching("b.le", splitted[0], offset);
 
 }
 char* bal (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address));
+    int offset = calculateOffset(splitted[0], address);
     return branching("b.al", splitted[0], offset);
 
 }

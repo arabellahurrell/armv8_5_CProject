@@ -7,8 +7,7 @@ int main(int argc, char **argv) {
 
     char** lines = readLinesFromFile(filename);  // Read lines from the specified file
 
-    for (int i = 0; i < getStringArrayLength(lines); i++) {
-
+    for (int i = 0; i < getStringArrayLength(lines) - 1; i++) {
         if (strcmp(lines[i], "and x0, x0, x0") == 0) {
             lines[i + 1] = '\0';  // Set the next line to null to effectively remove it
             break;  // Exit the loop since the desired condition is met
