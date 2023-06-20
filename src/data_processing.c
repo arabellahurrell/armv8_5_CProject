@@ -4,6 +4,9 @@
 
 // Function to shift bits based on shift type
 
+//sprintf(varInto, %0x6d, input)
+//strtol(input, NULL, 16)
+
 char* shiftBits(char* shiftType) {
     static char shifts[2];
     if (strcmp(shiftType, "lsl") == 0) {
@@ -53,7 +56,8 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
 
     if (op2[1] == 'x') {  // Check if op2 is a hexadecimal value
         op = binaryToDecimal(hexToBinary(op2));  // Convert hexadecimal to decimal
-        convert_op2 = truncateString(hexToBinary(op2), 12);  // Convert hexadecimal to 12-bit binary string
+        //convert_op2 = truncateString(hexToBinary(op2), 12);
+        convert_op2 = convert(intToString(strtol(op2, NULL, 16)), 12);// Convert hexadecimal to 12-bit binary string
         printf("hex op2 convert : %s\n", convert_op2);
         printf("op : %d\n", op);
     } else {
@@ -105,28 +109,39 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
 
 char* registerArithmetic(char* opcode, char* rd, char* rn, char* rm, char* shiftType, char* value) {
     printf("register arithmetic\n");
+    printf(" opcode : %s\n", opcode);
+    printf(" rd : %s\n", rd );
+    printf("rm  : %s\n", rm);
+    printf(" rn : %s\n", rn);
+    printf(" shiftType : %s\n", shiftType);
+    printf(" shift Amount : %s\n", value);
 
     // Allocate memory for the result string
     char* result = malloc(33 * sizeof(char));
+    if (!result) {
+        printf("malloc error\n");
+        fflush(stdout);
+    }
     result[0] = '\0';
 
     // Variable to store the converted value
     char* val;
 
-    // Check if the value is in hexadecimal format
-    if (value[1] == 'x') {
+    if(strcmp(value, "0") == 0) {
+        printf("value is 0\n");
+        fflush(stdout);
+        val = "000000";
+    } else if (value[1] == 'x') { // Check if the value is in hexadecimal format
         // Convert hexadecimal value to binary and truncate it to 6 bits
-        val = truncateString(hexToBinary(value), 6);
+        val = convert(intToString(strtol(value, NULL, 16)), 6);
+        //val = truncateString(hexToBinary(value), 6);
     } else {
         // Convert decimal value to binary representation with 6 bits
         val = convert(value, 6);
     }
 
-    // Print the binary representation of the value
-    printf(hexToBinary(value));
-
     // Concatenate the sign flag (SF) of the destination register to the result string
-    strcat(result, sf(rd));
+    strcat(result, sf(rn));
     printf("%s\n", result);
 
     // Concatenate the opcode to the result string
@@ -182,8 +197,10 @@ char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, ch
     if (imm[1] == 'x') {
         printf("hex value\n");
         // Convert hexadecimal value to 16-bit binary and perform shifting
-        imm16 = master(truncateString(hexToBinary(imm), 16), shiftType, shiftAmount);
-        printf("shifted : %s\n", master(hexToBinary(imm), shiftType, shiftAmount));
+        char* d = convert(intToString(strtol(imm, NULL, 16)), 16);
+        imm16 = master(d, shiftType, shiftAmount);
+        //imm16 = master(truncateString(hexToBinary(imm), 16), shiftType, shiftAmount);
+        printf("shifted : %s\n", imm16);
     } else {
         printf("%s\n", imm);
         printf("%s\n", convert(imm, 16));
@@ -298,7 +315,7 @@ char* logicalBitwise(char* mnemonic, char* rd, char* rn, char* rm, char* shiftTy
     if (!value) {
         v = "000000";  // Default value if not provided
     } else {
-        v = immHexToDenary(value, 6);  // Convert the value from hex to decimal
+        v = immHexToBinary(value, 6);  // Convert the value from hex/immediate to binary
     }
 
     char* N;
@@ -339,6 +356,7 @@ char* logicalBitwise(char* mnemonic, char* rd, char* rn, char* rm, char* shiftTy
     printf("rm converted: %s\n", registerConvert(rm));
     strcat(result, registerConvert(rm));  // Append the converted rm register
     printf("%s\n", result);
+    printf("value : %s\n", v);
     strcat(result, v);  // Append the value
     printf("%s\n", result);
     printf("rn : %s\n", rn);
@@ -476,13 +494,21 @@ char* eon (char* arguments, char* address) {
 }
 
 char* cmp (char* arguments, char* address) {
-    arguments = strcat("31 ", arguments);
-    return subs(arguments, address);
+    printf("inside cmp\n");
+    fflush(stdout);
+    char* args = malloc(strlen(arguments) + 3);
+    args[0] = '\0';
+    args = strcat(args, "31 ");
+    args = strcat(args, arguments);
+    return subs(args, address);
 }
 
 char* cmn (char* arguments, char* address) {
-    arguments = strcat("31 ", arguments);
-    return adds(arguments, address);
+    char* args = malloc(strlen(arguments) + 3);
+    args[0] = '\0';
+    args = strcat(args, "31 ");
+    args = strcat(args, arguments);
+    return adds(args, address);
 }
 
 char* neg (char* arguments, char* address) {
