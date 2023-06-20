@@ -128,6 +128,7 @@ void one_pass(char** instruction, char* name) {
             if (strcmp(" ", split[0]) == 0) {
                 printf("HIT");
             } else {
+                printf("FUNCTION SELECTOR\n");
                 printf("mnemonic: %s\n", split[0]);
                 printf("arguments: %s\n", split[1]);
                 char* result = functionSelector(split[0], split[1], decimalToHexadecimal(i));

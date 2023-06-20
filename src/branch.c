@@ -6,7 +6,8 @@
 char* branching(char* mnemonic, char* value, int offset) {
     char* encoding;
     if (strcmp(mnemonic, "b") == 0) {
-        char* res = convert(intToString(binaryToDecimal(hexToBinary(value)) + offset), 26);
+        //char* res = convert(intToString(binaryToDecimal(hexToBinary(value)) + offset), 26);
+        char* res = convert(offset, 26);
         char* result = malloc(33 * sizeof(char));
         result[0] = '\0';
 
@@ -19,7 +20,7 @@ char* branching(char* mnemonic, char* value, int offset) {
     } else {
         char* result = malloc(33 * sizeof(char));
         result[0] = '\0';
-        char* res = convert(intToString(binaryToDecimal(value) + offset), 19);
+        char* res = convert(offset, 19);
         if (strcmp(mnemonic, "b.eq") == 0) {
             encoding = "0000";
         } else if (strcmp(mnemonic, "b.ne") == 0) {
@@ -44,58 +45,53 @@ char* branching(char* mnemonic, char* value, int offset) {
     }
 }
 
-
 char* b (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    printf("address: %s\n", address);
-    printf("splitted[0]: %s\n", splitted[0]);
-    //int offset = binaryToDecimal(hexToBinary("0xd")) + binaryToDecimal(hexToBinary("0x4"));
-    int offset = binaryToDecimal(hexToBinary(address)) + binaryToDecimal(hexToBinary(splitted[0]));
-    printf("offset: %d\n", offset);
+    //int offset = binaryToDecimal(hexToBinary(address)) + binaryToDecimal(hexToBinary(splitted[0]));
+    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address))
     return branching("b", splitted[0], offset);
-
 }
 
 char* beq (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset = binaryToDecimal(hexToBinary(address)) - binaryToDecimal(hexToBinary(splitted[0]));
+    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address))
     return branching("b.eq", splitted[0], offset);
 
 }
 
 char* bne (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset = binaryToDecimal(hexToBinary(address)) - binaryToDecimal(hexToBinary(splitted[0]));
+    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address))
     return branching("b.ne", splitted[0], offset);
 
 }
 char* bge (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset = binaryToDecimal(hexToBinary(address)) - binaryToDecimal(hexToBinary(splitted[0]));
+    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address))
     return branching("b.ge", splitted[0], offset);
 
 }
 char* blt (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset = binaryToDecimal(hexToBinary(address)) - binaryToDecimal(hexToBinary(splitted[0]));
+    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address))
     return branching("b.lt", splitted[0], offset);
 
 }
 char* bgt (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset = binaryToDecimal(hexToBinary(address)) - binaryToDecimal(hexToBinary(splitted[0]));
+    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address))
     return branching("b.gt", splitted[0], offset);
 
 }
 char* ble (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset = binaryToDecimal(hexToBinary(address)) - binaryToDecimal(hexToBinary(splitted[0]));
+    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address))
     return branching("b.le", splitted[0], offset);
 
 }
 char* bal (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    int offset = binaryToDecimal(hexToBinary(address)) - binaryToDecimal(hexToBinary(splitted[0]));
+    int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address))
     return branching("b.al", splitted[0], offset);
 
 }
