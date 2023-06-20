@@ -16,7 +16,12 @@ char* branching(char* mnemonic, char* value, int offset) {
 
         return result;
     } else if (strcmp(mnemonic, "br") == 0) {
-        return strcat("1101011000011111000000", convert(intToString(offset), 26));
+        char* result = malloc(33 * sizeof(char));
+        result[0] = '\0';
+        strcat(result, "1101011000011111000000");
+        strcat(result, registerConvert(value));
+        strcat(result, "00000");
+        return result;
     } else {
         char* result = malloc(33 * sizeof(char));
         result[0] = '\0';
@@ -49,6 +54,10 @@ char* b (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
     //int offset = binaryToDecimal(hexToBinary(address)) + binaryToDecimal(hexToBinary(splitted[0]));
     int offset =  binaryToDecimal(hexToBinary(splitted[0])) - binaryToDecimal(hexToBinary(address));
+//    printf("first address: %d\n", binaryToDecimal(hexToBinary(splitted[0])));
+//    printf("second address: %d\n", binaryToDecimal(hexToBinary(address)));
+//    printf("%s\n", hexToBinary(splitted[0]));
+//    printf("OFFSET: %d\n", offset);
     return branching("b", splitted[0], offset);
 }
 
