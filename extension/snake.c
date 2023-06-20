@@ -102,7 +102,7 @@ void placeApple() {
     setBoardChar(applePos, APPLE);
 }
 
-void setupGame() {
+void resetGame() {
     // Reset global values
     alive = true;
     direction = RIGHT;
@@ -141,16 +141,24 @@ void detectInput() {
     }
     switch (key) {
         case 72:
-            direction = UP;
+            if (direction != DOWN) {
+                direction = UP;
+            }
             break;
         case 75:
-            direction = LEFT;
+            if (direction != RIGHT) {
+                direction = LEFT;
+            }
             break;
         case 77:
-            direction = RIGHT;
+            if (direction != LEFT) {
+                direction = RIGHT;
+            }
             break;
         case 80:
-            direction = DOWN;
+            if (direction != UP) {
+                direction = DOWN;
+            }
             break;
         default:
             break;
@@ -203,7 +211,7 @@ void nextState() {
 }
 
 int main() {
-    setupGame();
+    resetGame();
     displayBoard();
 
     while (alive) {
