@@ -11,9 +11,6 @@ Constants
 
 #define ROWS 12
 #define COLS 32
-#define START_LENGTH 1
-#define DIRECTION_INPUT 0xE0
-#define FRAME_DURATION 0.5
 
 char SNAKE_BODY = 'X';
 char SNAKE_HEAD = 'O';
@@ -44,7 +41,7 @@ struct SnakeUnit {
 struct Snake {
     struct SnakeUnit *head;
     struct SnakeUnit *tail;
-    int length;
+    int score;
 };
 
 /*
@@ -82,9 +79,10 @@ void initialiseBoard() {
     for (int row = 0; row < ROWS; row++) {
         for (int col = 0; col < COLS; col++) {
             struct Position pos = {row, col};
-            setBoardChar(pos, EMPTY);
             if (isWall(pos)) {
                 setBoardChar(pos, WALL);
+            } else {
+                setBoardChar(pos, EMPTY);
             }
         }
     }
@@ -107,11 +105,12 @@ void placeApple() {
 void setupGame() {
     // Reset global values
     alive = true;
+    direction = RIGHT;
     initialiseBoard();
     placeApple();
 
     // Setup snake
-    snake.length = START_LENGTH;
+    snake.score = 0;
     struct SnakeUnit *head = malloc(sizeof(struct SnakeUnit));
     head->pos.row = ROWS / 2;
     head->pos.col = 1;
@@ -121,7 +120,7 @@ void setupGame() {
 }
 
 void displayBoard() {
-    system("cls");
+    printf("\e[1;1H\e[2J");
     for (int i = 0; i < ROWS; i++) {
         char row[COLS + 1];
         row[COLS] = '\0';
@@ -131,42 +130,38 @@ void displayBoard() {
 }
 
 void displayScore() {
-    printf("You scored %i!\n", snake.length);
+    printf("You scored %i!\n", snake.score);
 }
 
 // Function to take the input
 void detectInput() {
-    if (kbhit()) {
-        int key = getch();
-        if (key == DIRECTION_INPUT) {
-            do {
-                key = getch();
-            } while (key == DIRECTION_INPUT);
-
-            switch (key) {
-                case 72:
-                    direction = UP;
-                    break;
-                case 75:
-                    direction = LEFT;
-                    break;
-                case 77:
-                    direction = RIGHT;
-                    break;
-                case 80:
-                    direction = DOWN;
-                    break;
-                case 'x':
-                    alive = false;
-                    break;
-            }
-        }
+    int key = 0;
+    while (kbhit()) {
+        key = getch();
+    }
+    switch (key) {
+        case 72:
+            direction = UP;
+            break;
+        case 75:
+            direction = LEFT;
+            break;
+        case 77:
+            direction = RIGHT;
+            break;
+        case 80:
+            direction = DOWN;
+            break;
+        default:
+            break;
     }
 }
 
 void nextState() {
     struct SnakeUnit *newHead = malloc(sizeof(struct SnakeUnit));
     struct Position pos = snake.head->pos;
+
+    // Determine next head position
     switch (direction) {
         case RIGHT:
             newHead->pos.col = pos.col + 1;
@@ -178,32 +173,32 @@ void nextState() {
             break;
         case UP:
             newHead->pos.col = pos.col;
-            newHead->pos.row = pos.row + 1;
+            newHead->pos.row = pos.row - 1;
             break;
         case DOWN:
             newHead->pos.col = pos.col;
-            newHead->pos.row = pos.row - 1;
+            newHead->pos.row = pos.row + 1;
             break;
     }
-    snake.head->next = newHead;
-    setBoardChar(snake.head->pos, SNAKE_BODY);
-    setBoardChar(newHead->pos, SNAKE_HEAD);
-    snake.head = newHead;
 
-    if (getBoardChar(snake.head->pos) == APPLE) {
+    char newHeadChar = getBoardChar(newHead->pos);
+    snake.head->next = newHead;
+    snake.head = newHead;
+    setBoardChar(snake.head->pos, SNAKE_HEAD);
+    setBoardChar(pos, SNAKE_BODY);
+
+    if (newHeadChar == APPLE) { // Hit an Apple
+        snake.score++;
         placeApple();
-        snake.length++;
     } else {
+        if (isWall(newHead->pos) || newHeadChar == SNAKE_BODY) { // Dead
+            alive = false;
+        }
+        // Update tail
         struct SnakeUnit *newTail = snake.tail->next;
         setBoardChar(snake.tail->pos, EMPTY);
         free(snake.tail);
         snake.tail = newTail;
-    }
-}
-
-void detectDeath() {
-    if (isWall(snake.head->pos) || getBoardChar(snake.head->pos) != ' ') {
-        alive = false;
     }
 }
 
@@ -214,9 +209,8 @@ int main() {
     while (alive) {
         detectInput();
         nextState();
-        detectDeath();
         displayBoard();
-        usleep(500000);
+        usleep(100000);
     }
 
     displayScore();
