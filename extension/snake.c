@@ -9,8 +9,8 @@
 Constants
 */
 
-#define ROWS 12
-#define COLS 32
+#define ROWS 15
+#define COLS 15
 
 char SNAKE_BODY = 'X';
 char SNAKE_HEAD = 'O';
@@ -52,8 +52,8 @@ char board[ROWS][COLS];
 enum Direction direction;
 struct Position applePos;
 bool alive;
-bool firstGame = 1;
-bool newGame = 1;
+bool firstGame = true;
+bool newGame = true;
 int highscore = 0;
 
 /*
@@ -76,7 +76,7 @@ bool isWall(struct Position pos) {
 Game Functions
 */
 
-// Intialise an empty board with a wall border
+// Initialise an empty board with a wall border
 void initialiseBoard() {
     for (int row = 0; row < ROWS; row++) {
         for (int col = 0; col < COLS; col++) {
@@ -100,10 +100,9 @@ void placeApple() {
         applePos.col = col;
     } while (getBoardChar(applePos) != ' ');
 
-    // Place apple
+    // Place the apple
     setBoardChar(applePos, APPLE);
 }
-
 
 void resetGame() {
     // Reset global values
@@ -124,39 +123,25 @@ void resetGame() {
 
 void displayBoard() {
     printf("\e[1;1H\e[2J");
-    for (int i = 0; i < ROWS; i++) {
-        char row[COLS + 1];
-        row[COLS] = '\0';
-        strncpy(row, board[i], COLS);
-        printf("%s\n", row);
+    for (int row = 0; row < ROWS; row++) {
+        for (int col = 0; col < COLS; col++) {
+            printf(" %c ", board[row][col]);
+        }
+        printf("\n");
     }
 }
 
 void displayScore() {
-    printf("You scored %i!\n", snake.score);
-}
-
-void highScore() {
+    // Display score
+    if (snake.score > 0) {
+        printf("You scored %i!\n", snake.score);
+    }
+    // Display the high score
     if (snake.score > highscore) {
         highscore = snake.score;
-    }
-    printf("Highscore: %i\n", highscore);
-}
-
-void setUpGame() {
-    char ignoreInput[1000];
-    if (firstGame) {
-        displayBoard();
-        printf("Press enter to start.");
-        while (getch() != 13) {
-            usleep(10000);
-        }
-        firstGame = 0;
+        printf("New highscore: %i\n", highscore);
     } else {
-        printf("Press enter to start replay.");
-        while (getch() != 13) {
-            usleep(10000);
-        }
+        printf("Highscore: %i\n", highscore);
     }
 }
 
@@ -226,7 +211,7 @@ void nextState() {
         snake.score++;
         placeApple();
     } else {
-        if (isWall(newHead->pos) || newHeadChar == SNAKE_BODY) { // Dead
+        if (isWall(newHead->pos) || newHeadChar == SNAKE_BODY) { // Died
             alive = false;
         }
         // Update tail
@@ -238,9 +223,14 @@ void nextState() {
 }
 
 int main() {
-
-    while (newGame) {
-        setUpGame();
+    while (true) {
+        char input;
+        printf("Press Enter to play%s ", firstGame ? "" : " again or x to exit");
+        firstGame = false;
+        scanf("%c", &input);
+        if (input == 'x') {
+            return EXIT_SUCCESS;
+        }
 
         resetGame();
         displayBoard();
@@ -253,7 +243,5 @@ int main() {
         }
 
         displayScore();
-        highScore();
     }
-    return EXIT_SUCCESS;
 }
