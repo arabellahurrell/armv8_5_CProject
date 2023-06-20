@@ -34,7 +34,6 @@ struct Position {
 struct SnakeUnit {
     struct Position pos;
     struct SnakeUnit *next;
-    struct SnakeUnit *prev;
 };
 
 // Encapsulates the state of the snake
@@ -55,6 +54,7 @@ struct Position applePos;
 bool alive;
 bool firstGame = 1;
 bool newGame = 1;
+int highscore = 0;
 
 /*
 Helper Functions
@@ -134,6 +134,13 @@ void displayBoard() {
 
 void displayScore() {
     printf("You scored %i!\n", snake.score);
+}
+
+void highScore() {
+    if (snake.score > highscore) {
+        highscore = snake.score;
+    }
+    printf("Highscore: %i\n", highscore);
 }
 
 void setUpGame() {
@@ -246,6 +253,7 @@ int main() {
         }
 
         displayScore();
+        highScore();
     }
     return EXIT_SUCCESS;
 }
