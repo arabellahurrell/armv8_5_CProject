@@ -33,7 +33,7 @@ char *registerOffset(char *rt, char *xn, char *xm, char *l) {
 char *indexedOffset(char *rt, char *xn, char *value, char *l, char *i) {
     char *result = malloc(33 * sizeof(char));
     result[0] = '\0';
-    char *v = immHexToDenary(value, 9);
+    char *v = immHexToBinary(value, 9);
 
     // Concatenate the binary representation for the indexed offset instruction
     strcat(result, "1");                   // Bit 31: Always 1
@@ -53,7 +53,7 @@ char *indexedOffset(char *rt, char *xn, char *value, char *l, char *i) {
 char *unsignedOffset(char *rt, char *xn, char *value, char *l) {
     char *result = malloc(33 * sizeof(char));
     result[0] = '\0';
-    char *val = immHexToDenary(value, 12);
+    char *val = immHexToBinary(value, 12);
 
     // Concatenate the binary representation for the unsigned offset instruction
     strcat(result, "1");               // Bit 31: Always 1
@@ -70,7 +70,7 @@ char *unsignedOffset(char *rt, char *xn, char *value, char *l) {
 char *loadLiteral(char *rt, char *value) {
     char *result = malloc(33 * sizeof(char));
     result[0] = '\0';
-    char *val = immHexToDenary(value, 19);
+    char *val = immHexToBinary(value, 19);
 
     // Concatenate the binary representation for the load literal instruction
     strcat(result, "0");                   // Bit 31: Always 0

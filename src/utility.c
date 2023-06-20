@@ -2,6 +2,46 @@
 // Created by Arabella Hurrell on 05/06/2023.
 
 // Converts a character to a string
+
+char *truncateString(const char *str, int length) {
+    int strLength = strlen(str);
+    if (strLength > length) {
+        // Remove extra leading zeros if the original string is larger
+        // than the desired size
+        int leadingZeros = 0;
+        int i = 0;
+        while (str[i] == '0' && i < strLength) {
+            leadingZeros++;
+            i++;
+        }
+
+        char *truncatedStr = malloc((length + 1) * sizeof(char));
+
+        // if (leadingZeros > 1) {
+        //     leadingZeros = 1;
+        // }
+        leadingZeros--;
+
+        strncpy(truncatedStr, str + leadingZeros, length);
+        truncatedStr[length] = '\0';
+        return truncatedStr;
+    } else {
+        // Add leading zeros
+        int leadingZeros = length - strLength;
+        int newLength = strLength + leadingZeros;
+
+        char *truncatedStr = malloc((newLength + 1) * sizeof(char));
+
+        for (int i = 0; i < leadingZeros; i++) {
+            truncatedStr[i] = '0';
+        }
+
+        strncpy(truncatedStr + leadingZeros, str, strLength);
+        truncatedStr[newLength] = '\0';
+        return truncatedStr;
+    }
+}
+
 char *charToString(char c) {
     char *str = malloc(2 * sizeof(char));
     str[0] = c;
@@ -114,16 +154,18 @@ char *convert(char *denary, int numBits) {
         return NULL;
     }
 
-    // Copy binaryString to binary array, adding leading zeros if necessary
-    for (int i = 0; i < numBits; i++) {
+    binary = truncateString(binaryString, numBits);
 
-        fflush(stdout);
-        if (i < effectiveBits) {
-            binary[i] = binaryString[i];
-        } else {
-            binary[i] = '0';
-        }
-    }
+    // Copy binaryString to binary array, adding leading zeros if necessary
+//    for (int i = 0; i < numBits; i++) {
+//
+//        fflush(stdout);
+//        if (i < effectiveBits) {
+//            binary[i] = binaryString[i];
+//        } else {
+//            binary[i] = '0';
+//        }
+//    }
 
     binary[numBits] = '\0';
     free(binaryString); // Free the memory allocated for binaryString
@@ -151,44 +193,7 @@ char *convert(char *denary, int numBits) {
 //}
 
 
-char *truncateString(const char *str, int length) {
-    int strLength = strlen(str);
-    if (strLength > length) {
-        // Remove extra leading zeros if the original string is larger
-        // than the desired size
-        int leadingZeros = 0;
-        int i = 0;
-        while (str[i] == '0' && i < strLength) {
-            leadingZeros++;
-            i++;
-        }
 
-        char *truncatedStr = malloc((length + 1) * sizeof(char));
-
-        // if (leadingZeros > 1) {
-        //     leadingZeros = 1;
-        // }
-        leadingZeros--;
-
-        strncpy(truncatedStr, str + leadingZeros, length);
-        truncatedStr[length] = '\0';
-        return truncatedStr;
-    } else {
-        // Add leading zeros
-        int leadingZeros = length - strLength;
-        int newLength = strLength + leadingZeros;
-
-        char *truncatedStr = malloc((newLength + 1) * sizeof(char));
-
-        for (int i = 0; i < leadingZeros; i++) {
-            truncatedStr[i] = '0';
-        }
-
-        strncpy(truncatedStr + leadingZeros, str, strLength);
-        truncatedStr[newLength] = '\0';
-        return truncatedStr;
-    }
-}
 
 char *sf(char *reg) {
     char *x;
@@ -378,10 +383,11 @@ char *registerConvert(char *r) {
     }
 }
 
-char *immHexToDenary(char *value, int x) {
+char *immHexToBinary(char *value, int x) {
     char *v = malloc((x + 1) * sizeof(char));
     if (value[1] == 'x') {
-        v = truncateString(hexToBinary(value), x);
+        v = convert(intToString(strtol(value, NULL, 16)), x);
+        //v = truncateString(hexToBinary(value), x);
     } else {
         v = convert(value, x);
     }

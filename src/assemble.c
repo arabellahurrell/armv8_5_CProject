@@ -2,8 +2,8 @@
 #include "assemble.h"
 
 int main(int argc, char **argv) {
-    const char* filename = argv[1];  // Get the filename from command line argument
-//    const char* filename = "add02.s";  // Alternatively, set the filename directly
+   const char* filename = argv[1];  // Get the filename from command line argument
+    //const char* filename = "add02.s";  // Alternatively, set the filename directly
 
     char** lines = readLinesFromFile(filename);  // Read lines from the specified file
 
