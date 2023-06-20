@@ -20,7 +20,7 @@ char* branching(char* mnemonic, char* value, int offset) {
     } else {
         char* result = malloc(33 * sizeof(char));
         result[0] = '\0';
-        char* res = convert(offset, 19);
+        char* res = convert(intToString(offset), 19);
         if (strcmp(mnemonic, "b.eq") == 0) {
             encoding = "0000";
         } else if (strcmp(mnemonic, "b.ne") == 0) {
