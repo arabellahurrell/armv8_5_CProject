@@ -412,6 +412,21 @@ int calculateOffset(char *label_address, char *branch_address) {
     return offset;
 }
 
+char* replaceLabel(char *instruction, char *label, char *labelAddress) {
+    char **splitted = splitStringOnWhitespace(instruction);
+    for (int i = 0; i < getStringArrayLength(splitted); i++) {
+        if (strcmp(label, splitted[i]) == 0) {
+            splitted[i] = labelAddress;
+        }
+    }
+    char* result = "\0";
+    for (int i = 0; i < getStringArrayLength(splitted); i++) {
+        strcat(splitted[i], result);
+    }
+
+    return result;
+}
+
 //char* twosComplement(int value) {
 //    printf("offset in function %d\n", value);
 //    if (value < 0) {
