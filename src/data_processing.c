@@ -9,7 +9,7 @@
 
 char* shiftBits(char* shiftType) {
     static char shifts[2];
-    if (strcmp(shiftType, "lsl") == 0) {
+    if (strcmp(shiftType, "lsl") == 0 || strcmp(shiftType, "LSL") == 0) {
         shifts[0] = '0';  // Set the shift bits to "00" for logical shift left
         shifts[1] = '0';
     } else if (strcmp(shiftType, "lsr") == 0) {
@@ -40,6 +40,7 @@ char* hw(char* size) {
 
 // Function for normal arithmetic operations
 char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, char* shiftAmount) {
+    //toLowerCase(shiftType);
     printf("normal arithmetic\n");
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
@@ -80,7 +81,7 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
         master_result  = convert_op2;
         printf("master 2 : %s\n", master_result);
     }
-    if ((strcmp(shiftType, "lsl") == 0 || strcmp(shiftType, "asl") == 0) && atoi(shiftAmount) % 16 >= 12) {
+    if ((strcmp(shiftType, "lsl") == 0 || strcmp(shiftType, "asl") == 0 || (strcmp(shiftType, "LSL") == 0)) && atoi(shiftAmount) % 16 >= 12) {
         sh = "1";
     } else {
         sh = "0";
@@ -338,7 +339,7 @@ char* logicalBitwise(char* mnemonic, char* rd, char* rn, char* rm, char* shiftTy
     }
 
     char* result = malloc(33 * sizeof(char));
-    strcat(result, sf(rd));  // Append the condition code for the destination register
+    strcat(result, sf(rn));  // Append the condition code for the destination register
     printf("%s\n", result);
     strcat(result, opcode);  // Append the opcode
     printf("%s\n", result);
@@ -458,6 +459,9 @@ char* and (char* arguments, char* address) {
 
 char* ands (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
+    for(int i = 0; i < getStringArrayLength(splitted); i++) {
+        printf("%s\n", splitted[i]);
+    }
     return logicalBitwise("ands",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
 }
 
@@ -526,8 +530,11 @@ char* negs (char* arguments, char* address) {
 }
 
 char* tst (char* arguments, char* address) {
-    arguments = strcat("31 ", arguments);
-    return ands(arguments, address);
+    char* args = malloc(strlen(arguments) + 3);
+    args[0] = '\0';
+    args = strcat(args, "31 ");
+    args = strcat(args, arguments);
+    return ands(args, address);
 }
 
 char* mvn (char* arguments, char* address) {
@@ -539,12 +546,12 @@ char* mvn (char* arguments, char* address) {
 
 char* mov (char* arguments, char* address) {
     char** split = splitStringOnFirstSpace(arguments);
-    for (int i = 0; i < getStringArrayLength(split); i++) {
-        printf("%s\n", split[i]);
-    }
+    printf("pre strcat\n");
     fflush(stdout);
     arguments = strcat(split[0], " 31 ");
     arguments = strcat(arguments, split[1]);
+    printf("post strcat\n");
+    fflush(stdout);
     return orr(arguments, address);
 }
 

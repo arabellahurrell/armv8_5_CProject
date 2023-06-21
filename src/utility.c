@@ -197,7 +197,7 @@ char *convert(char *denary, int numBits) {
 
 char *sf(char *reg) {
     char *x;
-    if (reg[0] == 'x') {
+    if (tolower(reg[0]) == 'x') {
         x = "1";
     } else {
         x = "0";
@@ -410,6 +410,36 @@ int calculateOffset(char *label_address, char *branch_address) {
     }
     int offset =  (x - y)/4;
     return offset;
+}
+
+int countLinesInFile(const char* filename) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Failed to open the file.\n");
+        return -1;  // Return -1 to indicate an error
+    }
+
+    int count = 0;
+    int lastNonEmptyLine = 0;  // Index of the last non-empty line
+    char buffer[256];  // Buffer to store each line
+
+    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+        if (buffer[0] != '\n') {
+            count++;  // Increment count for non-empty lines
+            lastNonEmptyLine = count;  // Update the last non-empty line index
+        } else {
+            //count++;  // Increment count for empty lines
+        }
+    }
+
+    fclose(file);
+    return lastNonEmptyLine;
+}
+
+void toLowerCase(char* str) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        str[i] = tolower(str[i]);
+    }
 }
 
 //char* twosComplement(int value) {
