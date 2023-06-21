@@ -4,84 +4,98 @@
 #include <conio.h>
 #include <unistd.h>
 #include <math.h>
+#include <time.h>
 
 /*
-Constants
-*/
+ * Constants
+ */
 
+// Customisable
 #define ROWS 15
 #define COLS 15
-#define CLEAR_SCREEN "\033[1;1H\033[2J"
+#define INITIAL_SLEEP_DURATION 150000
+#define SPEED_MULTIPLIER 0.98
 #define SNAKE_BODY 'X'
 #define SNAKE_HEAD 'O'
 #define WALL '+'
 #define EMPTY ' '
 #define APPLE 'A'
+
+// Constant
 #define UP_ARROW 72
 #define LEFT_ARROW 75
 #define RIGHT_ARROW 77
 #define DOWN_ARROW 80
-#define INITIAL_SLEEP_DURATION 150000
-#define SPEED_MULTIPLIER 0.99
+#define CLEAR_SCREEN "\033[1;1H\033[2J"
 
 /*
-Structures
-*/
+ * Structures
+ */
 
 enum Direction {
     UP, DOWN, LEFT, RIGHT
 };
 
+// A position of {0, 0} indicates the top left hand corner of the board
 struct Position {
     int row, col;
 };
 
-// A Single unit of the snake
-struct SnakeUnit {
+// A single unit of the snake represented as a linked list node
+struct SnakeNode {
     struct Position pos;
-    struct SnakeUnit *next;
+    struct SnakeNode *next;
 };
 
 // Encapsulates the state of the snake
-struct Snake {
-    struct SnakeUnit *head;
-    struct SnakeUnit *tail;
+// Inspired by linked list implementation
+struct SnakeList {
+    struct SnakeNode *head;
+    struct SnakeNode *tail;
     int score;
 };
 
 /*
-Global Variables
-*/
+ * Global Variables
+ */
 
-struct Snake snake;
+// Game variables
+struct SnakeList snake;
 char board[ROWS][COLS];
 enum Direction direction;
 struct Position applePos;
-bool alive;
 int sleepDuration;
+bool alive;
+int loops;
+
+// Summary variables
 bool firstGame = true;
-int highscore = 0;
+int highScore = 0;
+int highSkillLevel = 0;
 
 /*
-Helper Functions
-*/
+ * Helper Functions
+ */
 
+// Sets a character of the game board
 void setBoardChar(struct Position pos, char ch) {
     board[pos.row][pos.col] = ch;
 }
 
+// Returns a character of the game board
 char getBoardChar(struct Position pos) {
     return board[pos.row][pos.col];
 }
 
+// Returns true if the current position of the snake is at a wall
 bool isWall(struct Position pos) {
-    return pos.row == 0 || pos.row == ROWS - 1 || pos.col == 0 ||
-           pos.col == COLS - 1;
+    return pos.row == 0 || pos.row == ROWS - 1 ||
+           pos.col == 0 || pos.col == COLS - 1;
 }
 
 /*
-Game Functions
-*/
+ * Game Functions
+ */
 
 // Initialise an empty board with a wall border
 void initialiseBoard() {
@@ -101,7 +115,6 @@ void placeApple() {
     // Generate random position
     do {
         int row = (rand() % (ROWS - 2)) + 1;
-        // HAS THE SAME SEQUENCE OF NUMBERS EVERY TIME!!!!
         int col = (rand() % (COLS - 2)) + 1;
         applePos.row = row;
         applePos.col = col;
@@ -114,6 +127,7 @@ void placeApple() {
 void resetGame() {
     // Reset global values
     alive = true;
+    loops = 0;
     direction = RIGHT;
     sleepDuration = INITIAL_SLEEP_DURATION;
     initialiseBoard();
@@ -121,7 +135,7 @@ void resetGame() {
 
     // Setup snake
     snake.score = 0;
-    struct SnakeUnit *head = malloc(sizeof(struct SnakeUnit));
+    struct SnakeNode *head = malloc(sizeof(struct SnakeNode));
     head->pos.row = ROWS / 2;
     head->pos.col = 1;
     snake.head = head;
@@ -130,7 +144,10 @@ void resetGame() {
 }
 
 void displayBoard() {
+    // Clears console of previous output
     printf(CLEAR_SCREEN);
+
+    // Prints board border
     for (int row = 0; row < ROWS; row++) {
         for (int col = 0; col < COLS; col++) {
             printf(" %c ", board[row][col]);
@@ -139,21 +156,7 @@ void displayBoard() {
     }
 }
 
-void displayScore() {
-    // Display score
-    if (snake.score > 0) {
-        printf("You scored %i!\n", snake.score);
-    }
-    // Display the high score
-    if (snake.score > highscore) {
-        highscore = snake.score;
-        printf("New highscore: %i\n", highscore);
-    } else {
-        printf("Highscore: %i\n", highscore);
-    }
-}
-
-// Function to take the input
+// Function to take the input from the arrow keys
 void detectInput() {
     int key = 0;
     while (kbhit()) {
@@ -186,7 +189,9 @@ void detectInput() {
 }
 
 void nextState() {
-    struct SnakeUnit *newHead = malloc(sizeof(struct SnakeUnit));
+    loops++;
+
+    struct SnakeNode *newHead = malloc(sizeof(struct SnakeNode));
     struct Position pos = snake.head->pos;
 
     // Determine next head position
@@ -209,6 +214,7 @@ void nextState() {
             break;
     }
 
+    // Update head
     char newHeadChar = getBoardChar(newHead->pos);
     snake.head->next = newHead;
     snake.head = newHead;
@@ -224,26 +230,69 @@ void nextState() {
             alive = false;
         }
         // Update tail
-        struct SnakeUnit *newTail = snake.tail->next;
+        struct SnakeNode *newTail = snake.tail->next;
         setBoardChar(snake.tail->pos, EMPTY);
         free(snake.tail);
-        snake.tail = newTail;
+        snake.tail = (struct SnakeNode *) newTail;
     }
 }
 
+void displayResults() {
+    printf("\n");
+    // Score
+    if (snake.score > 0) {
+        printf("You scored %i!\n", snake.score);
+    } else {
+        printf("You scored 0. Oh dear.\n");
+    }
+
+    // High score
+    if (snake.score > highScore) {
+        highScore = snake.score;
+        printf("New high score!\n");
+    } else {
+        printf("High score: %i\n", highScore);
+    }
+
+    // Skill level indicates how quickly you navigate to apples
+    int skillLevel = 100 * ((int) pow(snake.score, 2)) / loops;
+    printf("Skill level: %i\n", skillLevel);
+
+    if (skillLevel > highSkillLevel) {
+        highSkillLevel = skillLevel;
+        printf("New high skill level!\n");
+    } else {
+        printf("High skill level: %i\n", skillLevel);
+    }
+    printf("\n");
+}
+
+// Return true iff the user wants to play
+bool detectPlay() {
+    int input, temp;
+    printf("Press Enter to play%s > ",
+           firstGame ? "" : " again or x to exit");
+    firstGame = false;
+    while ((temp = getchar()) != '\n') {
+        input = temp;
+    }
+    return input != 'x';
+}
+
+/*
+ * Main play loop
+ */
+
 int main() {
+    // Set random seed
+    srand(time(NULL));
+
     for (;;) {
-        char input;
-        printf("Press Enter to play%s ",
-               firstGame ? "" : " again or x to exit");
-        firstGame = false;
-        scanf("%c", &input);
-        if (input == 'x') {
+        if (!detectPlay()) {
             return EXIT_SUCCESS;
         }
 
         resetGame();
-        displayBoard();
 
         while (alive) {
             detectInput();
@@ -252,6 +301,6 @@ int main() {
             usleep(sleepDuration);
         }
 
-        displayScore();
+        displayResults();
     }
 }
