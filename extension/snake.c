@@ -246,6 +246,10 @@ void displayResults() {
         printf("You scored 0. Oh dear.\n");
     }
 
+    // Skill level indicates how quickly you navigate to apples
+    int skillLevel = 100 * ((int) pow(snake.score, 2)) / loops;
+    printf("Your skill level was %i!\n", skillLevel);
+
     // High score
     if (snake.score > highScore) {
         highScore = snake.score;
@@ -253,10 +257,6 @@ void displayResults() {
     } else {
         printf("High score: %i\n", highScore);
     }
-
-    // Skill level indicates how quickly you navigate to apples
-    int skillLevel = 100 * ((int) pow(snake.score, 2)) / loops;
-    printf("Skill level: %i\n", skillLevel);
 
     if (skillLevel > highSkillLevel) {
         highSkillLevel = skillLevel;
