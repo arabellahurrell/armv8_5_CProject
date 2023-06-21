@@ -88,8 +88,6 @@ void one_pass(char **instruction, char *name) {
             label_name[strlen(label_name) - 1] = '\0'; // get rid of : from label
             pass.label = label_name;
             char *res = decimalToHexadecimal(4 * line_counter);
-            printf("-----------------------------------------\n");
-            printf("res: %s\n", res);
             int length = strlen(res);
             char *address = malloc((length + 3) * sizeof(char));
             address[0] = '\0';
@@ -115,15 +113,17 @@ void one_pass(char **instruction, char *name) {
 
         printf("instruction : %s\n", instruction[i]);
         if (isLabel(instruction[i])) {
-            printf("is label\n");
             instruction[i][strlen(instruction[i]) - 1] = '\0';
         } else if (isDirective(instruction[i])) {
-            printf("is directive\n");
             char **splitted = splitStringOnWhitespace(instruction[i]);
             writeStringToFile(name, immHexToBinary(splitted[1],32));
             line_counter += 1;
         } else {
             for (int j = 0; j < num; j++) {
+                printf("-------------------------------------------------\n");
+                printf("current label: %s\n", passone[j].label);
+                printf("current label address: %s\n", passone[j].address);
+                // instruction[i] = replaceLabel(instruction[i], passone[j].label, passone[j].address);
                 if (isSubstringInString(instruction[i], passone[j].label)) {
                     printf("in the replace if\n");
                     printf("%s\n", instruction[i]);
