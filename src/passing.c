@@ -123,7 +123,7 @@ void one_pass(char **instruction, char *name) {
                 printf("-------------------------------------------------\n");
                 printf("current label: %s\n", passone[j].label);
                 printf("current label address: %s\n", passone[j].address);
-                //instruction[i] = replaceLabel(instruction[i], passone[j].label, passone[j].address);
+                // instruction[i] = replaceLabel(instruction[i], passone[j].label, passone[j].address);
                 if (isSubstringInString(instruction[i], passone[j].label)) {
                     printf("in the replace if\n");
                     printf("%s\n", instruction[i]);
