@@ -1,13 +1,13 @@
-movz x2,#5
-wait:
-sub x2,x2,#1
-movz x1,#10
-wait1:
-sub x1,x1,#1
-cmp x1,x2
-b.ne wait1
-cmp x2,#0
-b.ne wait
-
+ldr x0, L1
+ldr x0, L1
 
 and x0, x0, x0
+
+L1:
+.int 0x1
+L2:
+.int 0x2
+L3:
+.int 0x3
+L4:
+.int 0x4

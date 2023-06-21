@@ -211,7 +211,6 @@ int immOrHex(char *str) {
         return 0;
     }
     if (str[1] == 'x') {
-        //printf("HEX VALUE: %d\n", binaryToDecimal(hexToBinary(str)));
         return binaryToDecimal(hexToBinary(str));
     } else {
 //        char* res = malloc(strlen(str) - 1);
@@ -376,7 +375,6 @@ char **splitStringOnFirstSpace(const char *input) {
 
 char *registerConvert(char *r) {
     if (strcmp(r, "xzr") == 0 || strcmp(r, "wzr") == 0) {
-        printf("is a zero register\n");
         return "11111";
     } else {
         return convert(r, 5);
@@ -436,28 +434,38 @@ int countLinesInFile(const char* filename) {
     return lastNonEmptyLine;
 }
 
-void toLowerCase(char* str) {
-    for (int i = 0; str[i] != '\0'; i++) {
-        str[i] = tolower(str[i]);
+char* replaceWord(const char* sentence, const char* wordToReplace, const char* newWord) {
+    const char* delimiter = " ,";
+    char* result = NULL;
+    char* token;
+    char* rest = strdup(sentence);
+
+    while ((token = strtok_r(rest, delimiter, &rest))) {
+        if (strcmp(token, wordToReplace) == 0) {
+            if (result == NULL) {
+                result = strdup(newWord);
+            } else {
+                size_t currentLen = strlen(result);
+                size_t newLen = currentLen + strlen(newWord) + 1;
+                result = realloc(result, newLen);
+                strcat(result, " ");
+                strcat(result, newWord);
+            }
+        } else {
+            if (result == NULL) {
+                result = strdup(token);
+            } else {
+                size_t currentLen = strlen(result);
+                size_t tokenLen = strlen(token);
+                size_t newLen = currentLen + tokenLen + 1;
+                result = realloc(result, newLen);
+                strcat(result, " ");
+                strcat(result, token);
+            }
+        }
     }
+
+    return result;
 }
 
-//char* twosComplement(int value) {
-//    printf("offset in function %d\n", value);
-//    if (value < 0) {
-//        printf("in the if statement");
-//        char* result = convert(intToString(value), 19);
-//        printf(result);
-//        for (int i = 0; i < strlen(result); i++) {
-//            if (result[i] == '1') {
-//                result[i] = '0';
-//            } else {
-//                result[i] = '1';
-//            }
-//        }
-//        printf(result);
-//        return convert(intToString(binaryToDecimal(result) + 1), 19);
-//    } else {
-//        return convert(intToString(value), 19);
-//    }
-//}
+

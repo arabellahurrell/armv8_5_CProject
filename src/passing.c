@@ -11,7 +11,6 @@ void writeStringToFile(char *fileName, const char *str) {
         printf("Unable to open the file.\n");
         return;
     }
-    printf("FINAL RESULT: %s\n", str);
     int x = strtoul(str, NULL, 2);
     fwrite(&x, sizeof(x), 1, file);
     fclose(file);
@@ -25,7 +24,6 @@ struct passOne {
 
 
 bool isLabel(char *instruction) {
-    printf("instruction: %c\n", instruction[strlen(instruction) - 1]);
     return instruction[strlen(instruction) - 1] == ':';
 }
 
@@ -57,22 +55,10 @@ char *functionSelector(char *mnemonic, char *arguments, char *address) {
         }
     }
     return NULL;
-//    unsigned int ch, a = 15, b = 10;
-//
-//    printf("Enter Choice: 0 for add, 1 for subtract and 2 "
-//           "for multiply\n");
-//    scanf("%d", &ch);
-//
-//    if (ch > 2) return 0;
-//
-//    (*fun_ptr_arr[ch])(a, b);
-//
-//    return 0;
 }
 
 
 void one_pass(char **instruction, char *name) {
-//    FILE* file = fopen(name, "wb");
     int capacity = 2;
     int num = 0;
     struct passOne *passone = (struct passOne *) malloc(
@@ -80,9 +66,6 @@ void one_pass(char **instruction, char *name) {
     int line_counter = 0;
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
         if (isLabel(instruction[i])) {
-
-            //instruction[i][strlen(instruction[i]) -1] = '\0';
-            //char** x = strtok(instruction[i], ":");
             struct passOne pass;
             char* label_name = instruction[i];
             label_name[strlen(label_name) - 1] = '\0'; // get rid of : from label
@@ -91,7 +74,6 @@ void one_pass(char **instruction, char *name) {
             int length = strlen(res);
             char *address = malloc((length + 3) * sizeof(char));
             address[0] = '\0';
-            //strcat(address, "0x");
             pass.address = strcat(address, res);
             passone[num] = pass;
             num++;
@@ -110,8 +92,6 @@ void one_pass(char **instruction, char *name) {
 
     line_counter = 0;
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
-
-        printf("instruction : %s\n", instruction[i]);
         if (isLabel(instruction[i])) {
             instruction[i][strlen(instruction[i]) - 1] = '\0';
         } else if (isDirective(instruction[i])) {
@@ -120,32 +100,15 @@ void one_pass(char **instruction, char *name) {
             line_counter += 1;
         } else {
             for (int j = 0; j < num; j++) {
-                printf("-------------------------------------------------\n");
-                printf("current label: %s\n", passone[j].label);
-                printf("current label address: %s\n", passone[j].address);
-                // instruction[i] = replaceLabel(instruction[i], passone[j].label, passone[j].address);
-                if (isSubstringInString(instruction[i], passone[j].label)) {
-                    printf("in the replace if\n");
-                    printf("%s\n", instruction[i]);
-                    printf("%s\n", passone[j].address);
-                    instruction[i] = replaceSubstring(instruction[i],
-                                                      passone[j].label,
-                                                      passone[j].address);
-                    printf("instruction after being replaced : %s\n", instruction[i]);
-                }
-
+                instruction[i] = replaceWord(instruction[i], passone[j].label, passone[j].address);
             }
             char **split = splitStringOnFirstSpace(instruction[i]);
 
             if (strcmp(" ", split[0]) == 0 || split[0][0] == '0') {
-                printf("in if\n");
-                fflush(stdout);
+
             } else {
-                printf("mnemonic: %s\n", split[0]);
-                printf("arguments: %s\n", split[1]);
                 char *result = functionSelector(split[0], split[1],
                                                 decimalToHexadecimal(4 * (line_counter)));
-                fflush(stdout);
                 writeStringToFile(name, result);
                 line_counter += 1;
             }

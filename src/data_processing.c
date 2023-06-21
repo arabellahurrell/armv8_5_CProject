@@ -4,8 +4,6 @@
 
 // Function to shift bits based on shift type
 
-//sprintf(varInto, %0x6d, input)
-//strtol(input, NULL, 16)
 
 char* shiftBits(char* shiftType) {
     static char shifts[2];
@@ -40,17 +38,8 @@ char* hw(char* size) {
 
 // Function for normal arithmetic operations
 char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, char* shiftAmount) {
-    //toLowerCase(shiftType);
-    printf("normal arithmetic\n");
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
-
-    printf("opcode : %s\n", opcode);
-    printf("rd : %s\n", rd);
-    printf("rn : %s\n", rn);
-    printf("op2 : %s\n", op2);
-    printf("shiftType : %s\n", shiftType);
-    printf("shiftAmount : %s\n", shiftAmount);
 
     char* convert_op2;
     int op;
@@ -59,13 +48,9 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
         op = binaryToDecimal(hexToBinary(op2));  // Convert hexadecimal to decimal
         //convert_op2 = truncateString(hexToBinary(op2), 12);
         convert_op2 = convert(intToString(strtol(op2, NULL, 16)), 12);// Convert hexadecimal to 12-bit binary string
-        printf("hex op2 convert : %s\n", convert_op2);
-        printf("op : %d\n", op);
     } else {
         op = atoi(op2);  // Convert op2 to decimal
         convert_op2 = convert(op2, 12);  // Convert op2 to 12-bit binary string
-        printf("dec op2 convert : %s\n", convert_op2);
-        printf("op : %d\n", op);
     }
     char* sf_rn = sf(rn); // Get the "sf" bits based on the register size
     char* convert_rd = registerConvert(rd);
@@ -75,11 +60,9 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
     if (op > ((1 << 12) -1)) {
         //sh = "1";
         master_result = master(truncateString(intToString(op),12), shiftType, shiftAmount);
-        printf("master 1: %s\n", master_result);
     } else {
         //sh = "0";
         master_result  = convert_op2;
-        printf("master 2 : %s\n", master_result);
     }
     if ((strcmp(shiftType, "lsl") == 0 || strcmp(shiftType, "asl") == 0 || (strcmp(shiftType, "LSL") == 0)) && atoi(shiftAmount) % 16 >= 12) {
         sh = "1";
@@ -92,30 +75,18 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
     // "size" bits, shift bits, shift amount, and operand 2 to form the resulting instruction
     strcat(result, sf_rn);
     strcat(result, opcode);
-    printf("%s\n", result);
     strcat(result, "100010");
-    printf("%s\n", result);
     // sh if bigger that 2^12 - 1
     strcat(result, sh);
-    printf("%s\n", result);
     strcat(result, truncateString(master_result,12));
     strcat(result, convert_rn);
     strcat(result, convert_rd);
-    printf("result : %s\n", result);
-    fflush(stdout);
 
 
     return result;
 }
 
 char* registerArithmetic(char* opcode, char* rd, char* rn, char* rm, char* shiftType, char* value) {
-    printf("register arithmetic\n");
-    printf(" opcode : %s\n", opcode);
-    printf(" rd : %s\n", rd );
-    printf("rm  : %s\n", rm);
-    printf(" rn : %s\n", rn);
-    printf(" shiftType : %s\n", shiftType);
-    printf(" shift Amount : %s\n", value);
 
     // Allocate memory for the result string
     char* result = malloc(33 * sizeof(char));
@@ -129,8 +100,6 @@ char* registerArithmetic(char* opcode, char* rd, char* rn, char* rm, char* shift
     char* val;
 
     if(strcmp(value, "0") == 0) {
-        printf("value is 0\n");
-        fflush(stdout);
         val = "000000";
     } else if (value[1] == 'x') { // Check if the value is in hexadecimal format
         // Convert hexadecimal value to binary and truncate it to 6 bits
@@ -143,42 +112,30 @@ char* registerArithmetic(char* opcode, char* rd, char* rn, char* rm, char* shift
 
     // Concatenate the sign flag (SF) of the destination register to the result string
     strcat(result, sf(rn));
-    printf("%s\n", result);
 
     // Concatenate the opcode to the result string
     strcat(result, opcode);
-    printf("%s\n", result);
 
     // Concatenate "01011" (fixed bits) to the result string
     strcat(result, "01011");
-    printf("%s\n", result);
 
     // Concatenate the shift bits based on the shift type to the result string
     strcat(result, shiftBits(shiftType));
-    printf("%s\n", result);
 
     // Concatenate "0" (fixed bit) to the result string
     strcat(result, "0");
-    printf("%s\n", result);
 
     // Concatenate the converted shift register (rm) to the result string
     strcat(result, registerConvert(rm));
-    printf("%s\n", result);
 
     // Concatenate the converted value (val) to the result string
     strcat(result, val);
-    printf("%s\n", result);
 
     // Concatenate the converted source register (rn) to the result string
     strcat(result, registerConvert(rn));
-    printf("%s\n", result);
 
     // Concatenate the converted destination register (rd) to the result string
     strcat(result, registerConvert(rd));
-    printf("%s\n", result);
-
-    // Flush the output stream to ensure the printed text is displayed immediately
-    fflush(stdout);
 
     // Return the result string
     return result;
@@ -187,27 +144,16 @@ char* registerArithmetic(char* opcode, char* rd, char* rn, char* rm, char* shift
 
 char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, char* shiftAmount) {
     char* imm16;
-    printf("opcode : %s\n", opcode);
-    printf("rd : %s\n", rd);
-    printf("imm %s\n", imm);
-    printf("sh : %s\n", sh);
-    printf("shiftType %s\n", shiftType);
-    printf("shiftAmount %s\n", shiftAmount);
 
     // Check if the immediate value is in hexadecimal format
     if (imm[1] == 'x') {
-        printf("hex value\n");
         // Convert hexadecimal value to 16-bit binary and perform shifting
         char* d = convert(intToString(strtol(imm, NULL, 16)), 16);
         imm16 = master(d, shiftType, shiftAmount);
         //imm16 = master(truncateString(hexToBinary(imm), 16), shiftType, shiftAmount);
-        printf("shifted : %s\n", imm16);
     } else {
-        printf("%s\n", imm);
-        printf("%s\n", convert(imm, 16));
         // Convert decimal value to 16-bit binary and perform shifting
         imm16 = master(convert(imm, 16), shiftType, shiftAmount);
-        printf("shifted : %s\n", master(convert(imm, 16), shiftType, shiftAmount));
     }
 
     // Allocate memory for the result string
@@ -216,33 +162,25 @@ char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, ch
 
     // Concatenate the sign flag (SF) of the destination register to the result string
     strcat(result, sf(rd));
-    printf("%s\n", result);
+
 
     // Concatenate the opcode to the result string
     strcat(result, opcode);
-    printf("%s\n", result);
+
 
     // Concatenate "100101" (fixed bits) to the result string
     strcat(result, "100101");
-    printf("%s\n", result);
+
 
     // Concatenate the hardware bits based on the shift amount to the result string
     strcat(result, hw(shiftAmount));
-    printf("%s\n", result);
-    printf("hw : %s\n", hw(shiftAmount));
 
     // Concatenate the converted 16-bit immediate value (imm16) to the result string
     strcat(result, imm16);
-    printf("%s\n", result);
 
-    printf("imm: %s\n", imm);
-    printf("imm16: %s\n", imm16);
-    printf("rd: %s\n", rd);
 
     // Convert the destination register (rd) to a 5-bit binary representation and concatenate it to the result string
     strcat(result, convert(rd, 5));
-    printf("converted: %s\n", convert(rd, 5));
-    printf("result : %s\n", result);
 
     // Return the result string
     return result;
@@ -277,25 +215,20 @@ char* moveWideParser (char* opcode, char** splitted) {
     if (getStringArrayLength(splitted) == 2) {
         // Check if the value exceeds the immediate range of 12 bits
         if (immOrHex(splitted[1]) > ((1 << 12) - 1)) {
-            printf("greater\n");
             // Convert the value to string and call the 'moveWides' function with immediate flag set to "1"
             splitted[1] = intToString(immOrHex(splitted[1]));
-            printf(splitted[1]);
             return moveWides(opcode, splitted[0], splitted[1], "1", "lsl", "0");
         } else {
-            printf("not greater\n");
             // Call the 'moveWides' function with immediate flag set to "0"
             return moveWides(opcode, splitted[0], splitted[1], "0", "lsl", "0");
         }
     } else {
         // Check if the value exceeds the immediate range of 12 bits
         if (immOrHex(splitted[1]) > ((1 << 12) - 1)) {
-            printf("greater\n");
             // Convert the value to string and call the 'moveWides' function with immediate flag set to "1" and provided shift type and shift amount
             splitted[1] = intToString(immOrHex(splitted[1]));
             return moveWides(opcode, splitted[0], splitted[1], "1", splitted[2], splitted[3]);
         } else {
-            printf("not greater\n");
             // Call the 'moveWides' function with immediate flag set to "0" and provided shift type and shift amount
             return moveWides(opcode, splitted[0], splitted[1], "0", splitted[2], splitted[3]);
         }
@@ -304,12 +237,6 @@ char* moveWideParser (char* opcode, char** splitted) {
 
 
 char* logicalBitwise(char* mnemonic, char* rd, char* rn, char* rm, char* shiftType, char* value) {
-    printf("mnemonic : %s\n", mnemonic);
-    printf("rd : %s\n", rd);
-    printf("rn : %s\n", rn);
-    printf("rm : %s\n", rm);
-    printf("shiftType : %s\n", shiftType);
-    printf("value : %s\n", value);
 
     char* v;
     // Check if value is provided
@@ -340,32 +267,22 @@ char* logicalBitwise(char* mnemonic, char* rd, char* rn, char* rm, char* shiftTy
 
     char* result = malloc(33 * sizeof(char));
     strcat(result, sf(rn));  // Append the condition code for the destination register
-    printf("%s\n", result);
+
     strcat(result, opcode);  // Append the opcode
-    printf("%s\n", result);
+
     strcat(result, "01010");  // Append the fixed bits
-    printf("%s\n", result);
+
     if (!shiftType) {
         strcat(result, "00");  // Default shift type if not provided
     } else {
         strcat(result, shiftBits(shiftType));  // Append the shift bits based on the shift type
     }
-    printf("%s\n", result);
+
     strcat(result, N);  // Append the N bit
-    printf("%s\n", result);
-    printf("rm : %s\n", rm);
-    printf("rm converted: %s\n", registerConvert(rm));
     strcat(result, registerConvert(rm));  // Append the converted rm register
-    printf("%s\n", result);
-    printf("value : %s\n", v);
     strcat(result, v);  // Append the value
-    printf("%s\n", result);
-    printf("rn : %s\n", rn);
-    printf("rn converted: %s\n", registerConvert(rn));
     strcat(result, registerConvert(rn));  // Append the converted rn register
-    printf("%s\n", result);
     strcat(result, registerConvert(rd));  // Append the converted rd register
-    printf("result = %s\n", result);
     return result;
 }
 
@@ -375,25 +292,14 @@ char* multiply(char* negate, char* rd, char* rn, char* rm, char* ra) {
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
-    printf("ra : %s\n", ra);
-    printf("rd : %s\n", rd);
-    printf("rn : %s\n", rn);
 
     strcat(result, sf(rn));  // Append the condition code for the rn register
-    printf("%s\n", result);
     strcat(result, "0011011000");  // Append the fixed bits
-    printf("%s\n", result);
     strcat(result, registerConvert(rm));  // Append the converted rm register
-    printf("%s\n", result);
     strcat(result, negate);  // Append the negate flag
-    printf("%s\n", result);
     strcat(result, registerConvert(ra));  // Append the converted ra register
-    printf("%s\n", result);
     strcat(result, registerConvert(rn));  // Append the converted rn register
-    printf("%s\n", result);
     strcat(result, registerConvert(rd));  // Append the converted rd register
-    printf("%s\n", result);
-    fflush(stdout);
     return result;
 }
 
@@ -459,17 +365,11 @@ char* and (char* arguments, char* address) {
 
 char* ands (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    for(int i = 0; i < getStringArrayLength(splitted); i++) {
-        printf("%s\n", splitted[i]);
-    }
     return logicalBitwise("ands",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
 }
 
 char* orr (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    for (int i = 0; i < getStringArrayLength(splitted); i++) {
-        printf("%s\n", splitted[i]);
-    }
     return logicalBitwise("orr",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
 }
 
@@ -498,8 +398,6 @@ char* eon (char* arguments, char* address) {
 }
 
 char* cmp (char* arguments, char* address) {
-    printf("inside cmp\n");
-    fflush(stdout);
     char* args = malloc(strlen(arguments) + 3);
     args[0] = '\0';
     args = strcat(args, "31 ");
@@ -546,12 +444,8 @@ char* mvn (char* arguments, char* address) {
 
 char* mov (char* arguments, char* address) {
     char** split = splitStringOnFirstSpace(arguments);
-    printf("pre strcat\n");
-    fflush(stdout);
     arguments = strcat(split[0], " 31 ");
     arguments = strcat(arguments, split[1]);
-    printf("post strcat\n");
-    fflush(stdout);
     return orr(arguments, address);
 }
 
