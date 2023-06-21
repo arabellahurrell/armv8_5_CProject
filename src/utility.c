@@ -421,7 +421,7 @@ char* replaceLabel(char *instruction, char *label, char *labelAddress) {
     }
     char* result = "\0";
     for (int i = 0; i < getStringArrayLength(splitted); i++) {
-        strcat(splitted[i], result);
+        result = strcat(splitted[i], result);
     }
 
     return result;
