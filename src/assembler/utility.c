@@ -410,12 +410,12 @@ int calculateOffset(char *label_address, char *branch_address) {
     } else {
         y = atoi(branch_address);
     }
-    int offset =  (x - y)/4;
+    int offset = (x - y) / 4;
     return offset;
 }
 
-int countLinesInFile(const char* filename) {
-    FILE* file = fopen(filename, "r");
+int countLinesInFile(const char *filename) {
+    FILE *file = fopen(filename, "r");
     if (file == NULL) {
         printf("Failed to open the file.\n");
         return -1;  // Return -1 to indicate an error
@@ -438,11 +438,12 @@ int countLinesInFile(const char* filename) {
     return lastNonEmptyLine;
 }
 
-char* replaceWord(const char* sentence, const char* wordToReplace, const char* newWord) {
-    const char* delimiter = " ,";
-    char* result = NULL;
-    char* token;
-    char* rest = strdup(sentence);
+char *replaceWord(const char *sentence, const char *wordToReplace,
+                  const char *newWord) {
+    const char *delimiter = " ,";
+    char *result = NULL;
+    char *token;
+    char *rest = strdup(sentence);
 
     while ((token = strtok_r(rest, delimiter, &rest))) {
         if (strcmp(token, wordToReplace) == 0) {
@@ -472,24 +473,25 @@ char* replaceWord(const char* sentence, const char* wordToReplace, const char* n
     return result;
 }
 
-void removeComments(char* line) {
+void removeComments(char *line) {
     bool inComment = false;
-    char* commentStart = strstr(line, "//");
+    char *commentStart = strstr(line, "//");
 
     if (commentStart != NULL) {
         *commentStart = '\0';  // Truncate the line at the comment start
     }
 
     if (inComment) {
-        char* lineEnd = line + strlen(line) - 1;
-        while (lineEnd >= line && (*lineEnd == ' ' || *lineEnd == '\t' || *lineEnd == '\n')) {
+        char *lineEnd = line + strlen(line) - 1;
+        while (lineEnd >= line &&
+               (*lineEnd == ' ' || *lineEnd == '\t' || *lineEnd == '\n')) {
             *lineEnd = '\0';  // Trim any trailing whitespace characters
             lineEnd--;
         }
     }
 }
 
-void removeMultilineComments(char** lines, int numLines) {
+void removeMultilineComments(char **lines, int numLines) {
     int i;
     int inComment = 0;
 
@@ -503,11 +505,13 @@ void removeMultilineComments(char** lines, int numLines) {
 
             if (startComment != NULL && endComment != NULL) {
                 // Remove entire comment on a single line
-                memmove(startComment, endComment + 2, line + lineLength - endComment - 1);
+                memmove(startComment, endComment + 2,
+                        line + lineLength - endComment - 1);
                 lineLength -= (endComment - startComment + 2);
             } else if (startComment != NULL) {
                 // Remove start of multiline comment
-                memmove(startComment, startComment + 2, line + lineLength - startComment - 1);
+                memmove(startComment, startComment + 2,
+                        line + lineLength - startComment - 1);
                 inComment = 1;
                 lineLength -= 2;
             }
@@ -518,7 +522,8 @@ void removeMultilineComments(char** lines, int numLines) {
 
             if (endComment != NULL) {
                 // Remove end of multiline comment
-                memmove(line, endComment + 2, line + lineLength - endComment - 1);
+                memmove(line, endComment + 2,
+                        line + lineLength - endComment - 1);
                 lineLength -= (endComment - line + 2);
                 inComment = 0;
 
@@ -532,7 +537,9 @@ void removeMultilineComments(char** lines, int numLines) {
         }
 
         // Trim any trailing whitespace or newline characters
-        while (lineLength > 0 && (line[lineLength - 1] == ' ' || line[lineLength - 1] == '\t' || line[lineLength - 1] == '\n')) {
+        while (lineLength > 0 &&
+               (line[lineLength - 1] == ' ' || line[lineLength - 1] == '\t' ||
+                line[lineLength - 1] == '\n')) {
             line[--lineLength] = '\0';
         }
     }
@@ -547,7 +554,8 @@ void removeBlankLines(char *strings[], int length) {
 
         // Check if the current string is blank
         for (j = 0; j < strlen(strings[i]); j++) {
-            if (strings[i][j] != ' ' && strings[i][j] != '\t' && strings[i][j] != '\n') {
+            if (strings[i][j] != ' ' && strings[i][j] != '\t' &&
+                strings[i][j] != '\n') {
                 blank = false;
                 break;
             }

@@ -1,23 +1,21 @@
-//
-// Created by Arabella Hurrell on 30/05/2023.
-//
-
-int isAlphaInLine(char* line) {
+int isAlphaInLine(char *line) {
     for (int i = 0; i < strlen(line); i++) {
-        if (isalpha(line[i]) || line[i] == '.' || line[i] == '*' || line[i] == '/') return i;
+        if (isalpha(line[i]) || line[i] == '.' || line[i] == '*' ||
+            line[i] == '/')
+            return i;
     }
     return -1;
 }
 
-char** readLinesFromFile(const char* filename) {
-    FILE* file = fopen(filename, "r");
+char **readLinesFromFile(const char *filename) {
+    FILE *file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error opening file: %s\n", filename);
         return NULL;
     }
 
     int arraySize = INITIAL_ARRAY_SIZE;
-    char** lines = malloc(arraySize * sizeof(char*));
+    char **lines = malloc(arraySize * sizeof(char *));
     if (lines == NULL) {
         printf("Memory allocation failed.\n");
         fclose(file);
@@ -40,7 +38,8 @@ char** readLinesFromFile(const char* filename) {
             return NULL;
         }
 
-        if(!isalpha(line[0]) && line[0] != '.' && line[0] != '*' && line[0] != '/') {
+        if (!isalpha(line[0]) && line[0] != '.' && line[0] != '*' &&
+            line[0] != '/') {
             int indexOfChar = isAlphaInLine(line);
             if (indexOfChar != -1) {
                 const char *line1;
@@ -57,7 +56,7 @@ char** readLinesFromFile(const char* filename) {
         // Resize the array if necessary
         if (count >= arraySize) {
             arraySize *= 2;
-            char** resizedLines = realloc(lines, arraySize * sizeof(char*));
+            char **resizedLines = realloc(lines, arraySize * sizeof(char *));
             if (resizedLines == NULL) {
                 printf("Memory reallocation failed.\n");
                 fclose(file);

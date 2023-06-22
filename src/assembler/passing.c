@@ -1,6 +1,3 @@
-//
-// Created by Arabella Hurrell on 02/06/2023.
-//
 //#include <stdlib.h>
 //#include <stdio.h>
 //#include <string.h>
@@ -68,8 +65,8 @@ void one_pass(char **instruction, char *name) {
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
         if (isLabel(instruction[i])) {
             struct passOne pass;
-            char* label_name = instruction[i];
-            label_name[strlen(label_name) - 1] = '\0'; // get rid of : from label
+            char *label_name = instruction[i];
+            label_name[strlen(label_name) - 1] = '\0'; // get rid of: from label
             pass.label = label_name;
             char *res = decimalToHexadecimal(4 * line_counter);
             int length = strlen(res);
@@ -97,11 +94,12 @@ void one_pass(char **instruction, char *name) {
             instruction[i][strlen(instruction[i]) - 1] = '\0';
         } else if (isDirective(instruction[i])) {
             char **splitted = splitStringOnWhitespace(instruction[i]);
-            writeStringToFile(name, immHexToBinary(splitted[1],32));
+            writeStringToFile(name, immHexToBinary(splitted[1], 32));
             line_counter += 1;
         } else {
             for (int j = 0; j < num; j++) {
-                instruction[i] = replaceWord(instruction[i], passone[j].label, passone[j].address);
+                instruction[i] = replaceWord(instruction[i], passone[j].label,
+                                             passone[j].address);
             }
             char **split = splitStringOnFirstSpace(instruction[i]);
 
@@ -110,12 +108,13 @@ void one_pass(char **instruction, char *name) {
             } else {
                 printf("instruction: %s\n", instruction[i]);
                 char *result = functionSelector(split[0], split[1],
-                                                decimalToHexadecimal(4 * (line_counter)));
+                                                decimalToHexadecimal(
+                                                        4 * (line_counter)));
                 printf("result: %s\n", result);
                 writeStringToFile(name, result);
                 line_counter += 1;
             }
-           // line_counter += 1;
+            // line_counter += 1;
         }
 
     }
