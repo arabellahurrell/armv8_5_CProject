@@ -1,167 +1,87 @@
-// Get GPIO out of reset
-// IO_BANK in reset
-// Clear
+movz w10, #0
+movz w11, #1
+mov w12, w11
 
-/*
-Define address
-Load
-Move
-Store
-
-Load
-Load
-Compare
-Branch with Eqaul
-*/
-
-
-// Assign led pin to SIO
-//
-
-// r0 as mailbox register
-// r3 as status
-
-/*
-Time delay:
-
-Create a loop.
-Subtract 1 from a large number.
-Compare with 0.
-Jump (branch).
-Keep looping until it is zero.
-*/
-
-/*
-Send a message to mailbox
-Containing address of request buffer
-And tag to power on LED
-*/
-
-/*
-Wait (aka loop)
-*/
-
-/*
-Send a message to mailbox
-Containing address of request buffer
-And tag to power on LED
-*/
-
-/*
-Wait (aka loop)
-*/
-
-/* todo: load as 32 bits */
-/*
-peripheral base register = 0x3f000000
-mailbox register offset  = 0xb880
-read = 0x00
-write = 0x20
-status = 0x38
-E = read-empty
-F = write-full
-LED channel = 0b1000
-
-When do you have to to read from memory
-Where to store requests in memory
-
-1 Turn on light
-  1 Wait for write flag to be clear
-  2 Copy the on request to the address
-  3 Store the on message and address to the write register
-  4 Wait for read flag to be clear
-  5 Read from read register and discard result
-2 Wait 1 second
-  1 Initialise register with 1000
-  2 Subtract 1
-  3 Compare to 0
-  4 Branch if positive to 2.1
-3 Turn off light (see 1)
-4 Wait 1 second (see 2)
-5 Jump to 1
-*/
-
-
-
-/* START */
-
-mov w10, 0
+// use x not w
 
 main_loop:
 	poll_write:
-		# Fetch F flag
-	    ldr w0, status_address
-	    lsr w0, w0, 31
-	    and w0, w0, 1
+		ldr w0, status_address
+	    add w0, w10, w0, lsr #31
+	    and w0, w0, w11
 
-	 	# Ensure not set
-	    cmp w0, 0
+	    cmp w0, #0
 	    bne poll_write
 
-	load_onoff_request:
-		ldr w0, request_address
-		ldr w1, on_request
+	load_request:
+	    ldr w0, request_address
 
-	 	# Load request into memory
-		ldr w2, 0 # tag index used in load_loop
+        movz w1, #32
+        movz w2, #0
+		str w1, [w0, w2]
 
-		load_loop:
-	   		ldr w3, [w1, w2]
-		 	str w0, w3
-			add w0, w0, 4
-			add w2, w2, 4
+        movz w1, #0
+        movz w2, #4
+		str w1, [w0, w2]
 
-	  		# Loop if tag index less than 32 bytes
-	 		cmp w2, 32
-			bl load_loop
+        movz w1, #0x00038041
+        movz w2, #8
+		str w1, [w0, w2]
 
-		# Load on/off flag into correct request tag
-  		ldr w0, request_address
-		add w0, w0, 24
-	 	str w0, w10
-	  	eor w10, w10, 1 # flip on/off register
+        movz w1, #8
+        movz w2, #12
+		str w1, [w0, w2]
+
+        movz w1, #0
+        movz w2, #16
+		str w1, [w0, w2]
+
+        movz w1, #130
+        movz w2, #20
+		str w1, [w0, w2]
+
+        movz w2, #24
+		str w12, [w0, w2]
+	  	eor w12, w12, w11
+
+        movz w1, #0
+        movz w2, #28
+		str w1, [w0, w2]
 
 	write:
-		# w0 = request message
-		ldr w0, request_address
-	  	orr w0, led_channel
+	    ldr w0, request_address
+		ldr w1, led_channel
+	  	orr w0, w0, w1
 
-		# Store message to write register
-	    ldr w1, write_address
-		str w1, [w0]
+		ldr w1, write_address
+		str w0, [w1]
 
 	poll_read:
-		# Fetch E flag
 	    ldr w0, status_address
-	    lsr w0, w0, 30
-	    and w0, w0, 1
+		add w0, w0, #0, lsl #30
+	    and w0, w0, w11
 
-	 	# Ensure not set
-	    cmp w0, 0
+	    cmp w0, #0
 	    bne poll_read
 
 	read:
-		# Read register and discard result
 	    ldr w0, read_address
-		# todo
 
 	wait:
 		ldr w0, wait_loops
 
 		wait_loop:
-		    sub w0, w0, 1
-			cmp w0, 0
+		    sub w0, w0, #1
+			cmp w0, #0
 		    bne wait_loop
 
-	br main_loop
+	b main_loop
 
-/* Constants */
+led_pin:
+    .int    130
 
 led_channel:
-    .int    0x8
-
-base_mailbox_address:
-    .int    0x3f00b880
+    .int    8
 
 read_address:
     .int    0x3f00b880
@@ -176,14 +96,4 @@ wait_loops:
     .int    1000000
 
 request_address:
-	.int 	todo (16 byte aligned so end in 0x0)
-
-onoff_request:
-	.int	32
- 	.int	0
-  	.int	0x00038041
-	.int	8
-	.int	0x0
-	.int	130
-	.int	0x0 # (24) will be changed to 0 or 1 later
-	.int	0x0
+    .int    1000
