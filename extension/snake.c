@@ -67,6 +67,7 @@ struct Position applePos;
 int sleepDuration;
 bool alive;
 int loops;
+int minTotalMoves = 0;
 
 // Summary variables
 bool firstGame = true;
@@ -111,6 +112,28 @@ void initialiseBoard() {
     }
 }
 
+// Calculates the shortest path from the snake head to the apple.
+int minimumMovesToApple(struct Position pos) {
+    int moves = 0;
+
+    moves += abs(pos.col - applePos.col);
+    moves += abs(pos.row - applePos.row);
+
+    // Readjusts values if snake is heading inn opposite direction to apple
+    if ((direction == UP && pos.row < applePos.row &&
+         pos.col == applePos.col) ||
+        (direction == DOWN && pos.row > applePos.row &&
+         pos.col == applePos.col) ||
+        (direction == RIGHT && pos.col > applePos.col &&
+         pos.row == applePos.row) ||
+        (direction == LEFT && pos.col < applePos.col &&
+         pos.row == applePos.row)) {
+        moves += 2;
+    }
+
+    return moves;
+}
+
 void placeApple() {
     // Generate random position
     do {
@@ -122,16 +145,19 @@ void placeApple() {
 
     // Place the apple
     setBoardChar(applePos, APPLE);
+
+    // Update min moves
+    minTotalMoves += minimumMovesToApple(snake.head->pos);
 }
 
 void resetGame() {
     // Reset global values
     alive = true;
     loops = 0;
+    minTotalMoves = 0;
     direction = RIGHT;
     sleepDuration = INITIAL_SLEEP_DURATION;
     initialiseBoard();
-    placeApple();
 
     // Setup snake
     snake.score = 0;
@@ -141,6 +167,8 @@ void resetGame() {
     snake.head = head;
     snake.tail = head;
     setBoardChar(head->pos, SNAKE_HEAD);
+
+    placeApple();
 }
 
 void displayBoard() {
@@ -224,10 +252,12 @@ void nextState() {
     if (newHeadChar == APPLE) { // Hit an Apple
         snake.score++;
         placeApple();
+        displayBoard();
         sleepDuration = ceil(sleepDuration * SPEED_MULTIPLIER);
     } else {
         if (isWall(newHead->pos) || newHeadChar == SNAKE_BODY) { // Died
             alive = false;
+            loops += minimumMovesToApple(newHead->pos);
         }
         // Update tail
         struct SnakeNode *newTail = snake.tail->next;
@@ -237,18 +267,31 @@ void nextState() {
     }
 }
 
+/*
+ * UPDATE SKILL LEVEL FUNCTION
+ *
+ * Calculate minimum moves to get to next apple from head of snake
+ * Calculate a 100*(minimum moves)/(actual moves - minimum moves) or something
+ * Add this to store
+ * Divide by number of apples when dead.
+ *
+ * note: consider direction travelling (as in snake cannot go back on itself)
+ *
+ */
+
 void displayResults() {
     printf("\n");
+
+    // Skill level indicates how efficiently you navigate to apples
+    int skillLevel = (int) round((double) 100 * minTotalMoves / loops);
+
     // Score
     if (snake.score > 0) {
         printf("You scored %i!\n", snake.score);
+        printf("Your skill level was %i!\n", skillLevel);
     } else {
         printf("You scored 0. Oh dear.\n");
     }
-
-    // Skill level indicates how quickly you navigate to apples
-    int skillLevel = 100 * ((int) pow(snake.score, 2)) / loops;
-    printf("Your skill level was %i!\n", skillLevel);
 
     // High score
     if (snake.score > highScore) {
@@ -298,7 +341,7 @@ int main() {
             detectInput();
             nextState();
             displayBoard();
-            usleep(sleepDuration);
+            usleep(sleepDuration);//sleepDuration);
         }
 
         displayResults();
