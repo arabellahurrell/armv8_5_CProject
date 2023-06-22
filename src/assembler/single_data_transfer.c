@@ -34,8 +34,8 @@ char *indexedOffset(char *rt, char *xn, char *value, char *l, char *i) {
     char *result = malloc(33 * sizeof(char));
     result[0] = '\0';
     int length = strlen(value);
-    if (value[length -1] == ']') {
-        value[length-1] = '\0';
+    if (value[length - 1] == ']') {
+        value[length - 1] = '\0';
     }
     char *v = immHexToBinary(value, 9);
 
@@ -57,13 +57,13 @@ char *indexedOffset(char *rt, char *xn, char *value, char *l, char *i) {
 char *unsignedOffset(char *rt, char *xn, char *value, char *l) {
     char *result = malloc(33 * sizeof(char));
     int length = strlen(value);
-    if (value[length -1 ] == ']') {
-        value[length-1] = '\0';
+    if (value[length - 1] == ']') {
+        value[length - 1] = '\0';
     }
     if (rt[0] == 'x') {
-        value = intToString(binaryToDecimal(immHexToBinary(value, 12))/8);
+        value = intToString(binaryToDecimal(immHexToBinary(value, 12)) / 8);
     } else {
-        value = intToString(binaryToDecimal(immHexToBinary(value, 12))/4);
+        value = intToString(binaryToDecimal(immHexToBinary(value, 12)) / 4);
     }
 
     result[0] = '\0';
@@ -132,7 +132,8 @@ char *ldr(char *arguments, char *address) {
     address = decimalToHexadecimal(binaryToDecimal(hexToBinary(address)));
 
     char **splitted = splitStringOnWhitespace(arguments);
-    if (getStringArrayLength(splitted) == 2 && (splitted[1])[strlen(splitted[1]) - 1] != ']'){
+    if (getStringArrayLength(splitted) == 2 &&
+        (splitted[1])[strlen(splitted[1]) - 1] != ']') {
         int offset = calculateOffset(splitted[1], address);
         splitted[1] = convert(intToString(offset), 19);
     }

@@ -1,69 +1,74 @@
-//
-// Created by Arabella Hurrell on 30/05/2023.
-//
-
 // Function to shift bits based on shift type
 
-char* shiftBits(char* shiftType) {
+char *shiftBits(char *shiftType) {
     static char shifts[2];
     if (strcmp(shiftType, "lsl") == 0 || strcmp(shiftType, "LSL") == 0) {
-        shifts[0] = '0';  // Set the shift bits to "00" for logical shift left
+        shifts[0] = '0';  // Set shift bits to "00" for logical shift left
         shifts[1] = '0';
     } else if (strcmp(shiftType, "lsr") == 0) {
-        shifts[0] = '0';  // Set the shift bits to "01" for logical shift right
+        shifts[0] = '0';  // Set shift bits to "01" for logical shift right
         shifts[1] = '1';
     } else if (strcmp(shiftType, "asr") == 0) {
-        shifts[0] = '1';  // Set the shift bits to "10" for arithmetic shift right
+        shifts[0] = '1'; // Set shift bits to "10" for arithmetic shift right
         shifts[1] = '0';
     } else {
-        shifts[0] = '1';  // Set the shift bits to "11" for rotate right
+        shifts[0] = '1';  // Set shift bits to "11" for rotate right
         shifts[1] = '1';
     }
     return shifts;
 }
 
-char* hw(char* size) {
+char *hw(char *size) {
     int num = atoi(size);
     if (num < 16) {
-        return "00";  // If the number is less than 16, return "00" for the size bits
+        // If the number is less than 16, return "00" for the size bits
+        return "00";
     } else if (num >= 16 && num < 32) {
-        return "01";  // If the number is between 16 and 31, return "01" for the size bits
+        // If the number is between 16 and 31, return "01" for the size bits
+        return "01";
     } else if (num >= 32 && num < 48) {
-        return "10";  // If the number is between 32 and 47, return "10" for the size bits
+        // If the number is between 32 and 47, return "10" for the size bits
+        return "10";
     } else {
-        return "11";  // For any other number, return "11" for the size bits
+        // For any other number, return "11" for the size bits
+        return "11";
     }
 }
 
 // Function for normal arithmetic operations
-char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, char* shiftAmount) {
-    char* result = malloc(33 * sizeof(char));
+char *arithmetics(char *opcode, char *rd, char *rn, char *op2, char *shiftType,
+                  char *shiftAmount) {
+    char *result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
-    char* convert_op2;
+    char *convert_op2;
     int op;
 
     if (op2[1] == 'x') {  // Check if op2 is a hexadecimal value
-        op = binaryToDecimal(hexToBinary(op2));  // Convert hexadecimal to decimal
+        // Convert hexadecimal to decimal
+        op = binaryToDecimal(hexToBinary(op2));
         //convert_op2 = truncateString(hexToBinary(op2), 12);
-        convert_op2 = convert(intToString(strtol(op2, NULL, 16)), 12);// Convert hexadecimal to 12-bit binary string
+        // Convert hexadecimal to 12-bit binary string
+        convert_op2 = convert(intToString(strtol(op2, NULL, 16)), 12);
     } else {
         op = atoi(op2);  // Convert op2 to decimal
         convert_op2 = convert(op2, 12);  // Convert op2 to 12-bit binary string
     }
-    char* sf_rn = sf(rn); // Get the "sf" bits based on the register size
-    char* convert_rd = registerConvert(rd);
-    char* convert_rn = registerConvert(rn);
-    char* sh;
-    char* master_result;
-    if (op > ((1 << 12) -1)) {
+    char *sf_rn = sf(rn); // Get the "sf" bits based on the register size
+    char *convert_rd = registerConvert(rd);
+    char *convert_rn = registerConvert(rn);
+    char *sh;
+    char *master_result;
+    if (op > ((1 << 12) - 1)) {
         //sh = "1";
-        master_result = master(truncateString(intToString(op),12), shiftType, shiftAmount);
+        master_result = master(truncateString(intToString(op), 12), shiftType,
+                               shiftAmount);
     } else {
         //sh = "0";
-        master_result  = convert_op2;
+        master_result = convert_op2;
     }
-    if ((strcmp(shiftType, "lsl") == 0 || strcmp(shiftType, "asl") == 0 || (strcmp(shiftType, "LSL") == 0)) && atoi(shiftAmount) % 16 >= 12) {
+    if ((strcmp(shiftType, "lsl") == 0 || strcmp(shiftType, "asl") == 0 ||
+         (strcmp(shiftType, "LSL") == 0)) && atoi(shiftAmount) % 16 >= 12) {
         sh = "1";
     } else {
         sh = "0";
@@ -71,13 +76,14 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
 
 
     // Concatenate the opcode, "sf" bits, destination register, source register,
-    // "size" bits, shift bits, shift amount, and operand 2 to form the resulting instruction
+    // "size" bits, shift bits, shift amount, and operand 2 to form the
+    // resulting instruction
     strcat(result, sf_rn);
     strcat(result, opcode);
     strcat(result, "100010");
     // sh if bigger that 2^12 - 1
     strcat(result, sh);
-    strcat(result, truncateString(master_result,12));
+    strcat(result, truncateString(master_result, 12));
     strcat(result, convert_rn);
     strcat(result, convert_rd);
 
@@ -85,10 +91,12 @@ char* arithmetics(char* opcode, char* rd, char* rn, char* op2, char* shiftType, 
     return result;
 }
 
-char* registerArithmetic(char* opcode, char* rd, char* rn, char* rm, char* shiftType, char* value) {
+char *
+registerArithmetic(char *opcode, char *rd, char *rn, char *rm, char *shiftType,
+                   char *value) {
 
     // Allocate memory for the result string
-    char* result = malloc(33 * sizeof(char));
+    char *result = malloc(33 * sizeof(char));
     if (!result) {
         printf("malloc error\n");
         fflush(stdout);
@@ -96,9 +104,9 @@ char* registerArithmetic(char* opcode, char* rd, char* rn, char* rm, char* shift
     result[0] = '\0';
 
     // Variable to store the converted value
-    char* val;
+    char *val;
 
-    if(strcmp(value, "0") == 0) {
+    if (strcmp(value, "0") == 0) {
         val = "000000";
     } else if (value[1] == 'x') { // Check if the value is in hexadecimal format
         // Convert hexadecimal value to binary and truncate it to 6 bits
@@ -109,7 +117,8 @@ char* registerArithmetic(char* opcode, char* rd, char* rn, char* rm, char* shift
         val = convert(value, 6);
     }
 
-    // Concatenate the sign flag (SF) of the destination register to the result string
+    // Concatenate the sign flag (SF) of the destination register to the result
+    // string
     strcat(result, sf(rn));
 
     // Concatenate the opcode to the result string
@@ -141,25 +150,28 @@ char* registerArithmetic(char* opcode, char* rd, char* rn, char* rm, char* shift
 }
 
 
-char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, char* shiftAmount) {
-    char* imm16;
+char *moveWides(char *opcode, char *rd, char *imm, char *sh, char *shiftType,
+                char *shiftAmount) {
+    char *imm16;
 
     // Check if the immediate value is in hexadecimal format
     if (imm[1] == 'x') {
         // Convert hexadecimal value to 16-bit binary and perform shifting
-        char* d = convert(intToString(strtol(imm, NULL, 16)), 16);
+        char *d = convert(intToString(strtol(imm, NULL, 16)), 16);
         imm16 = master(d, shiftType, shiftAmount);
-        //imm16 = master(truncateString(hexToBinary(imm), 16), shiftType, shiftAmount);
+        //imm16 = master(truncateString(hexToBinary(imm), 16), shiftType,
+        //               shiftAmount);
     } else {
         // Convert decimal value to 16-bit binary and perform shifting
         imm16 = master(convert(imm, 16), shiftType, shiftAmount);
     }
 
     // Allocate memory for the result string
-    char* result = malloc(33 * sizeof(char));
+    char *result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
-    // Concatenate the sign flag (SF) of the destination register to the result string
+    // Concatenate the sign flag (SF) of the destination register to the result
+    // string
     strcat(result, sf(rd));
 
 
@@ -171,14 +183,17 @@ char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, ch
     strcat(result, "100101");
 
 
-    // Concatenate the hardware bits based on the shift amount to the result string
+    // Concatenate the hardware bits based on the shift amount to the result
+    // string
     strcat(result, hw(shiftAmount));
 
-    // Concatenate the converted 16-bit immediate value (imm16) to the result string
+    // Concatenate the converted 16-bit immediate value (imm16) to the result
+    // string
     strcat(result, imm16);
 
 
-    // Convert the destination register (rd) to a 5-bit binary representation and concatenate it to the result string
+    // Convert the destination register (rd) to a 5-bit binary representation
+    // and concatenate it to the result string
     strcat(result, convert(rd, 5));
 
     // Return the result string
@@ -186,35 +201,44 @@ char* moveWides(char* opcode, char* rd, char* imm, char* sh, char* shiftType, ch
 }
 
 
-char* arithmeticParser (char* opcode, char** splitted) {
+char *arithmeticParser(char *opcode, char **splitted) {
     // Check the format of the third element in the 'splitted' array
-    if ((splitted[2])[0] != 'x' && (splitted[2])[0] != 'w' ) {
+    if ((splitted[2])[0] != 'x' && (splitted[2])[0] != 'w') {
         // Check the length of the 'splitted' array
         if (getStringArrayLength(splitted) == 3) {
-            // Call the 'arithmetics' function with default shift type and shift amount
-            return arithmetics(opcode, splitted[0], splitted[1], splitted[2], "lsl", "0");
+            // Call the 'arithmetics' function with default shift type and shift
+            // amount
+            return arithmetics(opcode, splitted[0], splitted[1], splitted[2],
+                               "lsl", "0");
         } else {
-            // Call the 'arithmetics' function with provided shift type and shift amount
-            return arithmetics(opcode, splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+            // Call the 'arithmetics' function with provided shift type and
+            // shift amount
+            return arithmetics(opcode, splitted[0], splitted[1], splitted[2],
+                               splitted[3], splitted[4]);
         }
     } else {
         // Check the length of the 'splitted' array
         if (getStringArrayLength(splitted) == 3) {
-            // Call the 'registerArithmetic' function with default shift type and shift amount
-            return registerArithmetic(opcode, splitted[0], splitted[1], splitted[2], "lsl", "0");
+            // Call the 'registerArithmetic' function with default shift type
+            // and shift amount
+            return registerArithmetic(opcode, splitted[0], splitted[1],
+                                      splitted[2], "lsl", "0");
         } else {
-            // Call the 'registerArithmetic' function with provided shift type and shift amount
-            return registerArithmetic(opcode, splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+            // Call the 'registerArithmetic' function with provided shift type
+            // and shift amount
+            return registerArithmetic(opcode, splitted[0], splitted[1],
+                                      splitted[2], splitted[3], splitted[4]);
         }
     }
 }
 
-char* moveWideParser (char* opcode, char** splitted) {
+char *moveWideParser(char *opcode, char **splitted) {
     // Check the length of the 'splitted' array
     if (getStringArrayLength(splitted) == 2) {
         // Check if the value exceeds the immediate range of 12 bits
         if (immOrHex(splitted[1]) > ((1 << 12) - 1)) {
-            // Convert the value to string and call the 'moveWides' function with immediate flag set to "1"
+            // Convert the value to string and call the 'moveWides' function
+            // with immediate flag set to "1"
             splitted[1] = intToString(immOrHex(splitted[1]));
             return moveWides(opcode, splitted[0], splitted[1], "1", "lsl", "0");
         } else {
@@ -224,31 +248,40 @@ char* moveWideParser (char* opcode, char** splitted) {
     } else {
         // Check if the value exceeds the immediate range of 12 bits
         if (immOrHex(splitted[1]) > ((1 << 12) - 1)) {
-            // Convert the value to string and call the 'moveWides' function with immediate flag set to "1" and provided shift type and shift amount
+            // Convert the value to string and call the 'moveWides' function
+            // with immediate flag set to "1" and provided shift type
+            // and shift amount
             splitted[1] = intToString(immOrHex(splitted[1]));
-            return moveWides(opcode, splitted[0], splitted[1], "1", splitted[2], splitted[3]);
+            return moveWides(opcode, splitted[0], splitted[1], "1", splitted[2],
+                             splitted[3]);
         } else {
-            // Call the 'moveWides' function with immediate flag set to "0" and provided shift type and shift amount
-            return moveWides(opcode, splitted[0], splitted[1], "0", splitted[2], splitted[3]);
+            // Call the 'moveWides' function with immediate flag set to "0"
+            // and provided shift type and shift amount
+            return moveWides(opcode, splitted[0], splitted[1], "0", splitted[2],
+                             splitted[3]);
         }
     }
 }
 
 
-char* logicalBitwise(char* mnemonic, char* rd, char* rn, char* rm, char* shiftType, char* value) {
+char *
+logicalBitwise(char *mnemonic, char *rd, char *rn, char *rm, char *shiftType,
+               char *value) {
 
-    char* v;
+    char *v;
     // Check if value is provided
     if (!value) {
         v = "000000";  // Default value if not provided
     } else {
-        v = immHexToBinary(value, 6);  // Convert the value from hex/immediate to binary
+        // Convert the value from hex/immediate to binary
+        v = immHexToBinary(value, 6);
     }
 
-    char* N;
-    char* opcode;
+    char *N;
+    char *opcode;
     // Determine N and opcode based on the mnemonic
-    if (strcmp(mnemonic, "and") == 0 || strcmp(mnemonic, "orr") == 0 || strcmp(mnemonic, "eor") == 0 || strcmp(mnemonic, "ands") == 0) {
+    if (strcmp(mnemonic, "and") == 0 || strcmp(mnemonic, "orr") == 0 ||
+        strcmp(mnemonic, "eor") == 0 || strcmp(mnemonic, "ands") == 0) {
         N = "0";
     } else {
         N = "1";
@@ -264,17 +297,20 @@ char* logicalBitwise(char* mnemonic, char* rd, char* rn, char* rm, char* shiftTy
         opcode = "11";
     }
 
-    char* result = malloc(33 * sizeof(char));
-    strcat(result, sf(rn));  // Append the condition code for the destination register
-
-    strcat(result, opcode);  // Append the opcode
-
-    strcat(result, "01010");  // Append the fixed bits
+    char *result = malloc(33 * sizeof(char));
+    // Append the condition code for the destination register
+    strcat(result, sf(rn));
+    // Append the opcode
+    strcat(result, opcode);
+    // Append the fixed bits
+    strcat(result, "01010");
 
     if (!shiftType) {
-        strcat(result, "00");  // Default shift type if not provided
+        // Default shift type if not provided
+        strcat(result, "00");
     } else {
-        strcat(result, shiftBits(shiftType));  // Append the shift bits based on the shift type
+        // Append the shift bits based on the shift type
+        strcat(result, shiftBits(shiftType));
     }
 
     strcat(result, N);  // Append the N bit
@@ -286,9 +322,8 @@ char* logicalBitwise(char* mnemonic, char* rd, char* rn, char* rm, char* shiftTy
 }
 
 
-
-char* multiply(char* negate, char* rd, char* rn, char* rm, char* ra) {
-    char* result = malloc(33 * sizeof(char));
+char *multiply(char *negate, char *rd, char *rn, char *rm, char *ra) {
+    char *result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
 
@@ -303,161 +338,208 @@ char* multiply(char* negate, char* rd, char* rn, char* rm, char* ra) {
 }
 
 
-char* add (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
+char *add(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
     return arithmeticParser("00", splitted);
 }
 
-char* adds (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
+char *adds(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
     return arithmeticParser("01", splitted);
 }
 
-char* sub (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
+char *sub(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
     return arithmeticParser("10", splitted);
 }
 
-char* subs (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
+char *subs(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
     return arithmeticParser("11", splitted);
 }
 
-char* movk (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
+char *movk(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
     return moveWideParser("11", splitted);
 }
 
-char* movn (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
+char *movn(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
     return moveWideParser("00", splitted);
 }
 
-char* movz (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
+char *movz(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
     return moveWideParser("10", splitted);
 }
 
 
-char* madd (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
+char *madd(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
     return multiply("0", splitted[0], splitted[1], splitted[2], splitted[3]);
 }
 
-char* msub (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
+char *msub(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
     return multiply("1", splitted[0], splitted[1], splitted[2], splitted[3]);
 }
 
-char* and (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
-    if (strcmp(splitted[0], "x0") == 0 && strcmp(splitted[1], "x0") == 0 && strcmp(splitted[2], "x0") == 0) {
+char *and(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
+    if (strcmp(splitted[0], "x0") == 0 && strcmp(splitted[1], "x0") == 0 &&
+        strcmp(splitted[2], "x0") == 0) {
 //    if (getStringArrayLength(splitted) == 3) {
         return "10001010000000000000000000000000";
-        //return logicalBitwise("and", splitted[0], splitted[1], splitted[2], NULL, NULL);
+        //return logicalBitwise("and", splitted[0], splitted[1],
+        //                      splitted[2], NULL, NULL);
     } else if (getStringArrayLength(splitted) == 3) {
-        return logicalBitwise("and", splitted[0], splitted[1], splitted[2], NULL, NULL);
+        return logicalBitwise("and", splitted[0], splitted[1], splitted[2],
+                              NULL, NULL);
     } else {
-        return logicalBitwise("and", splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+        return logicalBitwise("and", splitted[0], splitted[1], splitted[2],
+                              splitted[3], splitted[4]);
     }
 }
 
-char* ands (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("ands",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+char *ands(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              "lsl", "0");
+    } else {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              splitted[3], splitted[4]);
+    }
 }
 
-char* orr (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("orr",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+char *orr(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              "lsl", "0");
+    } else {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              splitted[3], splitted[4]);
+    }
 }
 
-char* eor (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+char *eor(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              "lsl", "0");
+    } else {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              splitted[3], splitted[4]);
+    }
 }
 
-char* orn (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("orn",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+char *orn(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              "lsl", "0");
+    } else {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              splitted[3], splitted[4]);
+    }
 }
 
-char* bic (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("bic",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+char *bic(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              "lsl", "0");
+    } else {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              splitted[3], splitted[4]);
+    }
 }
 
-char* bics (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("bics",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
-}
-char* eon (char* arguments, char* address) {
-    char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("eon",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+char *bics(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              "lsl", "0");
+    } else {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              splitted[3], splitted[4]);
+    }
 }
 
-char* cmp (char* arguments, char* address) {
-    char* args = malloc(strlen(arguments) + 3);
+char *eon(char *arguments, char *address) {
+    char **splitted = splitStringOnWhitespace(arguments);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              "lsl", "0");
+    } else {
+        return logicalBitwise("eor", splitted[0], splitted[1], splitted[2],
+                              splitted[3], splitted[4]);
+    }
+}
+
+char *cmp(char *arguments, char *address) {
+    char *args = malloc(strlen(arguments) + 3);
     args[0] = '\0';
     args = strcat(args, "31 ");
     args = strcat(args, arguments);
     return subs(args, address);
 }
 
-char* cmn (char* arguments, char* address) {
-    char* args = malloc(strlen(arguments) + 3);
+char *cmn(char *arguments, char *address) {
+    char *args = malloc(strlen(arguments) + 3);
     args[0] = '\0';
     args = strcat(args, "31 ");
     args = strcat(args, arguments);
     return adds(args, address);
 }
 
-char* neg (char* arguments, char* address) {
-    char** split = splitStringOnFirstSpace(arguments);
+char *neg(char *arguments, char *address) {
+    char **split = splitStringOnFirstSpace(arguments);
     arguments = strcat(split[0], " 31 ");
     arguments = strcat(arguments, split[1]);
     return sub(arguments, address);
 }
 
-char* negs (char* arguments, char* address) {
-    char** split = splitStringOnFirstSpace(arguments);
+char *negs(char *arguments, char *address) {
+    char **split = splitStringOnFirstSpace(arguments);
     arguments = strcat(split[0], " 31 ");
     arguments = strcat(arguments, split[1]);
     return subs(arguments, address);
 }
 
-char* tst (char* arguments, char* address) {
-    char* args = malloc(strlen(arguments) + 3);
+char *tst(char *arguments, char *address) {
+    char *args = malloc(strlen(arguments) + 3);
     args[0] = '\0';
     args = strcat(args, "31 ");
     args = strcat(args, arguments);
     return ands(args, address);
 }
 
-char* mvn (char* arguments, char* address) {
-    char** split = splitStringOnFirstSpace(arguments);
+char *mvn(char *arguments, char *address) {
+    char **split = splitStringOnFirstSpace(arguments);
     arguments = strcat(split[0], " 31 ");
     arguments = strcat(arguments, split[1]);
     return orn(arguments, address);
 }
 
-char* mov (char* arguments, char* address) {
-    char** split = splitStringOnFirstSpace(arguments);
+char *mov(char *arguments, char *address) {
+    char **split = splitStringOnFirstSpace(arguments);
     arguments = strcat(split[0], " 31 ");
     arguments = strcat(arguments, split[1]);
     return orr(arguments, address);
 }
 
-char* mul (char* arguments, char* address) {
+char *mul(char *arguments, char *address) {
     arguments = strcat(arguments, " 31");
     return madd(arguments, address);
 }
 
-char* mneg (char* arguments, char* address) {
+char *mneg(char *arguments, char *address) {
     arguments = strcat(arguments, " 31");
     return msub(arguments, address);
 }
 
-char* nop (char* arguments, char* address) {
+char *nop(char *arguments, char *address) {
     return "11010101000000110010000000011111";
 }

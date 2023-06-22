@@ -1,7 +1,3 @@
-//
-// Created by Arabella Hurrell on 01/06/2023.
-//
-
 // Helper function to perform left circular shift on a string
 char *shiftLeftCircular(char *value, int amount, int length) {
     amount %= length; // Ensure the amount is within the string length
