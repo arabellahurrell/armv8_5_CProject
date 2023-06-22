@@ -2,12 +2,9 @@
 // Created by Arabella Hurrell on 30/05/2023.
 //
 
-#define MAX_LINE_LENGTH 256
-#define INITIAL_ARRAY_SIZE 10
-
 int isAlphaInLine(char* line) {
     for (int i = 0; i < strlen(line); i++) {
-        if (isalpha(line[i]) || line[i] == '.') return i;
+        if (isalpha(line[i]) || line[i] == '.' || line[i] == '*' || line[i] == '/') return i;
     }
     return -1;
 }
@@ -43,19 +40,17 @@ char** readLinesFromFile(const char* filename) {
             return NULL;
         }
 
-        if(!isalpha(line[0]) && line[0] != '.' ) {
+        if(!isalpha(line[0]) && line[0] != '.' && line[0] != '*' && line[0] != '/') {
             int indexOfChar = isAlphaInLine(line);
             if (indexOfChar != -1) {
                 const char *line1;
                 line1 = line + indexOfChar;
-
                 strcpy(lines[count], line1);
                 count++;
             }
         } else {
             // Copy the line to the array
             strcpy(lines[count], line);
-
             count++;
         }
 

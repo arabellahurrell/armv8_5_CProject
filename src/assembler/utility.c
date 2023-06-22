@@ -3,6 +3,8 @@
 
 // Converts a character to a string
 
+#define MAX_LINE_LENGTH 256
+
 char *truncateString(const char *str, int length) {
     int strLength = strlen(str);
     if (strLength > length) {
@@ -283,12 +285,14 @@ char *decimalToHexadecimal(int decimal) {
 
 
 bool removeNonAlphaNumeric(char c) {
-    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-        (c >= '0' && c <= '9') || (c == '-') || (c == '!') || (c == '.') ||
-        (c == ':') || (c == ']')) {
-        return true;
-    }
-    return false;
+//    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+//        (c >= '0' && c <= '9') || (c == '-') || (c == '!') || (c == '.') ||
+//        (c == ':') || (c == ']') || (c == '*') || (c == '/')) {
+//        return true;
+//    }
+//    return false;
+    return !((c == '[') || (c == '#'));
+
 }
 
 
@@ -468,4 +472,94 @@ char* replaceWord(const char* sentence, const char* wordToReplace, const char* n
     return result;
 }
 
+void removeComments(char* line) {
+    bool inComment = false;
+    char* commentStart = strstr(line, "//");
 
+    if (commentStart != NULL) {
+        *commentStart = '\0';  // Truncate the line at the comment start
+    }
+
+    if (inComment) {
+        char* lineEnd = line + strlen(line) - 1;
+        while (lineEnd >= line && (*lineEnd == ' ' || *lineEnd == '\t' || *lineEnd == '\n')) {
+            *lineEnd = '\0';  // Trim any trailing whitespace characters
+            lineEnd--;
+        }
+    }
+}
+
+void removeMultilineComments(char** lines, int numLines) {
+    int i;
+    int inComment = 0;
+
+    for (i = 0; i < numLines; i++) {
+        char *line = lines[i];
+        int lineLength = strlen(line);
+
+        if (!inComment) {
+            char *startComment = strstr(line, "/*");
+            char *endComment = strstr(line, "*/");
+
+            if (startComment != NULL && endComment != NULL) {
+                // Remove entire comment on a single line
+                memmove(startComment, endComment + 2, line + lineLength - endComment - 1);
+                lineLength -= (endComment - startComment + 2);
+            } else if (startComment != NULL) {
+                // Remove start of multiline comment
+                memmove(startComment, startComment + 2, line + lineLength - startComment - 1);
+                inComment = 1;
+                lineLength -= 2;
+            }
+        }
+
+        if (inComment) {
+            char *endComment = strstr(line, "*/");
+
+            if (endComment != NULL) {
+                // Remove end of multiline comment
+                memmove(line, endComment + 2, line + lineLength - endComment - 1);
+                lineLength -= (endComment - line + 2);
+                inComment = 0;
+
+                // Remove any remaining characters after the end of the comment
+                line[lineLength] = '\0';
+            } else {
+                // Remove entire line inside the multiline comment
+                line[0] = '\0';
+                lineLength = 0;
+            }
+        }
+
+        // Trim any trailing whitespace or newline characters
+        while (lineLength > 0 && (line[lineLength - 1] == ' ' || line[lineLength - 1] == '\t' || line[lineLength - 1] == '\n')) {
+            line[--lineLength] = '\0';
+        }
+    }
+}
+
+void removeBlankLines(char *strings[], int length) {
+    int i, j;
+    bool blank;
+
+    for (i = 0; i < length; i++) {
+        blank = true;
+
+        // Check if the current string is blank
+        for (j = 0; j < strlen(strings[i]); j++) {
+            if (strings[i][j] != ' ' && strings[i][j] != '\t' && strings[i][j] != '\n') {
+                blank = false;
+                break;
+            }
+        }
+
+        // Shift non-blank lines up to replace the blank line
+        if (blank) {
+            for (j = i; j < length - 1; j++) {
+                strings[j] = strings[j + 1];
+            }
+            length--; // Reduce the length of the array
+            i--; // Recheck the same index in the next iteration
+        }
+    }
+}
