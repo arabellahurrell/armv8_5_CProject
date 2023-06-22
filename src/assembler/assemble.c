@@ -10,9 +10,6 @@ int main(int argc, char **argv) {
         removeComments(lines[i]);
     }
     removeBlankLines(lines, getStringArrayLength(lines));
-    for (int i = 0; i < getStringArrayLength(lines); i++) {
-        printf("line : %s\n", lines[i]);
-    }
     int length = countLinesInFile(filename);
     lines[length] = NULL;
     //one_pass(lines, "output.bin");  // Perform a one-pass assembly with modified lines
