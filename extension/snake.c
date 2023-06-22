@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <conio.h>
+#include <conio.h> // Can only play on windows since conio.h unavailable on Mac
 #include <unistd.h>
 #include <math.h>
 #include <time.h>
@@ -14,7 +14,7 @@
 #define ROWS 15
 #define COLS 15
 #define INITIAL_SLEEP_DURATION 150000
-#define SPEED_MULTIPLIER 0.98
+#define SPEED_MULTIPLIER 0.98 // Speed increases each time you eat an Apple
 #define SNAKE_BODY 'X'
 #define SNAKE_HEAD 'O'
 #define WALL '+'
