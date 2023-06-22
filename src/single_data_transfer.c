@@ -33,7 +33,11 @@ char *registerOffset(char *rt, char *xn, char *xm, char *l) {
 char *indexedOffset(char *rt, char *xn, char *value, char *l, char *i) {
     char *result = malloc(33 * sizeof(char));
     result[0] = '\0';
-    char *v = immHexToDenary(value, 9);
+    int length = strlen(value);
+    if (value[length -1] == ']') {
+        value[length-1] = '\0';
+    }
+    char *v = immHexToBinary(value, 9);
 
     // Concatenate the binary representation for the indexed offset instruction
     strcat(result, "1");                   // Bit 31: Always 1
@@ -52,9 +56,18 @@ char *indexedOffset(char *rt, char *xn, char *value, char *l, char *i) {
 
 char *unsignedOffset(char *rt, char *xn, char *value, char *l) {
     char *result = malloc(33 * sizeof(char));
-    result[0] = '\0';
-    char *val = immHexToDenary(value, 12);
+    int length = strlen(value);
+    if (value[length -1 ] == ']') {
+        value[length-1] = '\0';
+    }
+    if (rt[0] == 'x') {
+        value = intToString(binaryToDecimal(immHexToBinary(value, 12))/8);
+    } else {
+        value = intToString(binaryToDecimal(immHexToBinary(value, 12))/4);
+    }
 
+    result[0] = '\0';
+    char *val = immHexToBinary(value, 12);
     // Concatenate the binary representation for the unsigned offset instruction
     strcat(result, "1");               // Bit 31: Always 1
     strcat(result, sf(rt));            // Bit 30: Set flags
@@ -70,13 +83,11 @@ char *unsignedOffset(char *rt, char *xn, char *value, char *l) {
 char *loadLiteral(char *rt, char *value) {
     char *result = malloc(33 * sizeof(char));
     result[0] = '\0';
-    char *val = immHexToDenary(value, 19);
-
     // Concatenate the binary representation for the load literal instruction
     strcat(result, "0");                   // Bit 31: Always 0
     strcat(result, sf(rt));                // Bit 30: Set flags
     strcat(result, "011000");              // Bits 29-24: Opcode specific bits
-    strcat(result, val);                   // Bits 23-5: Literal value
+    strcat(result, value);                   // Bits 23-5: Literal value
     strcat(result, registerConvert(rt));   // Bits 4-0: Register Rt
 
     return result;
@@ -100,7 +111,7 @@ char *dataTransferParser(char **splitted, char *l) {
             return indexedOffset(splitted[0], splitted[1], splitted[2], l, "0");
         }
     } else {
-        if ((splitted[2])[strlen(splitted[2]) - 1] == ']') {
+        if ((splitted[1])[strlen(splitted[1]) - 1] == ']') {
             // Handle unsigned offset with zero offset
             return unsignedOffset(splitted[0], splitted[1], "0", l);
         } else {
@@ -112,14 +123,19 @@ char *dataTransferParser(char **splitted, char *l) {
 
 char *str(char *arguments, char *address) {
     char **splitted = splitStringOnWhitespace(arguments);
-
     // Call the data transfer parser with load/store bit set to 0
     return dataTransferParser(splitted, "0");
 }
 
 char *ldr(char *arguments, char *address) {
-    char **splitted = splitStringOnWhitespace(arguments);
+    //address = decimalToHexadecimal(binaryToDecimal(hexToBinary(address)) - 4);
+    address = decimalToHexadecimal(binaryToDecimal(hexToBinary(address)));
 
+    char **splitted = splitStringOnWhitespace(arguments);
+    if (getStringArrayLength(splitted) == 2 && (splitted[1])[strlen(splitted[1]) - 1] != ']'){
+        int offset = calculateOffset(splitted[1], address);
+        splitted[1] = convert(intToString(offset), 19);
+    }
     // Call the data transfer parser with load/store bit set to 1
     return dataTransferParser(splitted, "1");
 }

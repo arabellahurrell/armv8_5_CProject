@@ -24,16 +24,16 @@ struct passOne {
 
 
 bool isLabel(char *instruction) {
-    printf("instruction: %c\n", instruction[strlen(instruction) - 1]);
     return instruction[strlen(instruction) - 1] == ':';
 }
 
 bool isDirective(const char *instruction) {
-    return instruction[0] == ':';
+    return instruction[0] == '.';
 }
 
 
 char *functionSelector(char *mnemonic, char *arguments, char *address) {
+
     char *mnemonics[38] = {"add", "adds", "sub", "subs", "cmp", "cmn", "neg",
                            "negs", "and", "ands", "bic", "bics", "eor",
                            "eon", "orr", "orn", "tst", "mvn", "mov", "movn",
@@ -55,38 +55,25 @@ char *functionSelector(char *mnemonic, char *arguments, char *address) {
         }
     }
     return NULL;
-//    unsigned int ch, a = 15, b = 10;
-//
-//    printf("Enter Choice: 0 for add, 1 for subtract and 2 "
-//           "for multiply\n");
-//    scanf("%d", &ch);
-//
-//    if (ch > 2) return 0;
-//
-//    (*fun_ptr_arr[ch])(a, b);
-//
-//    return 0;
 }
 
 
 void one_pass(char **instruction, char *name) {
-//    FILE* file = fopen(name, "wb");
     int capacity = 2;
     int num = 0;
     struct passOne *passone = (struct passOne *) malloc(
             capacity * sizeof(struct passOne));
+    int line_counter = 0;
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
         if (isLabel(instruction[i])) {
-            //instruction[i][strlen(instruction[i]) -1] = '\0';
-            //char** x = strtok(instruction[i], ":");
             struct passOne pass;
-            pass.label = instruction[i];
-            char *res = decimalToHexadecimal(i + 1);
-            printf("res: %s\n", res);
+            char* label_name = instruction[i];
+            label_name[strlen(label_name) - 1] = '\0'; // get rid of : from label
+            pass.label = label_name;
+            char *res = decimalToHexadecimal(4 * line_counter);
             int length = strlen(res);
             char *address = malloc((length + 3) * sizeof(char));
             address[0] = '\0';
-            strcat(address, "0x");
             pass.address = strcat(address, res);
             passone[num] = pass;
             num++;
@@ -98,52 +85,34 @@ void one_pass(char **instruction, char *name) {
                                                      sizeof(struct passOne));
                 passone = newpassone;
             }
+        } else {
+            line_counter += 1;
         }
     }
 
-    for (int i = 0; i < capacity; i++) {
-        printf("address: %s\n", passone[i].address);
-        printf("label: %s\n", passone[i].label);
-    }
-
+    line_counter = 0;
     for (int i = 0; i < getStringArrayLength(instruction); i++) {
-        printf("INSTRUCTION START\n");
-        printf("%s\n", instruction[i]);
-        printf("INSTRUCTION END\n");
-        fflush(stdout);
-        printf("Before isLabel\n");
         if (isLabel(instruction[i])) {
             instruction[i][strlen(instruction[i]) - 1] = '\0';
-            printf("Label found\n");
         } else if (isDirective(instruction[i])) {
             char **splitted = splitStringOnWhitespace(instruction[i]);
-            writeStringToFile(name, hexToBinary(splitted[1]));
+            writeStringToFile(name, immHexToBinary(splitted[1],32));
+            line_counter += 1;
         } else {
             for (int j = 0; j < num; j++) {
-                if (isSubstringInString(instruction[i], passone[j].label)) {
-                    printf("Hit if\n");
-                    printf("address: %s\n", passone[j].address);
-                    printf("label: %s\n", passone[j].label);
-                    printf("instruction: %s\n", instruction[i]);
-                    instruction[i] = replaceSubstring(instruction[i],
-                                                      passone[j].label,
-                                                      passone[j].address);
-                    printf("instruction after replacement: %s\n",
-                           instruction[i]);
-                }
+                instruction[i] = replaceWord(instruction[i], passone[j].label, passone[j].address);
             }
             char **split = splitStringOnFirstSpace(instruction[i]);
-            if (strcmp(" ", split[0]) == 0) {
-                printf("HIT");
-            } else {
-                printf("FUNCTION SELECTOR\n");
-                printf("mnemonic: %s\n", split[0]);
-                printf("arguments: %s\n", split[1]);
-                char *result = functionSelector(split[0], split[1],
-                                                decimalToHexadecimal(i));
-                writeStringToFile(name, result);
-            }
 
+            if (strcmp(" ", split[0]) == 0 || split[0][0] == '0') {
+
+            } else {
+                char *result = functionSelector(split[0], split[1],
+                                                decimalToHexadecimal(4 * (line_counter)));
+                writeStringToFile(name, result);
+                line_counter += 1;
+            }
+           // line_counter += 1;
         }
 
     }

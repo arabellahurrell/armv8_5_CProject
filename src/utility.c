@@ -2,6 +2,46 @@
 // Created by Arabella Hurrell on 05/06/2023.
 
 // Converts a character to a string
+
+char *truncateString(const char *str, int length) {
+    int strLength = strlen(str);
+    if (strLength > length) {
+        // Remove extra leading zeros if the original string is larger
+        // than the desired size
+        int leadingZeros = 0;
+        int i = 0;
+        while (str[i] == '0' && i < strLength) {
+            leadingZeros++;
+            i++;
+        }
+
+        char *truncatedStr = malloc((length + 1) * sizeof(char));
+
+        // if (leadingZeros > 1) {
+        //     leadingZeros = 1;
+        // }
+        leadingZeros--;
+
+        strncpy(truncatedStr, str + leadingZeros, length);
+        truncatedStr[length] = '\0';
+        return truncatedStr;
+    } else {
+        // Add leading zeros
+        int leadingZeros = length - strLength;
+        int newLength = strLength + leadingZeros;
+
+        char *truncatedStr = malloc((newLength + 1) * sizeof(char));
+
+        for (int i = 0; i < leadingZeros; i++) {
+            truncatedStr[i] = '0';
+        }
+
+        strncpy(truncatedStr + leadingZeros, str, strLength);
+        truncatedStr[newLength] = '\0';
+        return truncatedStr;
+    }
+}
+
 char *charToString(char c) {
     char *str = malloc(2 * sizeof(char));
     str[0] = c;
@@ -114,16 +154,18 @@ char *convert(char *denary, int numBits) {
         return NULL;
     }
 
-    // Copy binaryString to binary array, adding leading zeros if necessary
-    for (int i = 0; i < numBits; i++) {
+    binary = truncateString(binaryString, numBits);
 
-        fflush(stdout);
-        if (i < effectiveBits) {
-            binary[i] = binaryString[i];
-        } else {
-            binary[i] = '0';
-        }
-    }
+    // Copy binaryString to binary array, adding leading zeros if necessary
+//    for (int i = 0; i < numBits; i++) {
+//
+//        fflush(stdout);
+//        if (i < effectiveBits) {
+//            binary[i] = binaryString[i];
+//        } else {
+//            binary[i] = '0';
+//        }
+//    }
 
     binary[numBits] = '\0';
     free(binaryString); // Free the memory allocated for binaryString
@@ -151,48 +193,11 @@ char *convert(char *denary, int numBits) {
 //}
 
 
-char *truncateString(const char *str, int length) {
-    int strLength = strlen(str);
-    if (strLength > length) {
-        // Remove extra leading zeros if the original string is larger
-        // than the desired size
-        int leadingZeros = 0;
-        int i = 0;
-        while (str[i] == '0' && i < strLength) {
-            leadingZeros++;
-            i++;
-        }
 
-        char *truncatedStr = malloc((length + 1) * sizeof(char));
-
-        // if (leadingZeros > 1) {
-        //     leadingZeros = 1;
-        // }
-        leadingZeros--;
-
-        strncpy(truncatedStr, str + leadingZeros, length);
-        truncatedStr[length] = '\0';
-        return truncatedStr;
-    } else {
-        // Add leading zeros
-        int leadingZeros = length - strLength;
-        int newLength = strLength + leadingZeros;
-
-        char *truncatedStr = malloc((newLength + 1) * sizeof(char));
-
-        for (int i = 0; i < leadingZeros; i++) {
-            truncatedStr[i] = '0';
-        }
-
-        strncpy(truncatedStr + leadingZeros, str, strLength);
-        truncatedStr[newLength] = '\0';
-        return truncatedStr;
-    }
-}
 
 char *sf(char *reg) {
     char *x;
-    if (reg[0] == 'x') {
+    if (tolower(reg[0]) == 'x') {
         x = "1";
     } else {
         x = "0";
@@ -206,7 +211,6 @@ int immOrHex(char *str) {
         return 0;
     }
     if (str[1] == 'x') {
-        //printf("HEX VALUE: %d\n", binaryToDecimal(hexToBinary(str)));
         return binaryToDecimal(hexToBinary(str));
     } else {
 //        char* res = malloc(strlen(str) - 1);
@@ -281,7 +285,7 @@ char *decimalToHexadecimal(int decimal) {
 bool removeNonAlphaNumeric(char c) {
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
         (c >= '0' && c <= '9') || (c == '-') || (c == '!') || (c == '.') ||
-        (c == ':')) {
+        (c == ':') || (c == ']')) {
         return true;
     }
     return false;
@@ -371,20 +375,97 @@ char **splitStringOnFirstSpace(const char *input) {
 
 char *registerConvert(char *r) {
     if (strcmp(r, "xzr") == 0 || strcmp(r, "wzr") == 0) {
-        printf("is a zero register\n");
         return "11111";
     } else {
         return convert(r, 5);
     }
 }
 
-char *immHexToDenary(char *value, int x) {
+char *immHexToBinary(char *value, int x) {
     char *v = malloc((x + 1) * sizeof(char));
     if (value[1] == 'x') {
-        v = truncateString(hexToBinary(value), x);
+        v = convert(intToString(strtol(value, NULL, 16)), x);
+        //v = truncateString(hexToBinary(value), x);
     } else {
         v = convert(value, x);
     }
 
     return v;
 }
+
+int calculateOffset(char *label_address, char *branch_address) {
+    int x;
+    if (label_address[1] == 'x') {
+        x = strtol(label_address, NULL, 16);
+    } else {
+        x = atoi(label_address);
+    }
+    int y;
+    if (branch_address[1] == 'x') {
+        y = strtol(branch_address, NULL, 16);
+    } else {
+        y = atoi(branch_address);
+    }
+    int offset =  (x - y)/4;
+    return offset;
+}
+
+int countLinesInFile(const char* filename) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Failed to open the file.\n");
+        return -1;  // Return -1 to indicate an error
+    }
+
+    int count = 0;
+    int lastNonEmptyLine = 0;  // Index of the last non-empty line
+    char buffer[256];  // Buffer to store each line
+
+    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+        if (buffer[0] != '\n') {
+            count++;  // Increment count for non-empty lines
+            lastNonEmptyLine = count;  // Update the last non-empty line index
+        } else {
+            //count++;  // Increment count for empty lines
+        }
+    }
+
+    fclose(file);
+    return lastNonEmptyLine;
+}
+
+char* replaceWord(const char* sentence, const char* wordToReplace, const char* newWord) {
+    const char* delimiter = " ,";
+    char* result = NULL;
+    char* token;
+    char* rest = strdup(sentence);
+
+    while ((token = strtok_r(rest, delimiter, &rest))) {
+        if (strcmp(token, wordToReplace) == 0) {
+            if (result == NULL) {
+                result = strdup(newWord);
+            } else {
+                size_t currentLen = strlen(result);
+                size_t newLen = currentLen + strlen(newWord) + 1;
+                result = realloc(result, newLen);
+                strcat(result, " ");
+                strcat(result, newWord);
+            }
+        } else {
+            if (result == NULL) {
+                result = strdup(token);
+            } else {
+                size_t currentLen = strlen(result);
+                size_t tokenLen = strlen(token);
+                size_t newLen = currentLen + tokenLen + 1;
+                result = realloc(result, newLen);
+                strcat(result, " ");
+                strcat(result, token);
+            }
+        }
+    }
+
+    return result;
+}
+
+

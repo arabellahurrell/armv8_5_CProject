@@ -1,90 +1,111 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
 #include <conio.h>
 #include <unistd.h>
+#include <math.h>
+#include <time.h>
 
 /*
-Constants
-*/
+ * Constants
+ */
 
-#define ROWS 12
-#define COLS 32
-#define START_LENGTH 1
-#define DIRECTION_INPUT 0xE0
-#define FRAME_DURATION 0.5
+// Customisable
+#define ROWS 15
+#define COLS 15
+#define INITIAL_SLEEP_DURATION 150000
+#define SPEED_MULTIPLIER 0.98
+#define SNAKE_BODY 'X'
+#define SNAKE_HEAD 'O'
+#define WALL '+'
+#define EMPTY ' '
+#define APPLE 'A'
 
-char SNAKE_BODY = 'X';
-char SNAKE_HEAD = 'O';
-char WALL = '+';
-char EMPTY = ' ';
-char APPLE = 'A';
+// Constant
+#define UP_ARROW 72
+#define LEFT_ARROW 75
+#define RIGHT_ARROW 77
+#define DOWN_ARROW 80
+#define CLEAR_SCREEN "\033[1;1H\033[2J"
 
 /*
-Structures
-*/
+ * Structures
+ */
 
 enum Direction {
     UP, DOWN, LEFT, RIGHT
 };
 
+// A position of {0, 0} indicates the top left hand corner of the board
 struct Position {
     int row, col;
 };
 
-// A Single unit of the snake
-struct SnakeUnit {
+// A single unit of the snake represented as a linked list node
+struct SnakeNode {
     struct Position pos;
-    struct SnakeUnit *next;
-    struct SnakeUnit *prev;
+    struct SnakeNode *next;
 };
 
 // Encapsulates the state of the snake
-struct Snake {
-    struct SnakeUnit *head;
-    struct SnakeUnit *tail;
-    int length;
+// Inspired by linked list implementation
+struct SnakeList {
+    struct SnakeNode *head;
+    struct SnakeNode *tail;
+    int score;
 };
 
 /*
-Global Varibles
-*/
+ * Global Variables
+ */
 
-struct Snake snake;
+// Game variables
+struct SnakeList snake;
 char board[ROWS][COLS];
 enum Direction direction;
 struct Position applePos;
+int sleepDuration;
 bool alive;
+int loops;
+
+// Summary variables
+bool firstGame = true;
+int highScore = 0;
+int highSkillLevel = 0;
 
 /*
-Helper Functions
-*/
+ * Helper Functions
+ */
 
-void setBoardChar(struct Position pos, char character) {
-    board[pos.row][pos.col] = character;
+// Sets a character of the game board
+void setBoardChar(struct Position pos, char ch) {
+    board[pos.row][pos.col] = ch;
 }
 
+// Returns a character of the game board
 char getBoardChar(struct Position pos) {
     return board[pos.row][pos.col];
 }
 
+// Returns true if the current position of the snake is at a wall
 bool isWall(struct Position pos) {
-    return pos.row == 0 || pos.row == ROWS - 1 || pos.col == 0 || pos.col == COLS - 1;
+    return pos.row == 0 || pos.row == ROWS - 1 ||
+           pos.col == 0 || pos.col == COLS - 1;
 }
 
 /*
-Game Functions
-*/
+ * Game Functions
+ */
 
-// Intialise an empty board with a wall border
+// Initialise an empty board with a wall border
 void initialiseBoard() {
     for (int row = 0; row < ROWS; row++) {
         for (int col = 0; col < COLS; col++) {
             struct Position pos = {row, col};
-            setBoardChar(pos, EMPTY);
             if (isWall(pos)) {
                 setBoardChar(pos, WALL);
+            } else {
+                setBoardChar(pos, EMPTY);
             }
         }
     }
@@ -94,25 +115,27 @@ void placeApple() {
     // Generate random position
     do {
         int row = (rand() % (ROWS - 2)) + 1;
-        // HAS THE SAME SEQUENCE OF NUMBERS EVERY TIME!!!!
         int col = (rand() % (COLS - 2)) + 1;
         applePos.row = row;
         applePos.col = col;
     } while (getBoardChar(applePos) != ' ');
 
-    // Place apple
+    // Place the apple
     setBoardChar(applePos, APPLE);
 }
 
-void setupGame() {
+void resetGame() {
     // Reset global values
     alive = true;
+    loops = 0;
+    direction = RIGHT;
+    sleepDuration = INITIAL_SLEEP_DURATION;
     initialiseBoard();
     placeApple();
 
     // Setup snake
-    snake.length = START_LENGTH;
-    struct SnakeUnit *head = malloc(sizeof(struct SnakeUnit));
+    snake.score = 0;
+    struct SnakeNode *head = malloc(sizeof(struct SnakeNode));
     head->pos.row = ROWS / 2;
     head->pos.col = 1;
     snake.head = head;
@@ -121,52 +144,57 @@ void setupGame() {
 }
 
 void displayBoard() {
-    system("cls");
-    for (int i = 0; i < ROWS; i++) {
-        char row[COLS + 1];
-        row[COLS] = '\0';
-        strncpy(row, board[i], COLS);
-        printf("%s\n", row);
+    // Clears console of previous output
+    printf(CLEAR_SCREEN);
+
+    // Prints board border
+    for (int row = 0; row < ROWS; row++) {
+        for (int col = 0; col < COLS; col++) {
+            printf(" %c ", board[row][col]);
+        }
+        printf("\n");
     }
 }
 
-void displayScore() {
-    printf("You scored %i!\n", snake.length);
-}
-
-// Function to take the input
+// Function to take the input from the arrow keys
 void detectInput() {
-    if (kbhit()) {
-        int key = getch();
-        if (key == DIRECTION_INPUT) {
-            do {
-                key = getch();
-            } while (key == DIRECTION_INPUT);
-
-            switch (key) {
-                case 72:
-                    direction = UP;
-                    break;
-                case 75:
-                    direction = LEFT;
-                    break;
-                case 77:
-                    direction = RIGHT;
-                    break;
-                case 80:
-                    direction = DOWN;
-                    break;
-                case 'x':
-                    alive = false;
-                    break;
+    int key = 0;
+    while (kbhit()) {
+        key = getch();
+    }
+    switch (key) {
+        case UP_ARROW:
+            if (direction != DOWN) {
+                direction = UP;
             }
-        }
+            break;
+        case LEFT_ARROW:
+            if (direction != RIGHT) {
+                direction = LEFT;
+            }
+            break;
+        case RIGHT_ARROW:
+            if (direction != LEFT) {
+                direction = RIGHT;
+            }
+            break;
+        case DOWN_ARROW:
+            if (direction != UP) {
+                direction = DOWN;
+            }
+            break;
+        default:
+            break;
     }
 }
 
 void nextState() {
-    struct SnakeUnit *newHead = malloc(sizeof(struct SnakeUnit));
+    loops++;
+
+    struct SnakeNode *newHead = malloc(sizeof(struct SnakeNode));
     struct Position pos = snake.head->pos;
+
+    // Determine next head position
     switch (direction) {
         case RIGHT:
             newHead->pos.col = pos.col + 1;
@@ -178,47 +206,101 @@ void nextState() {
             break;
         case UP:
             newHead->pos.col = pos.col;
-            newHead->pos.row = pos.row + 1;
+            newHead->pos.row = pos.row - 1;
             break;
         case DOWN:
             newHead->pos.col = pos.col;
-            newHead->pos.row = pos.row - 1;
+            newHead->pos.row = pos.row + 1;
             break;
     }
-    snake.head->next = newHead;
-    setBoardChar(snake.head->pos, SNAKE_BODY);
-    setBoardChar(newHead->pos, SNAKE_HEAD);
-    snake.head = newHead;
 
-    if (getBoardChar(snake.head->pos) == APPLE) {
+    // Update head
+    char newHeadChar = getBoardChar(newHead->pos);
+    snake.head->next = newHead;
+    snake.head = newHead;
+    setBoardChar(snake.head->pos, SNAKE_HEAD);
+    setBoardChar(pos, SNAKE_BODY);
+
+    if (newHeadChar == APPLE) { // Hit an Apple
+        snake.score++;
         placeApple();
-        snake.length++;
+        sleepDuration = ceil(sleepDuration * SPEED_MULTIPLIER);
     } else {
-        struct SnakeUnit *newTail = snake.tail->next;
+        if (isWall(newHead->pos) || newHeadChar == SNAKE_BODY) { // Died
+            alive = false;
+        }
+        // Update tail
+        struct SnakeNode *newTail = snake.tail->next;
         setBoardChar(snake.tail->pos, EMPTY);
         free(snake.tail);
-        snake.tail = newTail;
+        snake.tail = (struct SnakeNode *) newTail;
     }
 }
 
-void detectDeath() {
-    if (isWall(snake.head->pos) || getBoardChar(snake.head->pos) != ' ') {
-        alive = false;
+void displayResults() {
+    printf("\n");
+    // Score
+    if (snake.score > 0) {
+        printf("You scored %i!\n", snake.score);
+    } else {
+        printf("You scored 0. Oh dear.\n");
     }
+
+    // Skill level indicates how quickly you navigate to apples
+    int skillLevel = 100 * ((int) pow(snake.score, 2)) / loops;
+    printf("Your skill level was %i!\n", skillLevel);
+
+    // High score
+    if (snake.score > highScore) {
+        highScore = snake.score;
+        printf("New high score!\n");
+    } else {
+        printf("High score: %i\n", highScore);
+    }
+
+    if (skillLevel > highSkillLevel) {
+        highSkillLevel = skillLevel;
+        printf("New high skill level!\n");
+    } else {
+        printf("High skill level: %i\n", skillLevel);
+    }
+    printf("\n");
 }
+
+// Return true iff the user wants to play
+bool detectPlay() {
+    int input, temp;
+    printf("Press Enter to play%s > ",
+           firstGame ? "" : " again or x to exit");
+    firstGame = false;
+    while ((temp = getchar()) != '\n') {
+        input = temp;
+    }
+    return input != 'x';
+}
+
+/*
+ * Main play loop
+ */
 
 int main() {
-    setupGame();
-    displayBoard();
+    // Set random seed
+    srand(time(NULL));
 
-    while (alive) {
-        detectInput();
-        nextState();
-        detectDeath();
-        displayBoard();
-        usleep(500000);
+    for (;;) {
+        if (!detectPlay()) {
+            return EXIT_SUCCESS;
+        }
+
+        resetGame();
+
+        while (alive) {
+            detectInput();
+            nextState();
+            displayBoard();
+            usleep(sleepDuration);
+        }
+
+        displayResults();
     }
-
-    displayScore();
-    return EXIT_SUCCESS;
 }
