@@ -364,36 +364,64 @@ char* and (char* arguments, char* address) {
 
 char* ands (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("ands",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+    } else {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    }
 }
 
 char* orr (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("orr",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+    } else {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    }
 }
 
 char* eor (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+    } else {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    }
 }
 
 char* orn (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("orn",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+    } else {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    }
 }
 
 char* bic (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("bic",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+    } else {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    }
 }
 
 char* bics (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("bics",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+    } else {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    }
 }
 char* eon (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
-    return logicalBitwise("eon",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    if (getStringArrayLength(splitted) == 3) {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+    } else {
+        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+    }
 }
 
 char* cmp (char* arguments, char* address) {
