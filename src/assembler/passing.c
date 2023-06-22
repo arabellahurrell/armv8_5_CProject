@@ -12,6 +12,7 @@ void writeStringToFile(char *fileName, const char *str) {
         return;
     }
     int x = strtoul(str, NULL, 2);
+    printf("decimal result: %d\n", x);
     fwrite(&x, sizeof(x), 1, file);
     fclose(file);
 
@@ -107,8 +108,10 @@ void one_pass(char **instruction, char *name) {
             if (strcmp(" ", split[0]) == 0 || split[0][0] == '0') {
 
             } else {
+                printf("instruction: %s\n", instruction[i]);
                 char *result = functionSelector(split[0], split[1],
                                                 decimalToHexadecimal(4 * (line_counter)));
+                printf("result: %s\n", result);
                 writeStringToFile(name, result);
                 line_counter += 1;
             }
