@@ -40,6 +40,10 @@ write_status_address:
 led_channel:
     .int    8
 
+// Halt instruction used for testing
+halt:
+    and x0, x0, x0
+
 // A large number used to wait between on/off loops
 wait_loops:
     .int    1000000
@@ -68,7 +72,7 @@ main_loop:
 	    and w1, w1, w11
 
 	    cmp w1, #0
-	    bne poll_write
+	    b.ne poll_write
 
     // Load on/off message into request address
 	copy_request:
@@ -84,7 +88,7 @@ main_loop:
             add w2, w2, w3
 
             cmp w2, #28 // final word index
-            bne load_loop
+            b.ne load_loop
 
         // Set the on/off bit
 		str w12, [w1, #24] // index of on/off bit
@@ -107,7 +111,7 @@ main_loop:
 	    and w1, w1, w11
 
 	    cmp w1, #0
-	    bne poll_read
+	    b.ne poll_read
 
     // Read the response from the read register
     // We can discard the response
@@ -122,6 +126,6 @@ main_loop:
 		wait_loop:
 		    sub w0, w0, w11
 			cmp w0, #0
-		    bne wait_loop
+		    b.ne wait_loop
 
 	b main_loop
