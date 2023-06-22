@@ -2,6 +2,9 @@
 // Created by Arabella Hurrell on 07/06/2023.
 //
 
+#define MAX_LINE_LENGTH 256
+#define INITIAL_ARRAY_SIZE 10
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

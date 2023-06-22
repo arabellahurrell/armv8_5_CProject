@@ -4,7 +4,6 @@
 
 // Function to shift bits based on shift type
 
-
 char* shiftBits(char* shiftType) {
     static char shifts[2];
     if (strcmp(shiftType, "lsl") == 0 || strcmp(shiftType, "LSL") == 0) {

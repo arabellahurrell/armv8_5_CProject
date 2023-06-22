@@ -2,9 +2,6 @@
 // Created by Arabella Hurrell on 30/05/2023.
 //
 
-#define MAX_LINE_LENGTH 256
-#define INITIAL_ARRAY_SIZE 10
-
 int isAlphaInLine(char* line) {
     for (int i = 0; i < strlen(line); i++) {
         if (isalpha(line[i]) || line[i] == '.') return i;
