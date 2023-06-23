@@ -1,5 +1,5 @@
 //
-// Created by Arabella Hurrell on 05/06/2023.
+// This file contains our utility functions that are used throughout our program
 
 // Converts a character to a string
 
@@ -19,9 +19,6 @@ char *truncateString(const char *str, int length) {
 
         char *truncatedStr = malloc((length + 1) * sizeof(char));
 
-        // if (leadingZeros > 1) {
-        //     leadingZeros = 1;
-        // }
         leadingZeros--;
 
         strncpy(truncatedStr, str + leadingZeros, length);
@@ -113,6 +110,7 @@ char *hexToBinary(char *hex) {
     return binary;
 }
 
+//converts a denary number to a binary string and truncates it
 char *convert(char *denary, int numBits) {
     const char *numberStr;
     if (denary[0] != 'x' && denary[0] != 'w') {
@@ -158,45 +156,13 @@ char *convert(char *denary, int numBits) {
 
     binary = truncateString(binaryString, numBits);
 
-    // Copy binaryString to binary array, adding leading zeros if necessary
-//    for (int i = 0; i < numBits; i++) {
-//
-//        fflush(stdout);
-//        if (i < effectiveBits) {
-//            binary[i] = binaryString[i];
-//        } else {
-//            binary[i] = '0';
-//        }
-//    }
 
     binary[numBits] = '\0';
     free(binaryString); // Free the memory allocated for binaryString
     return binary;
 }
 
-
-//char* truncateString(char* str, int length) {
-//    int strLength = strlen(str);
-//    if (strLength > length) {
-//        str[length] = '\0';
-//        return str;
-//    }
-//    else if (length > strLength) {
-//        char* res = malloc((length + 1) * sizeof(char));
-//        int temp = length - strLength;
-//        for(int i = 0; i < temp; i++) {
-//            res[i] = '0';
-//        }
-//        res[temp] = '\0';
-//        strcat(res, str);
-//        return res;
-//    }
-//    return str;
-//}
-
-
-
-
+//calculates the sf bit
 char *sf(char *reg) {
     char *x;
     if (tolower(reg[0]) == 'x') {
@@ -208,6 +174,7 @@ char *sf(char *reg) {
 }
 
 
+//converts a string to decimal regardless of if it is binary or hex
 int immOrHex(char *str) {
     if (strlen(str) <= 1) {
         return 0;
@@ -223,6 +190,7 @@ int immOrHex(char *str) {
     }
 }
 
+//converts a string to binary regardless for if its immediate or hex
 char *immConverter(char *str) {
     if (strlen(str) <= 1) {
         return 0;
@@ -236,39 +204,7 @@ char *immConverter(char *str) {
     }
 }
 
-char *replaceSubstring(const char *str, const char *oldSubstr,
-                       const char *newSubstr) {
-    size_t strLength = strlen(str);
-    size_t oldSubstrLength = strlen(oldSubstr);
-    size_t newSubstrLength = strlen(newSubstr);
-    size_t count = 0;
-    const char *ptr = str;
-    while ((ptr = strstr(ptr, oldSubstr)) != NULL) {
-        count++;
-        ptr += oldSubstrLength;
-    }
-    size_t newLength = strLength + count * (newSubstrLength - oldSubstrLength);
-    char *result = (char *) malloc((newLength + 1) * sizeof(char));
-    size_t resultIndex = 0;
-    ptr = str;
-    while (count > 0 && (ptr = strstr(ptr, oldSubstr)) != NULL) {
-        size_t partLength = ptr - str;
-        strncpy(result + resultIndex, str, partLength);
-        resultIndex += partLength;
-        strncpy(result + resultIndex, newSubstr, newSubstrLength);
-        resultIndex += newSubstrLength;
-        ptr += oldSubstrLength;
-        count--;
-    }
-    strncpy(result + resultIndex, ptr, strLength - (ptr - str));
-    result[newLength] = '\0';
-    return result;
-}
-
-bool isSubstringInString(const char *str, const char *substr) {
-    return strstr(str, substr) != NULL;
-}
-
+//converts a decimal value to a hex string
 char *decimalToHexadecimal(int decimal) {
     // Maximum 8 digits for hexadecimal representation + 2 characters for
     // "0x" + 1 character for null terminator
@@ -283,19 +219,13 @@ char *decimalToHexadecimal(int decimal) {
     return hexString;
 }
 
-
+//returns whether the character should be removed from the string
 bool removeNonAlphaNumeric(char c) {
-//    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-//        (c >= '0' && c <= '9') || (c == '-') || (c == '!') || (c == '.') ||
-//        (c == ':') || (c == ']') || (c == '*') || (c == '/')) {
-//        return true;
-//    }
-//    return false;
     return !((c == '[') || (c == '#'));
 
 }
 
-
+//splits it on all of the whitespaces
 char **splitStringOnWhitespace(char *str) {
     int count = 0;
     const char *delimiter = " ,";
@@ -335,6 +265,7 @@ char **splitStringOnWhitespace(char *str) {
     return words;
 }
 
+//returns the length of a char**
 size_t getStringArrayLength(char **array) {
     size_t length = 0;
 
@@ -347,6 +278,7 @@ size_t getStringArrayLength(char **array) {
     return length;
 }
 
+//splits a string on the first space
 char **splitStringOnFirstSpace(const char *input) {
     char **output = malloc(2 * sizeof(char *));
     output[0] = NULL;
@@ -377,6 +309,7 @@ char **splitStringOnFirstSpace(const char *input) {
     return output;
 }
 
+//converts the value of the register to binary.
 char *registerConvert(char *r) {
     if (strcmp(r, "xzr") == 0 || strcmp(r, "wzr") == 0) {
         return "11111";
@@ -385,6 +318,7 @@ char *registerConvert(char *r) {
     }
 }
 
+//converts hex to binary
 char *immHexToBinary(char *value, int x) {
     char *v = malloc((x + 1) * sizeof(char));
     if (value[1] == 'x') {
@@ -397,6 +331,7 @@ char *immHexToBinary(char *value, int x) {
     return v;
 }
 
+//calculates the register offset and is used in branching
 int calculateOffset(char *label_address, char *branch_address) {
     int x;
     if (label_address[1] == 'x') {
@@ -410,12 +345,14 @@ int calculateOffset(char *label_address, char *branch_address) {
     } else {
         y = atoi(branch_address);
     }
-    int offset = (x - y) / 4;
+    int offset =  (x - y)/4;
     return offset;
 }
 
-int countLinesInFile(const char *filename) {
-    FILE *file = fopen(filename, "r");
+/*counts the number of lines in the file that is being read from. It does not include
+  blank lines that appear after the final line with alphanumeric characters*/
+int countLinesInFile(const char* filename) {
+    FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Failed to open the file.\n");
         return -1;  // Return -1 to indicate an error
@@ -438,12 +375,12 @@ int countLinesInFile(const char *filename) {
     return lastNonEmptyLine;
 }
 
-char *replaceWord(const char *sentence, const char *wordToReplace,
-                  const char *newWord) {
-    const char *delimiter = " ,";
-    char *result = NULL;
-    char *token;
-    char *rest = strdup(sentence);
+//replaces all instances of a word in a string with a new word
+char* replaceWord(const char* sentence, const char* wordToReplace, const char* newWord) {
+    const char* delimiter = " ,";
+    char* result = NULL;
+    char* token;
+    char* rest = strdup(sentence);
 
     while ((token = strtok_r(rest, delimiter, &rest))) {
         if (strcmp(token, wordToReplace) == 0) {
@@ -473,25 +410,26 @@ char *replaceWord(const char *sentence, const char *wordToReplace,
     return result;
 }
 
-void removeComments(char *line) {
+//removes single line comments from a string
+void removeComments(char* line) {
     bool inComment = false;
-    char *commentStart = strstr(line, "//");
+    char* commentStart = strstr(line, "//");
 
     if (commentStart != NULL) {
         *commentStart = '\0';  // Truncate the line at the comment start
     }
 
     if (inComment) {
-        char *lineEnd = line + strlen(line) - 1;
-        while (lineEnd >= line &&
-               (*lineEnd == ' ' || *lineEnd == '\t' || *lineEnd == '\n')) {
+        char* lineEnd = line + strlen(line) - 1;
+        while (lineEnd >= line && (*lineEnd == ' ' || *lineEnd == '\t' || *lineEnd == '\n')) {
             *lineEnd = '\0';  // Trim any trailing whitespace characters
             lineEnd--;
         }
     }
 }
 
-void removeMultilineComments(char **lines, int numLines) {
+//removes multi line comments from a list of strings
+void removeMultilineComments(char** lines, int numLines) {
     int i;
     int inComment = 0;
 
@@ -505,13 +443,11 @@ void removeMultilineComments(char **lines, int numLines) {
 
             if (startComment != NULL && endComment != NULL) {
                 // Remove entire comment on a single line
-                memmove(startComment, endComment + 2,
-                        line + lineLength - endComment - 1);
+                memmove(startComment, endComment + 2, line + lineLength - endComment - 1);
                 lineLength -= (endComment - startComment + 2);
             } else if (startComment != NULL) {
                 // Remove start of multiline comment
-                memmove(startComment, startComment + 2,
-                        line + lineLength - startComment - 1);
+                memmove(startComment, startComment + 2, line + lineLength - startComment - 1);
                 inComment = 1;
                 lineLength -= 2;
             }
@@ -522,8 +458,7 @@ void removeMultilineComments(char **lines, int numLines) {
 
             if (endComment != NULL) {
                 // Remove end of multiline comment
-                memmove(line, endComment + 2,
-                        line + lineLength - endComment - 1);
+                memmove(line, endComment + 2, line + lineLength - endComment - 1);
                 lineLength -= (endComment - line + 2);
                 inComment = 0;
 
@@ -537,14 +472,13 @@ void removeMultilineComments(char **lines, int numLines) {
         }
 
         // Trim any trailing whitespace or newline characters
-        while (lineLength > 0 &&
-               (line[lineLength - 1] == ' ' || line[lineLength - 1] == '\t' ||
-                line[lineLength - 1] == '\n')) {
+        while (lineLength > 0 && (line[lineLength - 1] == ' ' || line[lineLength - 1] == '\t' || line[lineLength - 1] == '\n')) {
             line[--lineLength] = '\0';
         }
     }
 }
 
+//removes blank lines from an array list.
 void removeBlankLines(char *strings[], int length) {
     int i, j;
     bool blank;
@@ -554,8 +488,7 @@ void removeBlankLines(char *strings[], int length) {
 
         // Check if the current string is blank
         for (j = 0; j < strlen(strings[i]); j++) {
-            if (strings[i][j] != ' ' && strings[i][j] != '\t' &&
-                strings[i][j] != '\n') {
+            if (strings[i][j] != ' ' && strings[i][j] != '\t' && strings[i][j] != '\n') {
                 blank = false;
                 break;
             }

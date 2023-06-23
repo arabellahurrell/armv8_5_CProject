@@ -1,3 +1,7 @@
+//
+// This file contains our logic for shifts
+//
+
 // Helper function to perform left circular shift on a string
 char *shiftLeftCircular(char *value, int amount, int length) {
     amount %= length; // Ensure the amount is within the string length
