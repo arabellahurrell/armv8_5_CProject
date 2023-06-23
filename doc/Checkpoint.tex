@@ -1,30 +1,195 @@
 \documentclass[11pt]{article}
 
 \usepackage{fullpage}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
 
 \begin{document}
 
-\title{ARM Checkpoint... }
-\author{TODO}
+{ARMv8 AArch64 Interim Checkpoint Group 5}
 
-\maketitle
+\hypertarget{h.z7gbdr1o83yk}{%
+\section{\texorpdfstring{{How we have split and coordinated the
+workload:}}{How we have split and coordinated the workload:}}\label{h.z7gbdr1o83yk}}
 
-\section{Group Organisation}
+{}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+{After reading the specification, we noticed that, if we had four people
+all working on the same part, there would be a lot of redundancy. One
+person would often have to wait for another to finish their tasks before
+they start their own.}{~Instead, we decided to split the group into two
+pairs with one working on the emulator and the other working on the
+assembler. Since understanding of how the emulator worked was a
+prerequisite to building the assembler, we - as a group - decided to
+first discuss a broad approach to implementing the emulator. After this,
+Virginia and Jack continued bringing this implementation to fruition,
+whilst Bella and Aarit started on the assembler. Throughout this
+process, we ensured there was a constant line of communication between
+the two sub-groups where we discussed any issues and monitored each
+other's progress.}
 
-\section{Implementation Strategies}
+{}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+{In order to coordinate all our work and ensure everyone is being held
+accountable, we have all come into the university computer labs at least
+4 days a week from 10am-6pm. We have all been sitting together and
+maintained constant discussion and communication, allowing for effective
+pair programming. This was advantageous, as it reduced coding errors and
+we could learn from each other about C. Although it felt slower at the
+time, we implemented functions faster than if we had coded individually
+and then analysed each other's code in our spare time. For our IDE, we
+used REPL initially which allowed us to code simultaneously on the same
+functions without having to worry about git merging. However, connecting
+REPL to git was problematic and it was hard to manage version control so
+we swapped to using CLion.}
+
+{}
+
+\hypertarget{h.xzqlrvx87o4t}{%
+\section{\texorpdfstring{{How well we believe the group is working and
+how it may change for later
+tasks:}}{How well we believe the group is working and how it may change for later tasks:}}\label{h.xzqlrvx87o4t}}
+
+{}
+
+{Overall, we think the group has worked very well and we have made a
+significant amount of progress with the emulator fully complete, passing
+all the tests. In addition, we have fully implemented the assembler and
+we are now working on debugging in order to pass all the tests. However,
+there are ways we could have improved, e.g. by using a program to manage
+which tasks were left to do and we could have used git issues to
+highlight bits of code to work on. Moving forward, we realise we will
+have to change the structure of our group. Initially, Aarit and Bella
+will work on finishing the assembler while Jack and Virginia get a head
+start on the coding for the raspberry pi. Then we will need to work as a
+four for the remainder of the third part and the extension exercise,
+since these are bigger projects which will require us to work as a team
+and share what we have learnt from the first two parts, ensuring
+everyone understands each others' code.}
+
+{}
+
+\hypertarget{h.y7qyz74o89sv}{%
+\section{\texorpdfstring{{How the emulator is structured and code
+reuse:}}{How the emulator is structured and code reuse:}}\label{h.y7qyz74o89sv}}
+
+{}
+
+{We have split the emulator into several different files with
+categorised helper functions - they read/write the files, execute shifts
+and execute the binary functions (such as getting precise parts of the
+instruction). We have made a `Machine' structure, which stores the
+memory, registers, the current instruction and the }{PSTATE}{~flags.
+This single machine entity is then initialised and used as a global
+variable across all the execute functions. The execute functions
+(DP-Immediate, Branch, etc.) have also been split into separate files,
+along with the arithmetic function - in order to avoid code duplication
+between the DP instructions. The main emulator file contains and runs
+the fetch, decode, execute cycle. Additionally, we have an extra file
+that contains tests for various functions - allowing us to test specific
+aspects of our code.}
+
+{}
+
+{Since emulator and assembler are fairly distinct, there have been
+limited amounts of code we were able to re-use apart from some helper
+functions dealing with file handling and shifting. However,
+understanding the code for the emulator was invaluable in implementing
+the assembler since understanding the inputs that the emulator required
+informed what outputs we needed to return in the assembler. We
+ultimately found that by having a greater appreciation for how the
+emulator worked greatly aided our understanding of the assembler and so
+constantly sharing ideas greatly sped up our progress.}
+
+{}
+
+\hypertarget{h.aw2vc64c15c5}{%
+\section{\texorpdfstring{{What we may find difficult later and how we
+will mitigate
+this:}}{What we may find difficult later and how we will mitigate this:}}\label{h.aw2vc64c15c5}}
+
+{}
+
+{There are currently three sections of the project left: debugging the
+assembler, the raspberry pi and the extension.}
+
+{}
+
+\hypertarget{h.9evstpd5lucx}{%
+\subsubsection{\texorpdfstring{{Assembler}}{Assembler}}\label{h.9evstpd5lucx}}
+
+{Due to the scale of the project as well as the amount of detail within
+it, it is possible that we have missed small details or we have
+implemented some functions incorrectly. Therefore we are expecting that
+it will take time refactoring code during the debugging process and
+identifying issues we need to fix. In order to mitigate this, we are
+going to try and map out the logic through diagrams so that we can
+better visualise where things may go wrong.}
+
+{}
+
+\hypertarget{h.eo3he32ltesq}{%
+\subsubsection{\texorpdfstring{{Raspberry
+Pi}}{Raspberry Pi}}\label{h.eo3he32ltesq}}
+
+{None of us have much experience with Raspberry Pis so we are going to
+have to make sure we extensively research and experiment with the
+hardware to ensure we are familiar with how to use it. }
+
+{}
+
+\hypertarget{h.8pkeeyy43oom}{%
+\subsubsection{\texorpdfstring{{Extension}}{Extension}}\label{h.8pkeeyy43oom}}
+
+{Finally, due to the freedom we have to choose what extension we want to
+implement, we are hoping this will be the most fun part of the project.
+However, ensuring we choose an extension that is enjoyable, but also the
+right level of difficulty is something we are going to have to balance
+carefully. By keeping these considerations in mind and planning
+thoroughly, we can hopefully avoid creating problems for ourselves later
+in the process.}
 
 \end{document}
