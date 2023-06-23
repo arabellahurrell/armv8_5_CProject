@@ -16,6 +16,8 @@
 #ignore junk files from compiling C code
 *.o
 *.dSYM
+*.bin
+*.DS_Store
 emulate
 assemble
 
