@@ -40,14 +40,6 @@ write_status_address:
 led_channel:
     .int    8
 
-// Halt instruction used for testing
-halt:
-    and x0, x0, x0
-
-// A large number used to wait between on/off loops
-wait_loops:
-    .int    1000000
-
 // Address the request is copied to each loop
 // This kernel is loaded into address 0x80000
 // This is an arbitrary 4-byte aligned address after this address
@@ -107,7 +99,7 @@ main_loop:
 	poll_read:
 	    ldr w0, read_status_address
 	    ldr w1, [w0]
-		add w1, w10, w1, lsl #30
+		add w1, w10, w1, lsr #30
 	    and w1, w1, w11
 
 	    cmp w1, #0
@@ -121,7 +113,7 @@ main_loop:
 
     // Wait a period of time before performing loop again
 	wait:
-		ldr w0, wait_loops
+	    movz w0, #0xf, lsl #16 // Total number of loops to wait
 
 		wait_loop:
 		    sub w0, w0, w11
