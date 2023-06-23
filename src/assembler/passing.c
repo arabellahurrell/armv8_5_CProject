@@ -12,7 +12,6 @@ void writeStringToFile(char *fileName, const char *str) {
         return;
     }
     int x = strtoul(str, NULL, 2);
-    printf("decimal result: %d\n", x);
     fwrite(&x, sizeof(x), 1, file);
     fclose(file);
 
