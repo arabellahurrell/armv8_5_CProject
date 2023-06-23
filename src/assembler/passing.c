@@ -107,10 +107,8 @@ void pass(char **instruction, char *name) {
             if (strcmp(" ", split[0]) == 0 || split[0][0] == '0') {
 
             } else {
-                printf("instruction: %s\n", instruction[i]);
                 char *result = functionSelector(split[0], split[1],
                                                 decimalToHexadecimal(4 * (line_counter)));
-                printf("result: %s\n", result);
                 writeStringToFile(name, result);
                 line_counter += 1;
             }
