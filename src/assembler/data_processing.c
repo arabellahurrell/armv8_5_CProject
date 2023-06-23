@@ -3,7 +3,6 @@
 //
 
 // Function to shift bits based on shift type
-
 char* shiftBits(char* shiftType) {
     static char shifts[2];
     if (strcmp(shiftType, "lsl") == 0 || strcmp(shiftType, "LSL") == 0) {
@@ -291,7 +290,6 @@ char* multiply(char* negate, char* rd, char* rn, char* rm, char* ra) {
     char* result = malloc(33 * sizeof(char));
     result[0] = '\0';
 
-
     strcat(result, sf(rn));  // Append the condition code for the rn register
     strcat(result, "0011011000");  // Append the fixed bits
     strcat(result, registerConvert(rm));  // Append the converted rm register
@@ -365,18 +363,18 @@ char* and (char* arguments, char* address) {
 char* ands (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
     if (getStringArrayLength(splitted) == 3) {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+        return logicalBitwise("ands",splitted[0], splitted[1], splitted[2], "lsl", "0");
     } else {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+        return logicalBitwise("ands",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
     }
 }
 
 char* orr (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
     if (getStringArrayLength(splitted) == 3) {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+        return logicalBitwise("orr",splitted[0], splitted[1], splitted[2], "lsl", "0");
     } else {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+        return logicalBitwise("orr",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
     }
 }
 
@@ -392,35 +390,35 @@ char* eor (char* arguments, char* address) {
 char* orn (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
     if (getStringArrayLength(splitted) == 3) {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+        return logicalBitwise("orn",splitted[0], splitted[1], splitted[2], "lsl", "0");
     } else {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+        return logicalBitwise("orn",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
     }
 }
 
 char* bic (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
     if (getStringArrayLength(splitted) == 3) {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+        return logicalBitwise("bic",splitted[0], splitted[1], splitted[2], "lsl", "0");
     } else {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+        return logicalBitwise("bic",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
     }
 }
 
 char* bics (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
     if (getStringArrayLength(splitted) == 3) {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+        return logicalBitwise("bics",splitted[0], splitted[1], splitted[2], "lsl", "0");
     } else {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+        return logicalBitwise("bics",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
     }
 }
 char* eon (char* arguments, char* address) {
     char** splitted = splitStringOnWhitespace(arguments);
     if (getStringArrayLength(splitted) == 3) {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], "lsl", "0");
+        return logicalBitwise("eon",splitted[0], splitted[1], splitted[2], "lsl", "0");
     } else {
-        return logicalBitwise("eor",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
+        return logicalBitwise("eon",splitted[0], splitted[1], splitted[2], splitted[3], splitted[4]);
     }
 }
 

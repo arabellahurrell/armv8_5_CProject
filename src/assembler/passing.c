@@ -115,7 +115,6 @@ void pass(char **instruction, char *name) {
                 writeStringToFile(name, result);
                 line_counter += 1;
             }
-           // line_counter += 1;
         }
 
     }
