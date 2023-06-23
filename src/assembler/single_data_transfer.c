@@ -1,15 +1,7 @@
 //
-// Created by Arabella Hurrell on 30/05/2023.
+// This file contains the functions and parsers for load and store code
 //
 
-
-//char* singleData (char* rt, char* xn, char* val, char* shiftAmount) {
-//    char* x = sf(rt);
-//    int sizeOfValue = strlen(val);
-//    if (val[sizeOfValue -1] == "!") {
-//
-//    }
-//}
 
 
 char *registerOffset(char *rt, char *xn, char *xm, char *l) {

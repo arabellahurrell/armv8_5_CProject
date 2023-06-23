@@ -1,5 +1,5 @@
 //
-// Created by Arabella Hurrell on 30/05/2023.
+// This contains all our code for parsing all functions other than branches and loads and stores
 //
 
 // Function to shift bits based on shift type

@@ -1,5 +1,5 @@
 //
-// Created by Arabella Hurrell on 30/05/2023.
+// This file holds the code responsible for reading the source file into an array
 //
 
 int isAlphaInLine(char* line) {

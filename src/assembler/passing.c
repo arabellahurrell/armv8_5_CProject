@@ -1,5 +1,5 @@
 //
-// Created by Arabella Hurrell on 02/06/2023.
+// This file contains the passing algorithms for the program (two pass) as well as our write to file function
 //
 //#include <stdlib.h>
 //#include <stdio.h>
@@ -59,7 +59,7 @@ char *functionSelector(char *mnemonic, char *arguments, char *address) {
 }
 
 
-void one_pass(char **instruction, char *name) {
+void pass(char **instruction, char *name) {
     int capacity = 2;
     int num = 0;
     struct passOne *passone = (struct passOne *) malloc(

@@ -11,7 +11,5 @@ int main(int argc, char **argv) {
     removeBlankLines(lines, getStringArrayLength(lines));
     int length = countLinesInFile(filename);
     lines[length] = NULL;
-    one_pass(lines, argv[2]);  // Alternatively, use the second command line argument as the output file
-
-    // The rest of the code execution continues...
+    pass(lines, argv[2]);  // Alternatively, use the second command line argument as the output file
 }
