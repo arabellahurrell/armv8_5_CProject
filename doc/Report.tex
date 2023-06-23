@@ -1,21 +1,446 @@
 \documentclass[11pt]{article}
 
 \usepackage{fullpage}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
 
 \begin{document}
 
-\title{Our Extension...}
-\author{TODO}
+\hypertarget{h.cdynd9tc2xhn}{%
+\section{\texorpdfstring{{ARMv8 AArch64 Final Report: Group
+5}}{ARMv8 AArch64 Final Report: Group 5}}\label{h.cdynd9tc2xhn}}
 
-\maketitle
+{}
 
-\section{Introduction}
+\hypertarget{h.uu97cprfgtk5}{%
+\subsection{\texorpdfstring{{Assembler}}{Assembler}}\label{h.uu97cprfgtk5}}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+{}
+
+{The assembler was split into several different files for handling
+different stages of the assembly process: dealing with the types of
+instructions and providing utility helper functions. In our program,
+f}{irst we read the file and create an array of instructions (this is
+where we also remove comments in our extension). Then we implement a
+two-pass. On the first pass, we create an array of structs containing
+labels and their addresses, then on the second pass we go through our
+array of instructions deciding what to do based on whether the line is a
+label, directive or instruction. If it is a label, we ignore it. If it
+is a directive, we return the value in the directive. For instructions,
+we use our array of structs and a linear search to replace the labels
+with the appropriate address, then we use a function pointer to call the
+appropriate function given a mnemonic. Each mnemonic has its own
+function, however most of these call parsing functions which deal with
+groups of similar instructions to avoid any code duplication. Each of
+these parsing functions handles responsibilities such as determining
+opcodes, setting flags, and calling the helper functions that determine
+the values of registers and immediate values.}
+
+{}
+
+{Originally, we had issues writing to the file, as we were attempting to
+write a binary string to the output file. We fixed this by writing the
+full instruction in denary to the file. In addition, CLion had issues
+with reading files which were read as null when we tried running the
+program. After some research, we realised that we needed to use gcc
+instead. Afterwards, we noticed that the vast majority of test cases
+that failed were due to segmentation faults. In order to correct this,
+we used the GDB debugger. We compiled the program using the -g switch
+and then by using the run and backtrace commands, we could identify the
+offending code. In conjunction with using numerous print statements, we
+could pinpoint where the faults were happening. After our test cases
+succeeded, some still turned out to be incorrect, so we used the diff
+files and compared the hexadecimal values (which we converted into
+binary) between the expected results and the actual results. By trying
+to manually determine what the correct outputs should be, we could
+understand why the expected results were what they were which then could
+give us some insight into what was going wrong.}
+
+{}
+
+{There were a few interesting logic errors that we had to deal with. The
+first was with the single data transfer instructions. Since ldr and str
+had several different arguments for the various types of offsetting, the
+parsing was quite complex. We initially created functions to handle
+these various options which were largely working correctly, but the
+parsing beforehand was often incorrect. This was because we had removed
+all non-alphanumeric characters from the instructions, so that we did
+not have any `\#' before immediate values or `:' after labels. But this
+also removed the exclamation marks and square brackets we needed for
+parsing, leading to us correcting our helper functions.}
+
+{}
+
+{Another interesting problem arose in a test case that had two labels
+(wait1 and wait). Our initial approach to replacing labels was to find
+all the substrings representing the label in the instruction string and
+replacing the substrings with the appropriate address. As wait is a
+substring of wait1, our assembler replaced wait1 with 0x41 since the
+address of wait was 0x4, giving us an incorrect hexadecimal address. We
+decided to change the way we were replacing labels by splitting the
+instructions by commas and spaces into the mnemonic and arguments, then
+explicitly comparing the arguments against the labels to check for
+equality before making any replacements which fixed this error.}
+
+{}
+
+\hypertarget{h.3dri9a37vvl5}{%
+\subsection{\texorpdfstring{{Raspberry
+Pi}}{Raspberry Pi}}\label{h.3dri9a37vvl5}}
+
+{}
+
+{We structured our Raspberry Pi code as outlined in the specification.
+We then used our assembler to assemble our code for the Raspberry Pi and
+faced many challenges when debugging our code. We did not realise that
+assembly arithmetic instructions cannot use immediate values as
+arguments. We solved this by using `mov' instructions to load immediate
+values into registers first. It was also not possible to access the
+address of a label using the subset of the instruction set we had
+implemented for the assembler. This meant we had to hardcode the address
+of the request. We placed the request at the start of the file to ensure
+the offset would remain the same even when we added more code. When we
+}{ran}{~our code on the Raspberry Pi, the LED only }{blinked}{~once. We
+used our emulator to test that the correct registers and memory
+addresses were being written to. This surfaced more errors. When we were
+trying to load the value of the mailbox status register, we actually
+were only loading the address itself, not the value at the address.
+Also, we used x1 to reference registers which meant that 64 bits were
+loaded into memory, not 32 bits, so when using labels in code, we were
+actually loading two lines into memory instead of one. Therefore we
+switched to using w1 instead. When we tried our code on the LED again,
+it flashed once and then flashed faster until it faded out. We tried to
+isolate the cause by just loading our code to turn the LED on first, but
+this failed too. Unfortunately at this point we didn't have time to
+continue debugging and had to move on to the extension.}
+
+{}
+
+{Although we did not finish this part of the project, the process of
+debugging helped us understand our assembly instructions in greater
+depth. We also learnt how a mailbox system works when interfacing with
+an LED or other Raspberry Pi input or output device. It was exciting to
+have our first hardware-focused project, and the task gave us an
+appreciation of how we could use our assembler and emulator together in
+a real-life scenario. We could have approached this problem better to
+give us more time to ensure the LED was flashing. For example, we could
+have saved time debugging our assembly by ensuring we understood all the
+assembly instructions before writing the code, rather than assuming what
+each instruction does. Unfortunately, one aspect that slowed our
+development speed was that we had to wait for our assembler to be
+working before we could test our code. This left us very little time to
+debug before the deadline.}
+
+{}
+
+\hypertarget{h.lnn9uewmn4ng}{%
+\subsection{\texorpdfstring{{Extension 1:
+Comments}}{Extension 1: Comments}}\label{h.lnn9uewmn4ng}}
+
+{}
+
+{For the first part of our extension, we added additional functionality
+to the assembler that allows comments to be parsed. This worked by
+removing the comments before the second pass so that they were not
+translated into assembly code. We did this through two functions, one to
+remove multi-line comments and one to remove single line comments. We
+decided to parse the comments while reading in the file so that whenever
+a line is read, any single line comments can be removed immediately. We
+then remove any multi-line comments once the file is in the string
+array.}
+
+{}
+
+{Parsing multi-line introduced some unexpected challenges. We had to
+account for what happens when a multi-line comment starts or ends
+halfway through a line, and when a multi-line comment ends on one line
+and a new multi-line comment starts on the same line. We initially
+tested our extension using simple test files for parsing single and
+multiline comments. We tested both our functions in a separate project
+so that we could more easily isolate errors. Finally, we tested our
+extension on the Raspberry Pi led\_blink.s file which had multiple
+comments to explain the flow of logic. We could have implemented more
+test files to ensure our extension was working correctly and we could
+have returned more personalised error messages highlighting unterminated
+multi-line comments.}
+
+\hypertarget{h.cqqy0hf95mzj}{%
+\subsection{\texorpdfstring{{Extension 2:
+Snake}}{Extension 2: Snake}}\label{h.cqqy0hf95mzj}}
+
+{}
+
+{We also built a second extension that allows you to play a snake game
+in the console. The game is perfect to relax in the evening and pass
+time when off WiFi. The goal of the game is to use the arrows keys to
+move the snake to eat as many randomly generated apples as possible
+without dying by crashing into walls or the snake's body itself. The
+state of the game is represented using a 2D array of characters which
+represents the area that the snake can explore. The snake is represented
+using a LinkedList data structure where each node of the snake stores
+its position on the grid and the next node of the snake. This was
+essential to ensure the tail of the snake could be updated after each
+loop.}
+
+{}
+
+{The snake changes direction by detecting keyboard input from the arrow
+keys. We could not use the library function `scanf' to do this as it
+waits until the enter key is pressed to return. Because snake is a
+fast-paced game, we needed the program to respond immediately to a
+keyboard input. Therefore, we used `getch' from the
+\textless conio.h\textgreater{} library which keeps a buffer of keys
+inputted and immediately returns the latest key press. Unfortunately
+this function only works on Windows and this is a limitation we would
+address given more time. We experimented with other libraries such as
+\textless curses.h\textgreater{} and \textless ncurses.h\textgreater,
+but came across the same issue.}
+
+{}
+
+{The snake `moves' by starting at the current head and creating a new
+head of the linked list in the direction of the most recent key press.
+If the new head lands on the apple, the tail of the snake is not freed
+from memory which increases the length of the snake by one. Otherwise,
+the tail is freed and the snake moves forwards by one unit. After each
+loop, we clear the console and reprint the game board. The usual
+commands to clear the console - }{clrsrc}{(), system(``}{cls''}{) and
+system(``clear'') - did not work in CLion, so we had to use an escape
+code instead. This solution works, but is not perfect as the cursor can
+be seen moving around the screen as each frame is printed.}
+
+{}
+
+{Originally, the snake moved at the same speed by sleeping for a
+constant duration after each loop. However, we decided to implement a
+feature to increase the difficulty of the game for better players. The
+speed of the snake now increases by a factor of 0.98 after each apple is
+collected. We also calculate the player's skill level using how many
+moves they made and the minimum number of moves that the player would
+have to make to collect all the apples. The user can also compete
+against themselves and their friends by playing multiple times and
+keeping track of their high score.}
+
+{}
+
+{We have tested our game over 50 times and asked people in other teams
+to find errors. For example, one tester discovered you could use the
+arrow keys to immediately turn back on yourself and die. When running
+the code, we also noticed that the apples were consistently appearing in
+the same locations, despite using the random function. To fix this we
+needed to set the seed of the generator to the unique time the code is
+run. However, the system `rand' function has very limited randomness
+which is another limitation we would address in further development. We
+could have also tested our solution more thoroughly on operating systems
+other than Windows and we could have implemented test functions to test
+our helper functions.}
+
+{}
+
+\hypertarget{h.7uwhlvjrxtxq}{%
+\subsection{\texorpdfstring{{Group
+Reflection}}{Group Reflection}}\label{h.7uwhlvjrxtxq}}
+
+{We split the team into two pairs with Virginia and Jack initially
+working on the emulator whilst Bella and Aarit worked on the assembler.
+The emulator was the first of these two tasks to be completed, so the
+pair then started work on the Raspberry Pi and the extension. While
+coding the Raspberry Pi, Virginia and Jack were able to communicate with
+Bella and Aarit about how the assembler parsed the assembly language.
+After the assembler was completed, Bella and Aarit were able to create a
+second extension.}
+
+{In order to coordinate all our work and ensure everyone is being held
+accountable, we have all come into the university computer labs at least
+4 days a week from 10am-6pm. We have all been sitting together and
+maintained constant discussion and communication, allowing for effective
+pair programming. This was advantageous, as it reduced coding errors and
+we could learn from each other about C. Although it felt slower at the
+time, we implemented functions faster than if we had coded individually
+and then analysed each other's code in our spare time.}
+
+{}
+
+{After reading the specification, we noticed that, if we had four people
+all working on the same part, there would be a lot of redundancy. One
+person would often have to wait for another to finish their tasks before
+they start their own. Instead, we decided to split the group into two
+pairs with one working on the emulator and the other working on the
+assembler. Since understanding of how the emulator worked was a
+prerequisite to building the assembler, we - as a group - decided to
+first discuss a broad approach to implementing the emulator.}
+
+{There was a lot we learnt about how we could have improved. For
+example, we started implementing the assembler too quickly without
+planning and mapping the broader structure of the assembler. In
+addition, we had not read the entirety of the specification before we
+started and were instead trying to understand different sections in
+isolation as we were going along. This made initial progress much
+quicker, but debugging was harder as a result. It would have also been
+useful to consider things such as what data types we should use at the
+beginning. In hindsight, we could have used a program to manage which
+tasks were left to do and we could have used git issues to highlight
+bits of code to work on.}
+
+\hypertarget{h.ttl365hle8uq}{%
+\subsection{\texorpdfstring{{Individual
+Reflections}}{Individual Reflections}}\label{h.ttl365hle8uq}}
+
+\hypertarget{h.ismxnmdep3kw}{%
+\subsubsection{\texorpdfstring{{Aarit:}}{Aarit:}}\label{h.ismxnmdep3kw}}
+
+{Due to the way we had split the work between us, my understanding of
+the spec was quite useful in the project as I was able to read ahead and
+understand how various parts worked whilst Bella was implementing what
+we discussed. This allowed me to then fully understand what to do next
+when Bella was ready to implement the next part. This was also useful
+for the Raspberry Pi when other members of the group who were less
+familiar with assembly code were able to ask me about whether certain
+instructions were syntactically correct. However, I don't have much
+experience in programming and most of that experience has been with
+languages such as Python and Swift where the rules are far less strict
+and the compilers/interpreters do a lot more work. I've never dealt with
+concepts such as memory allocation, so when debugging and writing my
+helper functions, I frequently ran into segmentation faults which I
+found very difficult to fix. I occasionally also had issues dealing with
+git and running the test suite due to my lack of prior experience as
+well. Next time, I would make a more active effort at the beginning of
+the project to learn about C in my free time. In addition, I would try
+to become more comfortable with using git and the terminal which I did
+not do at all until I had to start running tests and debugging.}
+
+\hypertarget{h.9tz4i4mcmyx4}{%
+\subsubsection{\texorpdfstring{{Jack:}}{Jack:}}\label{h.9tz4i4mcmyx4}}
+
+{I had no experience with C or a Raspberry Pi before this project unlike
+some members of the group, so was initially anxious that I would have
+lots to learn very quickly. However, because we employed pair
+programming, I learnt lots from my peers at the start of the project and
+quickly got up to speed. I had also not used Git before in a team, but
+was surprised how easy it was to work together and merge conflicts.
+Initially, I underestimated by many days the time it would take to debug
+our emulator code. Although C was at times frustrating to debug, it was
+very rewarding when our code worked. The group feedback highlighted that
+one of my strengths was helping the group debug code. I made sure we
+didn't spend too much time trying to debug a single test case which
+helped us stay motivated. I also ensured I knew what every line of our
+code does and periodically removed redundant lines to keep our code
+readable. However this approach caused errors down the line where I had
+removed break statements from a switch not knowing they were necessary.
+This would also be an unsustainable approach on larger projects and I
+need to learn to trust other group members to maintain their code.
+Another weakness was that I should have taken breaks from coding more
+often than I did, which would have increased my productivity. Next time,
+I would set myself a smaller problem to ensure I knew the programming
+language before the project started to reduce such trivial errors. We
+should have also implemented testing functions for our code when writing
+it instead of when debugging. This would have saved time searching for
+errors in our source code and will be very important for future bigger
+projects.}
+
+\hypertarget{h.vo7j1qawt1os}{%
+\subsubsection{\texorpdfstring{{Virginia:}}{Virginia:}}\label{h.vo7j1qawt1os}}
+
+{Before starting this project, I had not previously coded in C or any
+very similar languages - there were a lot of new features, like memory
+allocation, that I did not know how to implement. Due to this, I spent a
+little time before starting the project to learn the basic commands and
+tried a few small coding challenges. Despite giving me a little help at
+the start, I do not feel they truly aided me, possibly due to the scale
+of this project; however, this has meant as the project has gone on, my
+skills have been much developed. Through my work on the emulator and the
+snake extension, I have found I have good analytical skills - splitting
+up any functions into smaller and smaller chunks that are more
+manageable, and despite finding debugging frustrating, gotten better at
+recognising potential flaws in my code and systematically testing to
+find them. I found that I have a tendency to overcomplicate some
+functions, but have also found that discussing them with the others in
+my project tends to mitigate this. Next time, I would maintain our
+communication level, as this was particularly useful in terms of
+debugging, and I would try to improve my organisation skills, in order
+to be more efficient - i.e. not spending too long on one small section.}
+
+\hypertarget{h.nvh7vvlf6lpp}{%
+\subsubsection{\texorpdfstring{{Bella:
+}}{Bella: }}\label{h.nvh7vvlf6lpp}}
+
+{Before starting the project I only had a basic understanding of C
+having coded in it briefly two years previously, although I had worked
+with Git quite extensively before. I felt that the pair programming
+approach worked incredibly well as it allowed me to have a chance to
+improve my coding by gaining more experience and taking on the challenge
+of programming difficult functions. The other members of the team
+provided a lot of support throughout the project and I have learnt a
+huge amount in terms of syntax and also in terms of analytical thinking
+and approaches to coding. As a result, I have found that not only have
+my C programming skills improved greatly but also my general approach
+towards programming. I found when testing our work that I had errors
+sometimes in casting between data types which was something that i
+previously had not considered, having worked in languages such as Java,
+C\# and Python, all of which are nice in terms of casting. This forced
+me to understand how casting actually worked so that I could write
+corresponding helper functions which performed the correct casting. I
+underestimated the size of the challenge that would be debugging the
+code, having misjudged how difficult segmentation faults would be to fix
+in the beginning before we created a better system to locate and fix
+them. I also relied too heavily on the IDE at first and when an issue
+occurred with IDE access to files that meant that we were unable to
+execute our code in the IDE and instead had to do so in the terminal - I
+had to improve my ability to use the terminal very quickly. Next time, I
+would continue our current communication and split as I felt that it was
+incredibly effective throughout the project. ~I would also continue a
+similar work day to the one that we established within this project as I
+felt that our 10-4 work day, 4 days a week, was very effective and
+increased the whole group\textquotesingle s productivity. However, I
+would also test my code with unit tests as I am programming rather than
+leaving it all to the end which ultimately I feel wasted time and made
+the task of debugging a lot harder.}
 
 \end{document}
+
